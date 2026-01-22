@@ -1,5 +1,5 @@
 import { Clock, ChevronRight, Percent, Gift, Coffee, Pizza } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 interface RewardCardProps {
   title: string;
@@ -28,15 +28,36 @@ const RewardCard = ({
   onClaim 
 }: RewardCardProps) => {
   const Icon = iconMap[icon];
+  const [isPressed, setIsPressed] = useState(false);
+  const [isClaimPressed, setIsClaimPressed] = useState(false);
+
+  const handleClaim = () => {
+    setIsClaimPressed(true);
+    setTimeout(() => {
+      setIsClaimPressed(false);
+      onClaim?.();
+    }, 150);
+  };
   
   return (
-    <div className={`
-      flex items-center gap-4 rounded-xl bg-card p-4 shadow-md transition-all duration-300
-      ${available ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : 'opacity-75'}
-    `}>
+    <div 
+      className={`
+        flex items-center gap-4 rounded-xl bg-card p-4 shadow-md 
+        transition-all duration-300 cursor-pointer
+        ${available ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : 'opacity-75'}
+        ${isPressed ? 'scale-[0.98] shadow-sm' : 'hover:shadow-lg'}
+      `}
+      onMouseDown={() => setIsPressed(true)}
+      onMouseUp={() => setIsPressed(false)}
+      onMouseLeave={() => setIsPressed(false)}
+      onTouchStart={() => setIsPressed(true)}
+      onTouchEnd={() => setIsPressed(false)}
+    >
       <div className={`
         flex h-14 w-14 shrink-0 items-center justify-center rounded-xl
+        transition-all duration-300
         ${available ? 'gradient-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}
+        ${isPressed ? 'scale-95' : ''}
       `}>
         <Icon className="h-6 w-6" />
       </div>
@@ -58,15 +79,21 @@ const RewardCard = ({
       </div>
       
       {available ? (
-        <Button 
-          size="sm" 
-          onClick={onClaim}
-          className="shrink-0 gradient-primary border-0 text-primary-foreground hover:opacity-90"
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClaim();
+          }}
+          className={`
+            shrink-0 px-4 py-2 rounded-lg gradient-primary text-primary-foreground text-sm font-medium
+            transition-all duration-200
+            ${isClaimPressed ? 'scale-90 opacity-80' : 'hover:opacity-90 active:scale-95'}
+          `}
         >
           Resgatar
-        </Button>
+        </button>
       ) : (
-        <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+        <ChevronRight className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200 ${isPressed ? 'translate-x-1' : ''}`} />
       )}
     </div>
   );
