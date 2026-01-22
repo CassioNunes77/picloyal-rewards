@@ -1,12 +1,13 @@
 import { Home, Gift, QrCode, Bell, User } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const navItems = [
-  { icon: Home, label: "Início", id: "home" },
-  { icon: Gift, label: "Recompensas", id: "rewards" },
-  { icon: QrCode, label: "Escanear", id: "scan", primary: true },
-  { icon: Bell, label: "Notificações", id: "notifications", badge: 2 },
-  { icon: User, label: "Perfil", id: "profile" },
+  { icon: Home, label: "Início", id: "home", path: "/" },
+  { icon: Gift, label: "Recompensas", id: "rewards", path: "/" },
+  { icon: QrCode, label: "Escanear", id: "scan", primary: true, path: "/" },
+  { icon: Bell, label: "Notificações", id: "notifications", badge: 2, path: "/" },
+  { icon: User, label: "Perfil", id: "profile", path: "/profile" },
 ];
 
 interface BottomNavProps {
@@ -15,12 +16,16 @@ interface BottomNavProps {
 }
 
 const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
+  const navigate = useNavigate();
   const [pressedTab, setPressedTab] = useState<string | null>(null);
 
-  const handleTabPress = (id: string) => {
+  const handleTabPress = (id: string, path?: string) => {
     setPressedTab(id);
     setTimeout(() => setPressedTab(null), 150);
     onTabChange(id);
+    if (path) {
+      navigate(path);
+    }
   };
 
   return (
@@ -35,7 +40,7 @@ const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
             return (
               <button
                 key={item.id}
-                onClick={() => handleTabPress(item.id)}
+                onClick={() => handleTabPress(item.id, item.path)}
                 className={`
                   flex -mt-6 h-16 w-16 items-center justify-center rounded-full gradient-secondary shadow-lg 
                   transition-all duration-200
@@ -50,7 +55,7 @@ const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
           return (
             <button
               key={item.id}
-              onClick={() => handleTabPress(item.id)}
+              onClick={() => handleTabPress(item.id, item.path)}
               className={`
                 relative flex flex-col items-center gap-1 py-2 
                 transition-all duration-200
