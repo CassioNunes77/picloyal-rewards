@@ -7,9 +7,11 @@ import RewardCard from "@/components/RewardCard";
 import QuickAction from "@/components/QuickAction";
 import BottomNav from "@/components/BottomNav";
 import SettingsScreen from "@/components/SettingsScreen";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("home");
   const [showSettings, setShowSettings] = useState(false);
 
@@ -125,12 +127,16 @@ const Index = () => {
             icon={Tag} 
             label="Ofertas" 
             badge={3}
-            onClick={() => handleQuickAction("Ofertas")}
+            onClick={() => {
+              navigate("/offers");
+            }}
           />
           <QuickAction 
             icon={Store} 
             label="Lojas"
-            onClick={() => handleQuickAction("Lojas")}
+            onClick={() => {
+              navigate("/stores");
+            }}
           />
         </div>
 
