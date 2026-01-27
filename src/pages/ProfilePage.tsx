@@ -43,8 +43,8 @@ const ProfilePage = () => {
     <div className="min-h-screen bg-background pb-24">
       {/* Header with Gradient */}
       <div className="gradient-card">
-        <header className="px-6 pt-12 pb-8">
-          <div className="flex items-center gap-4 mb-6">
+        <header className="px-6 pt-12 pb-6">
+          <div className="flex items-center gap-4 mb-4">
             <Link
               to="/"
               className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20 
@@ -64,7 +64,7 @@ const ProfilePage = () => {
 
           {/* Profile Card */}
           <div className="animate-slide-up" style={{ animationDelay: '100ms' }}>
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-center gap-4">
               <div className="relative">
                 <div className="w-24 h-24 rounded-full gradient-primary flex items-center justify-center">
                   <User className="h-12 w-12 text-primary-foreground" />
@@ -112,8 +112,8 @@ const ProfilePage = () => {
         </div>
 
         {/* Personal Information */}
-        <div className="mb-6">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1 animate-fade-in" style={{ animationDelay: '300ms' }}>
+        <div className="mb-4">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1 animate-fade-in" style={{ animationDelay: '300ms' }}>
             Informações Pessoais
           </h3>
           <div className="space-y-2">
@@ -187,8 +187,8 @@ const ProfilePage = () => {
         </div>
 
         {/* Activity */}
-        <div className="mb-6">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1 animate-fade-in" style={{ animationDelay: '750ms' }}>
+        <div className="mb-4">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1 animate-fade-in" style={{ animationDelay: '750ms' }}>
             Atividade
           </h3>
           <div className="space-y-2">
@@ -210,7 +210,7 @@ const ProfilePage = () => {
         </div>
 
         {/* Logout */}
-        <div className="mb-6">
+        <div className="mb-4">
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-4 p-4 rounded-xl bg-destructive/10 text-destructive
@@ -229,7 +229,7 @@ const ProfilePage = () => {
         </div>
 
         {/* Version */}
-        <p className="text-center text-xs text-muted-foreground pb-4 animate-fade-in" style={{ animationDelay: '950ms' }}>
+        <p className="text-center text-xs text-muted-foreground pb-2 animate-fade-in" style={{ animationDelay: '950ms' }}>
           Versão 1.0.0 • Cartão Fidelidade
         </p>
       </div>
