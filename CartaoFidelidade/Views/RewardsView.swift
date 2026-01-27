@@ -269,33 +269,6 @@ struct RewardsView: View {
     }
 }
 
-struct FilterButton: View {
-    let id: String
-    let label: String
-    let icon: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: AppSpacing.sm) {
-                Image(systemName: icon)
-                    .font(.system(size: 16))
-                
-                Text(label)
-                    .font(.system(size: 14, weight: .medium))
-            }
-            .foregroundColor(isSelected ? .secondaryForeground : .cardForeground)
-            .padding(.horizontal, AppSpacing.md)
-            .padding(.vertical, AppSpacing.sm)
-            .background(isSelected ? AppGradients.secondary : LinearGradient(colors: [Color.card], startPoint: .topLeading, endPoint: .bottomTrailing))
-            .cornerRadius(AppRadius.lg)
-            .appShadow(isSelected ? AppShadow.md : AppShadow.sm)
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
-
 #Preview {
     RewardsView(activeTab: .constant("rewards"))
 }
