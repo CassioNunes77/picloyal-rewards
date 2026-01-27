@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { QrCode, History, Tag, Store, Sparkles, Settings } from "lucide-react";
+import { QrCode, History, Sparkles, Store, Settings } from "lucide-react";
 import Header from "@/components/Header";
 import LoyaltyCard from "@/components/LoyaltyCard";
 import StampGrid from "@/components/StampGrid";
@@ -73,6 +73,7 @@ const Index = () => {
             </div>
             <div className="flex items-center gap-3">
               <button 
+                onClick={() => navigate("/notifications")}
                 className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20 
                            transition-all duration-200 active:scale-90 active:bg-primary-foreground/30
                            animate-fade-in"
@@ -116,19 +117,18 @@ const Index = () => {
           <QuickAction 
             icon={QrCode} 
             label="Escanear" 
-            onClick={() => handleQuickAction("Scanner QR")}
+            onClick={() => setShowQRCode(true)}
           />
           <QuickAction 
             icon={History} 
             label="Histórico"
-            onClick={() => handleQuickAction("Histórico")}
+            onClick={() => navigate("/history")}
           />
           <QuickAction 
-            icon={Tag} 
-            label="Ofertas" 
-            badge={3}
+            icon={Sparkles} 
+            label="Recompensas" 
             onClick={() => {
-              navigate("/offers");
+              navigate("/rewards");
             }}
           />
           <QuickAction 
@@ -156,7 +156,10 @@ const Index = () => {
               <Sparkles className="h-5 w-5 text-secondary" />
               Suas Recompensas
             </h2>
-            <button className="text-sm font-medium text-primary transition-all duration-200 active:scale-95">
+            <button 
+              onClick={() => navigate("/rewards")}
+              className="text-sm font-medium text-primary transition-all duration-200 active:scale-95"
+            >
               Ver todas
             </button>
           </div>
@@ -200,7 +203,10 @@ const Index = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} showQRCode={showQRCode} setShowQRCode={setShowQRCode} />
+      
+      {/* QR Code Card */}
+      <QRCodeCard isOpen={showQRCode} onClose={() => setShowQRCode(false)} />
     </div>
   );
 };

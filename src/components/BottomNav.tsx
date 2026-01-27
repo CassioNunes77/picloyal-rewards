@@ -13,9 +13,11 @@ const navItems = [
 interface BottomNavProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  showQRCode?: boolean;
+  setShowQRCode?: (show: boolean) => void;
 }
 
-const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
+const BottomNav = ({ activeTab, onTabChange, showQRCode, setShowQRCode }: BottomNavProps) => {
   const navigate = useNavigate();
   const [pressedTab, setPressedTab] = useState<string | null>(null);
 
@@ -40,7 +42,12 @@ const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
             return (
               <button
                 key={item.id}
-                onClick={() => handleTabPress(item.id, item.path)}
+                onClick={() => {
+                  handleTabPress(item.id, item.path);
+                  if (setShowQRCode) {
+                    setShowQRCode(true);
+                  }
+                }}
                 className={`
                   flex -mt-6 h-16 w-16 items-center justify-center rounded-full gradient-secondary shadow-lg 
                   transition-all duration-200

@@ -87,8 +87,7 @@ const StoresPage = () => {
   );
 
   const handleStoreClick = (store: Store) => {
-    toast.info(`Abrindo ${store.name}...`);
-    // Aqui você pode navegar para detalhes da loja
+    navigate(`/store/${store.id}`);
   };
 
   return (

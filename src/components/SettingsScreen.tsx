@@ -10,7 +10,8 @@ import {
   CreditCard,
   Share2,
   Star,
-  MessageCircle
+  MessageCircle,
+  Trash2
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
@@ -233,15 +234,32 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
           </div>
         </div>
 
-        {/* Logout */}
+        {/* Account Actions */}
         <div className="mb-6">
-          <SettingsItem
-            icon={LogOut}
-            label="Sair da Conta"
-            delay={600}
-            danger
-            onClick={handleLogout}
-          />
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1 animate-fade-in" style={{ animationDelay: '550ms' }}>
+            Ações da Conta
+          </h3>
+          <div className="space-y-2">
+            <SettingsItem
+              icon={Trash2}
+              label="Excluir Conta"
+              description="Excluir permanentemente sua conta e todos os dados"
+              delay={600}
+              danger
+              onClick={() => {
+                // Aqui você pode adicionar a lógica para excluir a conta
+                // Por exemplo, mostrar um diálogo de confirmação
+                toast.error("Funcionalidade de exclusão de conta em desenvolvimento");
+              }}
+            />
+            <SettingsItem
+              icon={LogOut}
+              label="Sair da Conta"
+              delay={650}
+              danger
+              onClick={handleLogout}
+            />
+          </div>
         </div>
 
         {/* Version */}
