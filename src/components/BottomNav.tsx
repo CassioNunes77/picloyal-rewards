@@ -1,10 +1,10 @@
-import { Home, Gift, QrCode, Store, User } from "lucide-react";
+import { Home, Tag, QrCode, Store, User } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const navItems = [
   { icon: Home, label: "Início", id: "home", path: "/" },
-  { icon: Gift, label: "Recompensas", id: "rewards", path: "/" },
+  { icon: Tag, label: "Ofertas", id: "offers", path: "/offers" },
   { icon: QrCode, label: "Escanear", id: "scan", primary: true, path: "/" },
   { icon: Store, label: "Lojas", id: "stores", path: "/stores" },
   { icon: User, label: "Perfil", id: "profile", path: "/profile" },
