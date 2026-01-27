@@ -1,0 +1,131 @@
+//
+//  DesignSystem.swift
+//  CartaoFidelidade
+//
+//  Design System baseado no site web React + Vite
+//
+
+import SwiftUI
+
+// MARK: - Colors
+extension Color {
+    // Background
+    static let appBackground = Color(red: 0.98, green: 0.98, blue: 0.99) // hsl(250 20% 98%)
+    static let appForeground = Color(red: 0.1, green: 0.1, blue: 0.12) // hsl(250 30% 10%)
+    
+    // Card
+    static let card = Color.white
+    static let cardForeground = Color(red: 0.1, green: 0.1, blue: 0.12)
+    
+    // Primary (verde)
+    static let primary = Color(red: 0.2, green: 0.8, blue: 0.4) // hsl(155 80% 40%)
+    static let primaryForeground = Color.white
+    
+    // Secondary (roxo)
+    static let secondary = Color(red: 0.55, green: 0.3, blue: 0.75) // hsl(270 70% 55%)
+    static let secondaryForeground = Color.white
+    
+    // Muted
+    static let muted = Color(red: 0.9, green: 0.9, blue: 0.92) // hsl(250 15% 90%)
+    static let mutedForeground = Color(red: 0.45, green: 0.45, blue: 0.5) // hsl(250 15% 45%)
+    
+    // Accent
+    static let accent = Color(red: 0.95, green: 0.98, blue: 0.96) // hsl(155 60% 95%)
+    static let accentForeground = Color(red: 0.3, green: 0.8, blue: 0.3) // hsl(155 80% 30%)
+    
+    // Destructive
+    static let destructive = Color(red: 0.9, green: 0.2, blue: 0.2) // hsl(0 72% 50%)
+    static let destructiveForeground = Color.white
+    
+    // Border
+    static let border = Color(red: 0.9, green: 0.9, blue: 0.92)
+}
+
+// MARK: - Gradients
+struct AppGradients {
+    // Primary Gradient (verde)
+    static let primary = LinearGradient(
+        colors: [
+            Color(red: 0.2, green: 0.8, blue: 0.4), // hsl(155 80% 40%)
+            Color(red: 0.25, green: 0.85, blue: 0.45) // hsl(170 70% 45%)
+        ],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+    
+    // Secondary Gradient (roxo)
+    static let secondary = LinearGradient(
+        colors: [
+            Color(red: 0.55, green: 0.3, blue: 0.75), // hsl(270 70% 55%)
+            Color(red: 0.65, green: 0.25, blue: 0.7) // hsl(290 60% 50%)
+        ],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+    
+    // Hero Gradient (roxo vertical)
+    static let hero = LinearGradient(
+        colors: [
+            Color(red: 0.55, green: 0.3, blue: 0.75), // hsl(270 70% 55%)
+            Color(red: 0.6, green: 0.25, blue: 0.65) // hsl(280 60% 45%)
+        ],
+        startPoint: .top,
+        endPoint: .bottom
+    )
+    
+    // Card Gradient (roxo para verde)
+    static let card = LinearGradient(
+        colors: [
+            Color(red: 0.55, green: 0.3, blue: 0.75), // hsl(270 70% 55%)
+            Color(red: 0.2, green: 0.8, blue: 0.4) // hsl(155 80% 40%)
+        ],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+}
+
+// MARK: - Typography
+extension Font {
+    static let appTitle = Font.system(size: 24, weight: .bold, design: .rounded)
+    static let appHeadline = Font.system(size: 20, weight: .semibold, design: .rounded)
+    static let appBody = Font.system(size: 16, weight: .regular, design: .rounded)
+    static let appCaption = Font.system(size: 12, weight: .medium, design: .rounded)
+}
+
+// MARK: - Spacing
+struct AppSpacing {
+    static let xs: CGFloat = 4
+    static let sm: CGFloat = 8
+    static let md: CGFloat = 16
+    static let lg: CGFloat = 24
+    static let xl: CGFloat = 32
+}
+
+// MARK: - Corner Radius
+struct AppRadius {
+    static let sm: CGFloat = 8
+    static let md: CGFloat = 12
+    static let lg: CGFloat = 16
+    static let xl: CGFloat = 24
+}
+
+// MARK: - Shadows
+struct AppShadow {
+    static let sm = Shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+    static let md = Shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+    static let lg = Shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
+    static let xl = Shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 8)
+}
+
+struct Shadow {
+    let color: Color
+    let radius: CGFloat
+    let x: CGFloat
+    let y: CGFloat
+}
+
+extension View {
+    func appShadow(_ shadow: Shadow) -> some View {
+        self.shadow(color: shadow.color, radius: shadow.radius, x: shadow.x, y: shadow.y)
+    }
+}
