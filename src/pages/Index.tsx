@@ -7,6 +7,7 @@ import RewardCard from "@/components/RewardCard";
 import QuickAction from "@/components/QuickAction";
 import BottomNav from "@/components/BottomNav";
 import SettingsScreen from "@/components/SettingsScreen";
+import QRCodeCard from "@/components/QRCodeCard";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -14,6 +15,7 @@ const Index = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("home");
   const [showSettings, setShowSettings] = useState(false);
+  const [showQRCode, setShowQRCode] = useState(false);
 
   const handleClaimReward = (rewardName: string) => {
     toast.success(`🎉 ${rewardName} resgatado com sucesso!`, {

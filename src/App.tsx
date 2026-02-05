@@ -10,6 +10,7 @@ import ProfilePage from "./pages/ProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
 import HistoryPage from "./pages/HistoryPage";
 import RewardsPage from "./pages/RewardsPage";
+import StoreDetailPage from "./pages/StoreDetailPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
