@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct Store: Identifiable {
+struct Store: Identifiable, Equatable {
     let id: Int
     let name: String
     let address: String
@@ -17,6 +17,10 @@ struct Store: Identifiable {
     let phone: String
     let isOpen: Bool
     let offers: Int
+    
+    static func == (lhs: Store, rhs: Store) -> Bool {
+        lhs.id == rhs.id
+    }
 }
 
 struct StoresView: View {

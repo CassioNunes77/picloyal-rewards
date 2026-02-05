@@ -154,14 +154,6 @@ struct HomeView: View {
                             
                             Spacer()
                             
-                            QuickAction(icon: "clock.fill", label: "Histórico", badge: nil) {
-                                withAnimation {
-                                    activeTab = "history"
-                                }
-                            }
-                            
-                            Spacer()
-                            
                             QuickAction(icon: "sparkles", label: "Recompensas", badge: nil) {
                                 withAnimation {
                                     activeTab = "rewards"

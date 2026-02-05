@@ -36,9 +36,6 @@ struct ContentView: View {
                     case "notifications":
                         NotificationsView(activeTab: $activeTab)
                             .transition(.move(edge: .leading))
-                    case "history":
-                        HistoryView(activeTab: $activeTab)
-                            .transition(.move(edge: .leading))
                     case "rewards":
                         RewardsView(activeTab: $activeTab)
                             .transition(.move(edge: .leading))
