@@ -76,6 +76,9 @@ const Index = () => {
     },
   ];
 
+  const displayName = user.displayName ?? user.email?.split("@")[0] ?? "Usuário";
+  const shortName = displayName.split(" ")[0] || displayName;
+
   if (showSettings) {
     return <SettingsScreen onBack={() => setShowSettings(false)} />;
   }
@@ -88,7 +91,7 @@ const Index = () => {
           <div className="flex items-center justify-between">
             <div className="animate-fade-in">
               <p className="text-sm text-primary-foreground/80">Bem-vindo de volta,</p>
-              <h1 className="text-2xl font-bold text-primary-foreground">Maria</h1>
+              <h1 className="text-2xl font-bold text-primary-foreground">{shortName}</h1>
             </div>
             <div className="flex items-center gap-3">
               <button 
@@ -123,7 +126,7 @@ const Index = () => {
           <LoyaltyCard
             currentPoints={650}
             totalPoints={1000}
-            userName="Maria Silva"
+            userName={displayName}
             cardNumber="**** **** **** 4589"
           />
         </div>
