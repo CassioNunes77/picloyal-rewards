@@ -320,6 +320,9 @@ struct ProfileView: View {
                     showToast(message: "Login em breve com Firebase")
                     showLoginView = false
                 },
+                onGoogleSignIn: {
+                    showToast(message: "Entrar com Google em breve")
+                },
                 onDismiss: { showLoginView = false }
             )
         }

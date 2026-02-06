@@ -10,9 +10,11 @@ import SwiftUI
 struct LoginView: View {
     @Environment(\.dismiss) private var dismiss
     var onLogin: ((String, String, Bool) -> Void)?
+    var onGoogleSignIn: (() -> Void)?
     var onDismiss: (() -> Void)?
     
     @State private var mode: LoginMode = .signin
+    @State private var googleLoading = false
     @State private var email = ""
     @State private var password = ""
     @State private var loading = false
@@ -154,8 +156,54 @@ struct LoginView: View {
                             .cornerRadius(AppRadius.lg)
                             .appShadow(AppShadow.md)
                         }
-                        .disabled(loading || email.isEmpty || password.isEmpty)
+                        .disabled(loading || googleLoading || email.isEmpty || password.isEmpty)
                         .padding(.top, AppSpacing.sm)
+                        
+                        // Divisor "ou"
+                        HStack {
+                            Rectangle()
+                                .fill(Color.border)
+                                .frame(height: 1)
+                            Text("ou")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.mutedForeground)
+                                .textCase(.uppercase)
+                            Rectangle()
+                                .fill(Color.border)
+                                .frame(height: 1)
+                        }
+                        .padding(.vertical, AppSpacing.md)
+                        
+                        // Botão Entrar com Google
+                        Button(action: {
+                            googleLoading = true
+                            onGoogleSignIn?()
+                            googleLoading = false
+                        }) {
+                            HStack(spacing: AppSpacing.sm) {
+                                if googleLoading {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .cardForeground))
+                                } else {
+                                    Image(systemName: "g.circle.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(.primary)
+                                    Text("Entrar com Google")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(.cardForeground)
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 52)
+                            .background(Color.appBackground)
+                            .cornerRadius(AppRadius.lg)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: AppRadius.lg)
+                                    .stroke(Color.border, lineWidth: 1)
+                            )
+                        }
+                        .disabled(loading || googleLoading)
+                        .padding(.top, AppSpacing.xs)
                         
                         // Toggle Criar conta / Já tem conta
                         Button(action: {
@@ -197,6 +245,7 @@ struct LoginView: View {
 #Preview {
     LoginView(
         onLogin: { _, _, _ in },
+        onGoogleSignIn: {},
         onDismiss: {}
     )
 }
