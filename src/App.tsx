@@ -1,9 +1,10 @@
+import { type ReactNode } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import StoresPage from "./pages/StoresPage";
 import OffersPage from "./pages/OffersPage";
@@ -17,6 +18,23 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+/** Sem login, só a rota "/" é permitida — qualquer outra vai para splash/login. */
+function AuthGuard({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
+  const { user, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="min-h-screen gradient-hero flex items-center justify-center">
+        <span className="text-white/90 text-lg font-medium">Carregando...</span>
+      </div>
+    );
+  }
+  if (!user && pathname !== "/") {
+    return <Navigate to="/" replace />;
+  }
+  return <>{children}</>;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -24,20 +42,22 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LoginPage />} />
-          <Route path="/home" element={<Index />} />
-          <Route path="/stores" element={<StoresPage />} />
-          <Route path="/store/:id" element={<StoreDetailPage />} />
-          <Route path="/offers" element={<OffersPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/notifications" element={<NotificationsPage />} />
-          <Route path="/history" element={<HistoryPage />} />
-          <Route path="/rewards" element={<RewardsPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+          <AuthGuard>
+            <Routes>
+              <Route path="/" element={<LoginPage />} />
+              <Route path="/home" element={<Index />} />
+              <Route path="/stores" element={<StoresPage />} />
+              <Route path="/store/:id" element={<StoreDetailPage />} />
+              <Route path="/offers" element={<OffersPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/history" element={<HistoryPage />} />
+              <Route path="/rewards" element={<RewardsPage />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthGuard>
+        </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
   </QueryClientProvider>
