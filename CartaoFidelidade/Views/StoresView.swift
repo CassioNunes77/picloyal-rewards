@@ -196,11 +196,10 @@ struct StoresView: View {
                             .padding(.top, AppSpacing.xl * 2)
                         } else {
                             ForEach(Array(filteredStores.enumerated()), id: \.element.id) { index, store in
-                                StoreCard(store: store)
-                                    .fadeIn(delay: 0.15 + Double(index) * 0.05)
-                                    .onTapGesture {
-                                        selectedStore = store
-                                    }
+                                StoreCard(store: store) {
+                                    selectedStore = store
+                                }
+                                .fadeIn(delay: 0.15 + Double(index) * 0.05)
                             }
                         }
                         
@@ -233,7 +232,7 @@ struct StoresView: View {
                 .animation(.easeInOut, value: showToast)
             }
             
-            // Store Detail
+            // Store Detail (overlay em cima de todo o conteúdo)
             if let store = selectedStore {
                 StoreDetailView(
                     store: store,
@@ -244,6 +243,7 @@ struct StoresView: View {
                     )
                 )
                 .transition(.move(edge: .trailing))
+                .zIndex(1)
             }
         }
         .ignoresSafeArea(edges: .top)
@@ -265,10 +265,11 @@ struct StoresView: View {
 
 struct StoreCard: View {
     let store: Store
+    var onTap: () -> Void = {}
     @State private var isPressed = false
     
     var body: some View {
-        Button(action: {}) {
+        Button(action: onTap) {
             HStack(spacing: AppSpacing.md) {
                 // Store Image
                 ZStack {
