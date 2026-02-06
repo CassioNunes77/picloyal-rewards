@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { QrCode, History, Sparkles, Store, Settings } from "lucide-react";
 import Header from "@/components/Header";
 import LoyaltyCard from "@/components/LoyaltyCard";
@@ -10,12 +10,29 @@ import SettingsScreen from "@/components/SettingsScreen";
 import QRCodeCard from "@/components/QRCodeCard";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("home");
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/login", { replace: true });
+    }
+  }, [authLoading, user, navigate]);
+
   const [showSettings, setShowSettings] = useState(false);
   const [showQRCode, setShowQRCode] = useState(false);
+
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-muted-foreground">Carregando...</div>
+      </div>
+    );
+  }
 
   const handleClaimReward = (rewardName: string) => {
     toast.success(`🎉 ${rewardName} resgatado com sucesso!`, {
