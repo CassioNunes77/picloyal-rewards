@@ -52,18 +52,14 @@ struct ProfileView: View {
                             
                             Spacer()
                             
-                            Button(action: {
-                                showToast(message: "Editando perfil...")
-                            }) {
-                                ZStack {
-                                    Circle()
-                                        .fill(Color.white.opacity(0.2))
-                                        .frame(width: 40, height: 40)
-                                    
-                                    Image(systemName: "pencil")
-                                        .foregroundColor(.white)
-                                        .font(.system(size: 20))
-                                }
+                            Button(action: { showLoginView = true }) {
+                                Text("Entrar")
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, AppSpacing.md)
+                                    .padding(.vertical, AppSpacing.sm)
+                                    .background(Color.white.opacity(0.2))
+                                    .cornerRadius(AppRadius.lg)
                             }
                         }
                         .padding(.horizontal, AppSpacing.lg)
@@ -215,7 +211,7 @@ struct ProfileView: View {
                                 rightElement: AnyView(
                                     Toggle("", isOn: $notifications)
                                         .toggleStyle(SwitchToggleStyle(tint: .primary))
-                                        .onChange(of: notifications) { newValue in
+                                        .onChange(of: notifications) { _, newValue in
                                             showToast(message: newValue ? "Notificações ativadas" : "Notificações desativadas")
                                         }
                                 )
@@ -317,6 +313,15 @@ struct ProfileView: View {
                 }
                 .animation(.easeInOut, value: showToast)
             }
+        }
+        .fullScreenCover(isPresented: $showLoginView) {
+            LoginView(
+                onLogin: { _, _, _ in
+                    showToast(message: "Login em breve com Firebase")
+                    showLoginView = false
+                },
+                onDismiss: { showLoginView = false }
+            )
         }
         .ignoresSafeArea(edges: .top)
     }
