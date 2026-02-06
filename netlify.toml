@@ -1,4 +1,4 @@
-# Build e publicação para o Cartão Fidelidade (raiz do repositório)
+# Build e publicação para o Cartão Fidelidade
 [build]
   command = "npm run build"
   publish = "dist"
