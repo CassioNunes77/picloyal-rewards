@@ -16,11 +16,13 @@ import {
   LogOut
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
-import { Link, useNavigate } from "react-router-dom";
+import LoginForm from "@/components/LoginForm";
+import { useAuth } from "@/contexts/AuthContext";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 const ProfilePage = () => {
-  const navigate = useNavigate();
+  const { user, loading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [notifications, setNotifications] = useState(true);
 
@@ -34,10 +36,47 @@ const ProfilePage = () => {
     toast.info("Editando perfil...");
   };
 
-  const handleLogout = () => {
-    toast.success("Até logo! 👋");
-    // Aqui você pode adicionar lógica de logout
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success("Até logo! 👋");
+    } catch {
+      toast.error("Erro ao sair.");
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center pb-24">
+        <div className="text-muted-foreground">Carregando...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <div className="gradient-card">
+          <header className="px-6 pt-12 pb-8">
+            <div className="flex items-center gap-4">
+              <Link
+                to="/"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20
+                           transition-all duration-200 active:scale-90 active:bg-primary-foreground/30"
+              >
+                <ChevronRight className="h-5 w-5 text-primary-foreground rotate-180" />
+              </Link>
+              <h1 className="text-2xl font-bold text-primary-foreground flex-1">Entrar</h1>
+            </div>
+          </header>
+        </div>
+        <div className="px-6 pt-8">
+          <LoginForm />
+        </div>
+        <BottomNav activeTab={activeTab} onTabChange={() => {}} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -75,8 +114,10 @@ const ProfilePage = () => {
                 </button>
               </div>
               <div className="flex-1">
-                <h2 className="text-2xl font-bold text-primary-foreground mb-1">Maria Silva</h2>
-                <p className="text-sm text-primary-foreground/80 mb-2">maria.silva@email.com</p>
+                <h2 className="text-2xl font-bold text-primary-foreground mb-1">
+                  {user.displayName || user.email?.split("@")[0] || "Usuário"}
+                </h2>
+                <p className="text-sm text-primary-foreground/80 mb-2">{user.email}</p>
                 <div className="flex items-center gap-2">
                   <span className="px-3 py-1 rounded-full bg-primary-foreground/20 text-primary-foreground text-xs font-medium">
                     Membro VIP ⭐
@@ -212,7 +253,7 @@ const ProfilePage = () => {
         {/* Logout */}
         <div className="mb-4">
           <button
-            onClick={handleLogout}
+            onClick={() => void handleLogout()}
             className="w-full flex items-center gap-4 p-4 rounded-xl bg-destructive/10 text-destructive
                      transition-all duration-200 active:scale-[0.98] active:bg-destructive/20
                      animate-fade-in"
