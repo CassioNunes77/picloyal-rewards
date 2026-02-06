@@ -13,9 +13,35 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+
+function getGoogleErrorMessage(e: unknown): string {
+  const err = e as { code?: string; message?: string } | null;
+  if (!err || typeof err !== "object") return "Erro ao entrar com Google. Tente novamente.";
+  const code = err.code as string | undefined;
+  const msg = (err.message as string) ?? "";
+  if (code === "auth/unauthorized-domain") {
+    return "Este site não está autorizado no Firebase. Em Firebase Console → Authentication → Authorized domains, adicione o domínio (ex.: cardcorevo.netlify.app).";
+  }
+  if (code === "auth/operation-not-allowed") {
+    return "Login com Google não está ativado. Em Firebase Console → Authentication → Sign-in method, ative o provedor Google.";
+  }
+  if (code === "auth/popup-blocked") {
+    return "O popup foi bloqueado. Permita popups para este site ou tente novamente.";
+  }
+  if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
+    return "Login cancelado.";
+  }
+  if (msg.includes("access_denied") || msg.toLowerCase().includes("consent") || msg.includes("test user")) {
+    return "Se o app Google está em modo Teste: em Google Cloud Console → OAuth consent screen → Test users, adicione seu e-mail. Ou publique o app para permitir qualquer conta.";
+  }
+  if (msg && typeof msg === "string") return msg;
+  return "Erro ao entrar com Google. Abra o Console (F12) e veja o código do erro para mais detalhes.";
+}
 
 interface AuthContextType {
   user: User | null;
@@ -40,6 +66,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return;
     }
+    getRedirectResult(auth)
+      .catch(() => {})
+      .finally(() => {});
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
       setLoading(false);
@@ -80,13 +109,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signInWithGoogle = useCallback(async () => {
     if (!auth) throw new Error("Firebase não configurado.");
     setAuthError(null);
+    const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, new GoogleAuthProvider());
+      await signInWithPopup(auth, provider);
     } catch (e: unknown) {
-      const message =
-        e && typeof e === "object" && "message" in e
-          ? String((e as { message: string }).message)
-          : "Erro ao entrar com Google. Tente novamente.";
+      const err = e as { code?: string; message?: string } | null;
+      if (err) {
+        console.error("[Firebase Google]", err.code ?? "unknown", err.message ?? e);
+      }
+      if (err && typeof err === "object" && err.code === "auth/popup-blocked") {
+        try {
+          await signInWithRedirect(auth, provider);
+          return;
+        } catch (redirectErr: unknown) {
+          setAuthError(getGoogleErrorMessage(redirectErr));
+          throw redirectErr;
+        }
+      }
+      const message = getGoogleErrorMessage(e);
       setAuthError(message);
       throw e;
     }
