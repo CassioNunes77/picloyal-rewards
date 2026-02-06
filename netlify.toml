@@ -1,0 +1,10 @@
+# Build e publicação para o Cartão Fidelidade (raiz do repositório)
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Garante que a SPA sempre receba index.html (fallback)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
