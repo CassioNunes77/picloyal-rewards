@@ -141,7 +141,7 @@ const ProfilePage = () => {
             <ProfileInfoItem
               icon={Mail}
               label="E-mail"
-              value="maria.silva@email.com"
+              value={user.email ?? ""}
               delay={350}
             />
             <ProfileInfoItem

@@ -16,6 +16,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SettingsItemProps {
   icon: React.ElementType;
@@ -73,8 +74,11 @@ interface SettingsScreenProps {
 }
 
 const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+  const displayName = user?.displayName ?? user?.email?.split("@")[0] ?? "Usuário";
+  const userEmail = user?.email ?? "";
 
   const handleToggleNotifications = (checked: boolean) => {
     setNotifications(checked);
@@ -124,8 +128,8 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
               <User className="h-8 w-8 text-primary-foreground" />
             </div>
             <div className="flex-1 text-left">
-              <h2 className="text-lg font-semibold text-card-foreground">Maria Silva</h2>
-              <p className="text-sm text-muted-foreground">maria.silva@email.com</p>
+              <h2 className="text-lg font-semibold text-card-foreground">{displayName}</h2>
+              <p className="text-sm text-muted-foreground">{userEmail || "—"}</p>
               <p className="text-xs text-primary font-medium mt-1">Membro VIP ⭐</p>
             </div>
             <ChevronRight className="h-5 w-5 text-muted-foreground" />
