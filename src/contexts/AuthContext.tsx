@@ -12,6 +12,8 @@ import {
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
+  signInWithPopup,
+  GoogleAuthProvider,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
@@ -20,6 +22,7 @@ interface AuthContextType {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   authError: string | null;
   clearError: () => void;
@@ -74,6 +77,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const signInWithGoogle = useCallback(async () => {
+    if (!auth) throw new Error("Firebase não configurado.");
+    setAuthError(null);
+    try {
+      await signInWithPopup(auth, new GoogleAuthProvider());
+    } catch (e: unknown) {
+      const message =
+        e && typeof e === "object" && "message" in e
+          ? String((e as { message: string }).message)
+          : "Erro ao entrar com Google. Tente novamente.";
+      setAuthError(message);
+      throw e;
+    }
+  }, []);
+
   const signOut = useCallback(async () => {
     setAuthError(null);
     if (auth) await firebaseSignOut(auth);
@@ -86,6 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     signIn,
     signUp,
+    signInWithGoogle,
     signOut,
     authError,
     clearError,
