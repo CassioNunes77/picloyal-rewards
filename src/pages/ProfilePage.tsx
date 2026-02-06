@@ -16,12 +16,12 @@ import {
   LogOut
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
-import LoginForm from "@/components/LoginForm";
 import { useAuth } from "@/contexts/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const ProfilePage = () => {
+  const navigate = useNavigate();
   const { user, loading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [notifications, setNotifications] = useState(true);
@@ -54,28 +54,8 @@ const ProfilePage = () => {
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-background pb-24">
-        <div className="gradient-card">
-          <header className="px-6 pt-12 pb-8">
-            <div className="flex items-center gap-4">
-              <Link
-                to="/"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20
-                           transition-all duration-200 active:scale-90 active:bg-primary-foreground/30"
-              >
-                <ChevronRight className="h-5 w-5 text-primary-foreground rotate-180" />
-              </Link>
-              <h1 className="text-2xl font-bold text-primary-foreground flex-1">Entrar</h1>
-            </div>
-          </header>
-        </div>
-        <div className="px-6 pt-8">
-          <LoginForm />
-        </div>
-        <BottomNav activeTab={activeTab} onTabChange={() => {}} />
-      </div>
-    );
+    navigate("/login", { replace: true });
+    return null;
   }
 
   return (
