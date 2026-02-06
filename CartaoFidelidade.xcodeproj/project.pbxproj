@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DF6543542F361630007B1B76 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = DF6543532F361630007B1B76 /* FirebaseAuth */; };
+		DF6543562F361630007B1B76 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = DF6543552F361630007B1B76 /* FirebaseCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,6 +57,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DF6543562F361630007B1B76 /* FirebaseCore in Frameworks */,
+				DF6543542F361630007B1B76 /* FirebaseAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -115,6 +119,8 @@
 			);
 			name = CartaoFidelidade;
 			packageProductDependencies = (
+				DF6543532F361630007B1B76 /* FirebaseAuth */,
+				DF6543552F361630007B1B76 /* FirebaseCore */,
 			);
 			productName = CartaoFidelidade;
 			productReference = DF5AABC32F21B1EB00BCE4F0 /* CartaoFidelidade.app */;
@@ -199,6 +205,7 @@
 			mainGroup = DF5AABBA2F21B1EB00BCE4F0;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				DF6543522F361630007B1B76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DF5AABC42F21B1EB00BCE4F0 /* Products */;
@@ -595,6 +602,29 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		DF6543522F361630007B1B76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.9.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		DF6543532F361630007B1B76 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DF6543522F361630007B1B76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		DF6543552F361630007B1B76 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DF6543522F361630007B1B76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = DF5AABBB2F21B1EB00BCE4F0 /* Project object */;
 }
