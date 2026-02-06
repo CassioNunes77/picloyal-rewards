@@ -105,7 +105,7 @@ const RewardsPage = () => {
         <header className="px-6 pt-12 pb-6">
           <div className="flex items-center gap-4 mb-4">
             <Link
-              to="/"
+              to="/home"
               className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary-foreground/20 
                          transition-all duration-200 active:scale-90 active:bg-secondary-foreground/30"
             >

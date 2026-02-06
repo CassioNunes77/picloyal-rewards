@@ -19,7 +19,7 @@ const Index = () => {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate("/login", { replace: true });
+      navigate("/", { replace: true });
     }
   }, [authLoading, user, navigate]);
 

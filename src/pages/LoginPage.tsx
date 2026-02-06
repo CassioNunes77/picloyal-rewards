@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Mail, Lock, Loader2, ChevronRight } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Mail, Lock, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -9,16 +9,24 @@ import { Label } from "@/components/ui/label";
 
 type Mode = "signin" | "signup";
 
+const SPLASH_DURATION_MS = 1800;
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading, signIn, signUp, authError, clearError } = useAuth();
+  const [splashDone, setSplashDone] = useState(false);
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    const t = setTimeout(() => setSplashDone(true), SPLASH_DURATION_MS);
+    return () => clearTimeout(t);
+  }, []);
+
   if (user) {
-    navigate("/profile", { replace: true });
+    navigate("/home", { replace: true });
     return null;
   }
 
@@ -34,11 +42,11 @@ export default function LoginPage() {
       if (mode === "signin") {
         await signIn(email.trim(), password);
         toast.success("Bem-vindo de volta!");
-        navigate("/profile", { replace: true });
+        navigate("/home", { replace: true });
       } else {
         await signUp(email.trim(), password);
         toast.success("Conta criada com sucesso!");
-        navigate("/profile", { replace: true });
+        navigate("/home", { replace: true });
       }
     } catch {
       toast.error(authError ?? "Ocorreu um erro. Tente novamente.");
@@ -49,23 +57,31 @@ export default function LoginPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-muted-foreground">Carregando...</div>
+      <div className="min-h-screen gradient-hero flex items-center justify-center">
+        <div className="text-white/90 text-lg font-medium">Carregando...</div>
+      </div>
+    );
+  }
+
+  /* Splash: tela cheia com gradiente + nome do app */
+  if (!splashDone) {
+    return (
+      <div className="min-h-screen gradient-hero flex flex-col items-center justify-center px-8 animate-fade-in">
+        <div className="w-20 h-20 rounded-2xl bg-white/20 mb-6 animate-scale-in" />
+        <h1 className="text-3xl font-bold text-white tracking-tight text-center">
+          Cartão Fidelidade
+        </h1>
+        <p className="text-white/90 text-base mt-3 text-center">
+          Seu cartão de benefícios e descontos
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col animate-fade-in">
       {/* Topo: gradiente + nome do app (estilo PINEE) */}
       <div className="gradient-hero rounded-b-[2rem] pb-12 pt-14 px-6">
-        <Link
-          to="/"
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 mb-6
-                     transition-all duration-200 active:scale-90"
-        >
-          <ChevronRight className="h-5 w-5 text-white rotate-180" />
-        </Link>
         <h1 className="text-3xl font-bold text-white tracking-tight">
           Cartão Fidelidade
         </h1>

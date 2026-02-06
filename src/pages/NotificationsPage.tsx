@@ -139,7 +139,7 @@ const NotificationsPage = () => {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <Link
-                to="/"
+                to="/home"
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20 
                            transition-all duration-200 active:scale-90 active:bg-primary-foreground/30"
               >

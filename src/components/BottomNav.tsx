@@ -3,9 +3,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const navItems = [
-  { icon: Home, label: "Início", id: "home", path: "/" },
+  { icon: Home, label: "Início", id: "home", path: "/home" },
   { icon: Tag, label: "Ofertas", id: "offers", path: "/offers" },
-  { icon: QrCode, label: "Escanear", id: "scan", primary: true, path: "/" },
+  { icon: QrCode, label: "Escanear", id: "scan", primary: true, path: "/home" },
   { icon: Store, label: "Lojas", id: "stores", path: "/stores" },
   { icon: User, label: "Perfil", id: "profile", path: "/profile" },
 ];
