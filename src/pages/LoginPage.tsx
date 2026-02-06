@@ -86,8 +86,10 @@ export default function LoginPage() {
       await signInWithGoogle();
       toast.success("Bem-vindo!");
       navigate("/home", { replace: true });
-    } catch {
-      toast.error(authError ?? "Erro ao entrar com Google. Tente novamente.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : (authError ?? "Erro ao entrar com Google. Tente novamente.");
+      console.error("[LoginPage] Google sign-in error:", err);
+      toast.error(message);
     } finally {
       setGoogleLoading(false);
     }

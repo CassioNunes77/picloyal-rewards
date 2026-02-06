@@ -107,28 +107,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
-    if (!auth) throw new Error("Firebase não configurado.");
+    console.log("[Auth] Entrar com Google: início");
+    if (!auth) {
+      const msg = "Firebase não configurado. Configure as variáveis no Netlify.";
+      setAuthError(msg);
+      console.error("[Auth] Entrar com Google:", msg);
+      throw new Error(msg);
+    }
     setAuthError(null);
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
+      console.log("[Auth] Entrar com Google: sucesso");
     } catch (e: unknown) {
       const err = e as { code?: string; message?: string } | null;
-      if (err) {
-        console.error("[Firebase Google]", err.code ?? "unknown", err.message ?? e);
-      }
+      console.error("[Auth] Entrar com Google falhou:", err?.code ?? "unknown", err?.message ?? e);
       if (err && typeof err === "object" && err.code === "auth/popup-blocked") {
         try {
           await signInWithRedirect(auth, provider);
           return;
         } catch (redirectErr: unknown) {
-          setAuthError(getGoogleErrorMessage(redirectErr));
-          throw redirectErr;
+          const msg = getGoogleErrorMessage(redirectErr);
+          setAuthError(msg);
+          throw new Error(msg);
         }
       }
       const message = getGoogleErrorMessage(e);
       setAuthError(message);
-      throw e;
+      throw new Error(message);
     }
   }, []);
 
