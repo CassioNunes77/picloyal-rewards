@@ -10,15 +10,20 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID ?? "",
 };
 
-let app: FirebaseApp;
-let auth: Auth;
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
 
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-} else {
-  app = getApps()[0] as FirebaseApp;
-  auth = getAuth(app);
+try {
+  if (!getApps().length) {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+  } else {
+    app = getApps()[0] as FirebaseApp;
+    auth = getAuth(app);
+  }
+} catch {
+  auth = null;
+  app = null;
 }
 
 export { app, auth };

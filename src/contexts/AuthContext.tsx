@@ -33,6 +33,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
       setLoading(false);
@@ -41,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {
+    if (!auth) throw new Error("Firebase não configurado. Configure as variáveis no Netlify.");
     setAuthError(null);
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -55,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = useCallback(async (email: string, password: string) => {
+    if (!auth) throw new Error("Firebase não configurado. Configure as variáveis no Netlify.");
     setAuthError(null);
     try {
       await createUserWithEmailAndPassword(auth, email, password);
@@ -70,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     setAuthError(null);
-    await firebaseSignOut(auth);
+    if (auth) await firebaseSignOut(auth);
   }, []);
 
   const clearError = useCallback(() => setAuthError(null), []);
