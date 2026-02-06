@@ -14,18 +14,26 @@ Para a **tela de splash/login** aparecer ao abrir o site, configure assim:
 - **Build command:** `npm run build`
 - **Publish directory:** `dist`
 
-## 3. Variáveis de ambiente (Firebase)
+## 3. Variáveis de ambiente (Firebase) — obrigatório para login
 
-Em **Site settings → Environment variables** adicione:
+Sem essas variáveis o site mostra **"Firebase não configurado. Configure as variáveis no Netlify."** e o login (e-mail e Google) não funciona.
 
-- `VITE_FIREBASE_API_KEY`
-- `VITE_FIREBASE_AUTH_DOMAIN`
-- `VITE_FIREBASE_PROJECT_ID`
-- `VITE_FIREBASE_STORAGE_BUCKET`
-- `VITE_FIREBASE_MESSAGING_SENDER_ID`
-- `VITE_FIREBASE_APP_ID`
+**Onde configurar no Netlify:**  
+Site **cardcorevo** → **Site configuration** → **Environment variables** → **Add a variable** / **Add from .env**.
 
-Sem essas variáveis a tela de login **ainda aparece**, mas login/cadastro não funcionam até configurar.
+**Onde pegar os valores:**  
+[Firebase Console](https://console.firebase.google.com/) → selecione o projeto → ícone de engrenagem **Project settings** → na seção **Your apps**, escolha o app Web (ou crie um). Os valores aparecem em **Firebase SDK snippet** → **config**.
+
+| Nome no Netlify | Onde está no Firebase |
+|-----------------|------------------------|
+| `VITE_FIREBASE_API_KEY` | `apiKey` |
+| `VITE_FIREBASE_AUTH_DOMAIN` | `authDomain` (ex.: `seu-projeto.firebaseapp.com`) |
+| `VITE_FIREBASE_PROJECT_ID` | `projectId` |
+| `VITE_FIREBASE_STORAGE_BUCKET` | `storageBucket` (ex.: `seu-projeto.appspot.com`) |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | `messagingSenderId` |
+| `VITE_FIREBASE_APP_ID` | `appId` |
+
+Adicione as **6 variáveis** com os valores do seu projeto. Depois faça um **novo deploy** (Deploys → Trigger deploy) para o build usar os valores novos.
 
 ## 4. Redirect SPA
 
