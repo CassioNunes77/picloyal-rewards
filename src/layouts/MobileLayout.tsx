@@ -19,7 +19,7 @@ export default function MobileLayout() {
   }, [pathname, searchParams, openQR, setSearchParams]);
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-bottom-nav">
       <Outlet />
       <BottomNav activeTab={activeTab} />
       <QRCodeCard isOpen={showQR} onClose={closeQR} />

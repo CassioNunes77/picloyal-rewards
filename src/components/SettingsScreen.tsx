@@ -178,7 +178,7 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24 animate-slide-in-right">
+    <div className="min-h-screen bg-background animate-slide-in-right">
       {/* Header */}
       <header className="gradient-hero px-6 pt-12 pb-8">
         <div className="flex items-center gap-4">

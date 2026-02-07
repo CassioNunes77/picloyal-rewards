@@ -124,7 +124,7 @@ const OffersPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="gradient-secondary">
         <header className="px-6 pt-12 pb-6">

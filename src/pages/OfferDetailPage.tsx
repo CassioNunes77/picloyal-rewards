@@ -56,7 +56,7 @@ const OfferDetailPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background">
       <div className="gradient-secondary">
         <header className="px-6 pt-12 pb-6">
           <div className="flex items-center gap-4 mb-4">

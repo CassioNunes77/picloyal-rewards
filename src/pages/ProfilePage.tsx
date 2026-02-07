@@ -115,7 +115,7 @@ const ProfilePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center pb-24">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-muted-foreground">Carregando...</div>
       </div>
     );
@@ -127,7 +127,7 @@ const ProfilePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background">
       {/* Header with Gradient */}
       <div className="gradient-card">
         <header className="px-6 pt-12 pb-6">
