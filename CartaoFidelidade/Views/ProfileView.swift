@@ -84,15 +84,30 @@ struct ProfileView: View {
                         // Profile Card
                         HStack(spacing: AppSpacing.md) {
                             ZStack(alignment: .bottomTrailing) {
-                                ZStack {
-                                    Circle()
-                                        .fill(AppGradients.primary)
+                                Group {
+                                    if let url = URL(string: userPhotoURL), !userPhotoURL.isEmpty {
+                                        AsyncImage(url: url) { phase in
+                                            switch phase {
+                                            case .success(let image):
+                                                image
+                                                    .resizable()
+                                                    .aspectRatio(contentMode: .fill)
+                                            case .failure(_), .empty:
+                                                placeholderAvatar
+                                            @unknown default:
+                                                placeholderAvatar
+                                            }
+                                        }
                                         .frame(width: 96, height: 96)
-                                    
-                                    Image(systemName: "person.fill")
-                                        .foregroundColor(.primaryForeground)
-                                        .font(.system(size: 48))
+                                        .clipShape(Circle())
+                                    } else {
+                                        placeholderAvatar
+                                    }
                                 }
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                                )
                                 
                                 Button(action: {}) {
                                     ZStack {
@@ -313,6 +328,10 @@ struct ProfileView: View {
             }
             .onAppear {
                 loadProfile()
+                // Atualiza foto do usuário (ex.: Google) caso ainda não tenha sido salva no login
+                if let url = Auth.auth().currentUser?.photoURL?.absoluteString, !url.isEmpty {
+                    userPhotoURL = url
+                }
             }
             
             // Toast
@@ -442,9 +461,8 @@ struct ProfileView: View {
             do {
                 try await ProfileService.shared.updateEmail(newEmail: email, currentPassword: tempPassword)
                 await MainActor.run {
-                    userEmail = email
                     showEmailSheet = false
-                    showToast(message: "E-mail atualizado.")
+                    showToast(message: "Enviamos um e-mail de confirmação para \(email). Acesse o link no e-mail para concluir a alteração.")
                 }
             } catch {
                 await MainActor.run {

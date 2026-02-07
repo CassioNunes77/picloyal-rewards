@@ -61,7 +61,7 @@ final class ProfileService {
         try await doc.setData(["phone": phone], merge: true)
     }
 
-    /// Atualiza o e-mail no Firebase Auth (requer reautenticação com senha).
+    /// Envia e-mail de verificação para o novo endereço; o e-mail só é alterado quando o usuário clicar no link (requer reautenticação com senha).
     func updateEmail(newEmail: String, currentPassword: String) async throws {
         guard let user = Auth.auth().currentUser else {
             throw ProfileServiceError.notAuthenticated
@@ -76,7 +76,7 @@ final class ProfileService {
             throw ProfileServiceError.reauthFailed(error.localizedDescription)
         }
         do {
-            try await user.updateEmail(to: newEmail)
+            try await user.sendEmailVerification(beforeUpdatingEmail: newEmail)
         } catch {
             throw ProfileServiceError.updateEmailFailed(error.localizedDescription)
         }
