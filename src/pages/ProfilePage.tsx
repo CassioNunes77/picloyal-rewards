@@ -43,10 +43,16 @@ const ProfilePage = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !getProfile) return;
     getProfile()
-      .then((p) => setProfilePhone(p.phone ?? ""))
-      .catch(() => {});
+      .then((p) => {
+        if (p && typeof p === "object" && "phone" in p) {
+          setProfilePhone(p.phone ?? "");
+        }
+      })
+      .catch((err) => {
+        console.warn("Failed to load profile:", err);
+      });
   }, [user, getProfile]);
 
   const userStats = [
@@ -160,7 +166,7 @@ const ProfilePage = () => {
 
   if (!isMobile) {
     return (
-      <div className="min-h-full bg-background">
+      <div className="min-h-full bg-background w-full">
         <div className="pb-4 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-card-foreground">Perfil</h1>

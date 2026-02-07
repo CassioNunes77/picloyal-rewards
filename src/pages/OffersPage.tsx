@@ -142,7 +142,7 @@ const OffersPage = () => {
 
   if (!isMobile) {
     return (
-      <div className="min-h-full bg-background">
+      <div className="min-h-full bg-background w-full">
         <div className="pb-4">
           <h1 className="text-xl font-bold text-card-foreground flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />

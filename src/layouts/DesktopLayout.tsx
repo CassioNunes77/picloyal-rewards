@@ -3,7 +3,6 @@ import { navItems, getActiveNavId } from "@/config/nav";
 import { cn } from "@/lib/utils";
 import QRCodeCard from "@/components/QRCodeCard";
 import LoyaltyCard from "@/components/LoyaltyCard";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useQR } from "@/contexts/QRContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { User, Bell, Settings } from "lucide-react";
@@ -100,13 +99,10 @@ export default function DesktopLayout() {
             />
           </div>
           <div
-            key={pathname}
             className="flex-1 min-w-0 min-h-[60vh] flex flex-col overflow-auto bg-background rounded-lg"
             style={{ minHeight: "400px" }}
           >
-            <ErrorBoundary>
-              <Outlet />
-            </ErrorBoundary>
+            <Outlet />
           </div>
         </div>
       </main>
