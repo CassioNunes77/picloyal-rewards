@@ -116,7 +116,7 @@ const ProfilePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-full bg-background flex items-center justify-center">
         <div className="text-muted-foreground">Carregando...</div>
       </div>
     );
@@ -124,7 +124,11 @@ const ProfilePage = () => {
 
   if (!user) {
     navigate("/", { replace: true });
-    return null;
+    return (
+      <div className="min-h-full bg-background flex items-center justify-center">
+        <p className="text-sm text-muted-foreground">Redirecionando...</p>
+      </div>
+    );
   }
 
   const profileHeader = (
