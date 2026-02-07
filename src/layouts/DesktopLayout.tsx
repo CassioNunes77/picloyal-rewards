@@ -2,6 +2,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { navItems, getActiveNavId } from "@/config/nav";
 import { cn } from "@/lib/utils";
 import QRCodeCard from "@/components/QRCodeCard";
+import LoyaltyCard from "@/components/LoyaltyCard";
 import { useQR } from "@/contexts/QRContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { User, Bell, Settings } from "lucide-react";
@@ -86,10 +87,20 @@ export default function DesktopLayout() {
         </div>
       </header>
 
-      {/* Conteúdo principal */}
-      <main className="flex-1 min-h-0 overflow-auto">
-        <div className="w-full h-full min-h-full p-6">
-          <Outlet />
+      {/* Área principal: cartão fixo à esquerda + conteúdo da rota à direita */}
+      <main className="flex-1 min-h-0 flex overflow-hidden">
+        <div className="w-[300px] shrink-0 border-r border-border bg-card/30 p-4 flex flex-col items-start">
+          <LoyaltyCard
+            currentPoints={650}
+            totalPoints={1000}
+            userName={displayName}
+            cardNumber="**** **** **** 4589"
+          />
+        </div>
+        <div className="flex-1 min-w-0 overflow-auto">
+          <div className="w-full min-h-full p-6">
+            <Outlet />
+          </div>
         </div>
       </main>
       <QRCodeCard isOpen={showQR} onClose={closeQR} />

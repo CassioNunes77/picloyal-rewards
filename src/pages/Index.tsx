@@ -81,24 +81,14 @@ const Index = () => {
     return <SettingsScreen onBack={() => setShowSettings(false)} />;
   }
 
-  // Layout dashboard para desktop (DesktopLayout)
+  // Conteúdo da Home no desktop (o cartão fica no DesktopLayout à esquerda)
   if (!isMobile) {
     return (
       <div className="min-h-full bg-background">
-        <div className="max-w-7xl mx-auto space-y-6">
-          {/* Linha 1: Card fidelidade (menor, esquerda) + Ações rápidas + Promo */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-4 xl:col-span-3">
-              <div className="max-w-[300px] animate-fade-in">
-                <LoyaltyCard
-                  currentPoints={650}
-                  totalPoints={1000}
-                  userName={displayName}
-                  cardNumber="**** **** **** 4589"
-                />
-              </div>
-            </div>
-            <div className="lg:col-span-4 xl:col-span-5">
+        <div className="max-w-5xl mx-auto space-y-6">
+          {/* Linha 1: Acesso rápido + Promo */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            <div className="md:col-span-7">
               <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
                 <p className="text-sm font-medium text-muted-foreground mb-4">Acesso rápido</p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -109,7 +99,7 @@ const Index = () => {
                 </div>
               </div>
             </div>
-            <div className="lg:col-span-4 xl:col-span-4">
+            <div className="md:col-span-5">
               <div
                 className="h-full min-h-[140px] overflow-hidden rounded-2xl gradient-secondary p-5 text-secondary-foreground
                            transition-all duration-300 hover:shadow-md cursor-pointer flex items-center justify-between"
@@ -126,12 +116,12 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Linha 2: Carimbos (esquerda) + Recompensas (direita) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-5 xl:col-span-4">
+          {/* Linha 2: Carimbos + Recompensas */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            <div className="md:col-span-5">
               <StampGrid currentStamps={7} totalStamps={10} reward="1 Café Grátis" />
             </div>
-            <div className="lg:col-span-7 xl:col-span-8">
+            <div className="md:col-span-7">
               <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
                 <div className="mb-4 flex items-center justify-between">
                   <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
