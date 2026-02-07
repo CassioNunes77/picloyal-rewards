@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		DF6543542F361630007B1B76 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = DF6543532F361630007B1B76 /* FirebaseAuth */; };
 		DF6543562F361630007B1B76 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = DF6543552F361630007B1B76 /* FirebaseCore */; };
+		DF65435B2F361630007B1B76 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = DF65435A2F361630007B1B76 /* FirebaseFirestore */; };
 		DF65469E2F368261007B1B76 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = DF6543592F361640007B1B76 /* GoogleSignIn */; };
 /* End PBXBuildFile section */
 
@@ -61,6 +62,7 @@
 				DF65469E2F368261007B1B76 /* GoogleSignIn in Frameworks */,
 				DF6543562F361630007B1B76 /* FirebaseCore in Frameworks */,
 				DF6543542F361630007B1B76 /* FirebaseAuth in Frameworks */,
+				DF65435B2F361630007B1B76 /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -123,6 +125,7 @@
 			packageProductDependencies = (
 				DF6543532F361630007B1B76 /* FirebaseAuth */,
 				DF6543552F361630007B1B76 /* FirebaseCore */,
+				DF65435A2F361630007B1B76 /* FirebaseFirestore */,
 				DF6543592F361640007B1B76 /* GoogleSignIn */,
 			);
 			productName = CartaoFidelidade;
@@ -642,6 +645,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = DF6543582F361640007B1B76 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignIn;
+		};
+		DF65435A2F361630007B1B76 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DF6543522F361630007B1B76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

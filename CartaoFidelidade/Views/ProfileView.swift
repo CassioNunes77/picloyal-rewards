@@ -13,10 +13,20 @@ struct ProfileView: View {
     @AppStorage("isLoggedIn") private var isLoggedIn = false
     @AppStorage("userDisplayName") private var userDisplayName = ""
     @AppStorage("userEmail") private var userEmail = ""
+    @AppStorage("userPhotoURL") private var userPhotoURL = ""
     @State private var notifications = true
     @State private var showToast = false
     @State private var toastMessage = ""
     @State private var showLogoutConfirmation = false
+
+    @State private var profilePhone = ""
+    @State private var showEmailSheet = false
+    @State private var showPhoneSheet = false
+    @State private var tempEmail = ""
+    @State private var tempPassword = ""
+    @State private var tempPhone = ""
+    @State private var saving = false
+    @State private var errorMessage: String?
     
     let userStats = [
         ("Pontos", "650", "star.fill", Color.primary),
@@ -301,6 +311,9 @@ struct ProfileView: View {
                 .cornerRadius(AppRadius.xl, corners: [.topLeft, .topRight])
                 .offset(y: -AppRadius.xl)
             }
+            .onAppear {
+                loadProfile()
+            }
             
             // Toast
             if showToast {
@@ -329,7 +342,136 @@ struct ProfileView: View {
         } message: {
             Text("Deseja realmente sair da sua conta?")
         }
+        .sheet(isPresented: $showEmailSheet) {
+            editEmailSheet
+        }
+        .sheet(isPresented: $showPhoneSheet) {
+            editPhoneSheet
+        }
+        .alert("Erro", isPresented: .init(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+            Button("OK", role: .cancel) { errorMessage = nil }
+        } message: {
+            if let msg = errorMessage { Text(msg) }
+        }
         .ignoresSafeArea(edges: .top)
+    }
+
+    private func loadProfile() {
+        Task {
+            do {
+                let profile = try await ProfileService.shared.getProfile()
+                await MainActor.run {
+                    profilePhone = profile.phone ?? ""
+                }
+            } catch {}
+        }
+    }
+
+    private var editEmailSheet: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Novo e-mail", text: $tempEmail)
+                        .textContentType(.emailAddress)
+                        .autocapitalization(.none)
+                        .keyboardType(.emailAddress)
+                    SecureField("Senha atual", text: $tempPassword)
+                        .textContentType(.password)
+                } header: {
+                    Text("Alterar e-mail")
+                } footer: {
+                    Text("Informe o novo e-mail e sua senha atual para confirmar.")
+                }
+            }
+            .navigationTitle("Alterar e-mail")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancelar") {
+                        showEmailSheet = false
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Salvar") {
+                        saveEmail()
+                    }
+                    .disabled(saving || tempEmail.trimmingCharacters(in: .whitespaces).isEmpty || tempPassword.isEmpty)
+                }
+            }
+            .disabled(saving)
+        }
+    }
+
+    private var editPhoneSheet: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Telefone", text: $tempPhone)
+                        .textContentType(.telephoneNumber)
+                        .keyboardType(.phonePad)
+                } header: {
+                    Text("Alterar telefone")
+                } footer: {
+                    Text("Informe o novo número de telefone.")
+                }
+            }
+            .navigationTitle("Alterar telefone")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancelar") {
+                        showPhoneSheet = false
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Salvar") {
+                        savePhone()
+                    }
+                    .disabled(saving)
+                }
+            }
+            .disabled(saving)
+        }
+    }
+
+    private func saveEmail() {
+        let email = tempEmail.trimmingCharacters(in: .whitespaces)
+        guard !email.isEmpty, !tempPassword.isEmpty else { return }
+        saving = true
+        Task {
+            do {
+                try await ProfileService.shared.updateEmail(newEmail: email, currentPassword: tempPassword)
+                await MainActor.run {
+                    userEmail = email
+                    showEmailSheet = false
+                    showToast(message: "E-mail atualizado.")
+                }
+            } catch {
+                await MainActor.run {
+                    errorMessage = error.localizedDescription
+                }
+            }
+            await MainActor.run { saving = false }
+        }
+    }
+
+    private func savePhone() {
+        saving = true
+        Task {
+            do {
+                try await ProfileService.shared.updatePhone(tempPhone.trimmingCharacters(in: .whitespaces))
+                await MainActor.run {
+                    profilePhone = tempPhone.trimmingCharacters(in: .whitespaces)
+                    showPhoneSheet = false
+                    showToast(message: "Telefone atualizado.")
+                }
+            } catch {
+                await MainActor.run {
+                    errorMessage = error.localizedDescription
+                }
+            }
+            await MainActor.run { saving = false }
+        }
     }
     
     private func showToast(message: String) {
@@ -348,7 +490,19 @@ struct ProfileView: View {
         try? Auth.auth().signOut()
         userDisplayName = ""
         userEmail = ""
+        userPhotoURL = ""
         isLoggedIn = false
+    }
+
+    private var placeholderAvatar: some View {
+        ZStack {
+            Circle()
+                .fill(AppGradients.primary)
+                .frame(width: 96, height: 96)
+            Image(systemName: "person.fill")
+                .foregroundColor(.primaryForeground)
+                .font(.system(size: 48))
+        }
     }
 }
 
@@ -383,6 +537,7 @@ struct ProfileInfoItem: View {
     let label: String
     let value: String
     let delay: Double
+    var onEdit: (() -> Void)?
     @State private var isPressed = false
     
     var body: some View {
@@ -410,15 +565,17 @@ struct ProfileInfoItem: View {
             
             Spacer()
             
-            Button(action: {}) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: AppRadius.sm)
-                        .fill(Color.muted)
-                        .frame(width: 32, height: 32)
-                    
-                    Image(systemName: "pencil")
-                        .foregroundColor(.mutedForeground)
-                        .font(.system(size: 14))
+            if let onEdit = onEdit {
+                Button(action: onEdit) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: AppRadius.sm)
+                            .fill(Color.muted)
+                            .frame(width: 32, height: 32)
+                        
+                        Image(systemName: "pencil")
+                            .foregroundColor(.mutedForeground)
+                            .font(.system(size: 14))
+                    }
                 }
             }
         }

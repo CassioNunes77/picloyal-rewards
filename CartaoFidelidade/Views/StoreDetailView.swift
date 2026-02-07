@@ -262,17 +262,17 @@ struct TabButton: View {
             VStack(spacing: 4) {
                 HStack(spacing: AppSpacing.sm) {
                     Text(title)
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundColor(isSelected ? .primary : .mutedForeground)
                     
                     if let badge = badge {
                         ZStack {
                             Circle()
                                 .fill(Color.destructive)
-                                .frame(width: 18, height: 18)
+                                .frame(width: 16, height: 16)
                             
                             Text(badge)
-                                .font(.system(size: 10, weight: .bold))
+                                .font(.system(size: 9, weight: .bold))
                                 .foregroundColor(.white)
                         }
                     }
@@ -403,17 +403,17 @@ struct OffersTab: View {
             if offers.isEmpty {
                 VStack(spacing: AppSpacing.md) {
                     Image(systemName: "tag")
-                        .font(.system(size: 48))
+                        .font(.system(size: 40))
                         .foregroundColor(.mutedForeground)
                     
                     Text("Nenhuma oferta disponível")
-                        .font(.appBody)
+                        .font(.appCaption)
                         .foregroundColor(.mutedForeground)
                 }
                 .padding(.top, AppSpacing.xl)
             } else {
                 ForEach(Array(offers.enumerated()), id: \.element.id) { index, offer in
-                    OfferCard(offer: offer)
+                    OfferCard(offer: offer, compact: true)
                         .fadeIn(delay: 0.2 + Double(index) * 0.05)
                         .onTapGesture {
                             toastMessage = "🎉 Oferta \"\(offer.title)\" ativada!"

@@ -240,7 +240,7 @@ struct OffersView: View {
                             .padding(.top, AppSpacing.xl * 2)
                         } else {
                             ForEach(Array(filteredOffers.enumerated()), id: \.element.id) { index, offer in
-                                OfferCard(offer: offer)
+                                OfferCard(offer: offer, compact: true)
                                     .fadeIn(delay: 0.2 + Double(index) * 0.05)
                                     .onTapGesture {
                                         showToast(message: "🎉 Oferta \"\(offer.title)\" ativada!")
@@ -322,6 +322,8 @@ struct CategoryButton: View {
 
 struct OfferCard: View {
     let offer: Offer
+    /// Quando true, usa tamanhos de fonte alinhados à tela de Lojas (Detalhes da Loja > Ofertas).
+    var compact: Bool = false
     @State private var isPressed = false
     
     var iconGradient: LinearGradient {
@@ -337,6 +339,13 @@ struct OfferCard: View {
         }
     }
     
+    private var iconSize: CGFloat { compact ? 56 : 64 }
+    private var iconFontSize: CGFloat { compact ? 28 : 32 }
+    private var titleFont: Font { compact ? .appBody : .appHeadline }
+    private var discountFontSize: CGFloat { compact ? 16 : 18 }
+    private var padding: CGFloat { compact ? AppSpacing.md : AppSpacing.lg }
+    private var cornerRadius: CGFloat { compact ? AppRadius.lg : AppRadius.xl }
+    
     var body: some View {
         Button(action: {}) {
             HStack(spacing: AppSpacing.md) {
@@ -344,18 +353,19 @@ struct OfferCard: View {
                 ZStack {
                     RoundedRectangle(cornerRadius: AppRadius.lg)
                         .fill(iconGradient)
-                        .frame(width: 64, height: 64)
+                        .frame(width: iconSize, height: iconSize)
                     
                     Image(systemName: offer.icon)
                         .foregroundColor(.white)
-                        .font(.system(size: 32))
+                        .font(.system(size: iconFontSize))
                 }
                 
                 // Content
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
                     HStack {
                         Text(offer.title)
-                            .font(.appHeadline)
+                            .font(titleFont)
+                            .fontWeight(.semibold)
                             .foregroundColor(.cardForeground)
                             .lineLimit(1)
                         
@@ -372,10 +382,10 @@ struct OfferCard: View {
                         Spacer()
                         
                         Text(offer.discount)
-                            .font(.system(size: 18, weight: .bold))
+                            .font(.system(size: discountFontSize, weight: .bold))
                             .foregroundColor(.secondaryForeground)
-                            .padding(.horizontal, AppSpacing.md)
-                            .padding(.vertical, AppSpacing.sm)
+                            .padding(.horizontal, compact ? AppSpacing.sm : AppSpacing.md)
+                            .padding(.vertical, compact ? AppSpacing.xs : AppSpacing.sm)
                             .background(AppGradients.secondary)
                             .cornerRadius(AppRadius.md)
                     }
@@ -386,13 +396,15 @@ struct OfferCard: View {
                         .lineLimit(2)
                     
                     HStack(spacing: AppSpacing.sm) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "mappin")
-                                .font(.system(size: 12))
-                            Text(offer.storeName)
-                                .font(.system(size: 12))
-                                .foregroundColor(.mutedForeground)
-                                .lineLimit(1)
+                        if !offer.storeName.isEmpty {
+                            HStack(spacing: 4) {
+                                Image(systemName: "mappin")
+                                    .font(.system(size: 12))
+                                Text(offer.storeName)
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.mutedForeground)
+                                    .lineLimit(1)
+                            }
                         }
                         
                         HStack(spacing: 4) {
@@ -421,13 +433,13 @@ struct OfferCard: View {
                 
                 Image(systemName: "chevron.right")
                     .foregroundColor(.mutedForeground)
-                    .font(.system(size: 20))
+                    .font(.system(size: compact ? 18 : 20))
             }
-            .padding(AppSpacing.lg)
+            .padding(padding)
             .background(Color.card)
-            .cornerRadius(AppRadius.xl)
+            .cornerRadius(cornerRadius)
             .overlay(
-                RoundedRectangle(cornerRadius: AppRadius.xl)
+                RoundedRectangle(cornerRadius: cornerRadius)
                     .stroke(Color.primary.opacity(0.2), lineWidth: 2)
             )
             .appShadow(isPressed ? AppShadow.sm : AppShadow.md)

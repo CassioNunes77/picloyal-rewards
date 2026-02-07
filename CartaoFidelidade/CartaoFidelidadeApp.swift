@@ -14,6 +14,7 @@ struct CartaoFidelidadeApp: App {
     @AppStorage("isLoggedIn") private var isLoggedIn = false
     @AppStorage("userDisplayName") private var userDisplayName = ""
     @AppStorage("userEmail") private var userEmail = ""
+    @AppStorage("userPhotoURL") private var userPhotoURL = ""
 
     init() {
         FirebaseApp.configure()
@@ -45,6 +46,7 @@ struct CartaoFidelidadeApp: App {
                             if let user = Auth.auth().currentUser {
                                 if !(user.displayName?.isEmpty ?? true) { userDisplayName = user.displayName ?? userDisplayName }
                                 if !(user.email?.isEmpty ?? true) { userEmail = user.email ?? userEmail }
+                                userPhotoURL = user.photoURL?.absoluteString ?? ""
                             }
                         },
                         onDismiss: nil

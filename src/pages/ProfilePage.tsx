@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   User, 
   Mail, 
@@ -18,11 +18,35 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut, updateEmail, getProfile, updatePhone } = useAuth();
   const [notifications, setNotifications] = useState(true);
+  const [profilePhone, setProfilePhone] = useState("");
+  const [editDialog, setEditDialog] = useState<"email" | "phone" | null>(null);
+  const [tempEmail, setTempEmail] = useState("");
+  const [tempPhone, setTempPhone] = useState("");
+  const [tempPassword, setTempPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    getProfile()
+      .then((p) => setProfilePhone(p.phone ?? ""))
+      .catch(() => {});
+  }, [user, getProfile]);
 
   const userStats = [
     { label: "Pontos", value: "650", icon: Star, color: "text-primary" },
@@ -32,6 +56,44 @@ const ProfilePage = () => {
 
   const handleEditProfile = () => {
     toast.info("Editando perfil...");
+  };
+
+  const handleSaveEmail = async () => {
+    if (!tempEmail.trim()) {
+      toast.error("Informe o novo e-mail.");
+      return;
+    }
+    if (!tempPassword) {
+      toast.error("Informe sua senha para confirmar.");
+      return;
+    }
+    setSaving(true);
+    try {
+      await updateEmail(tempEmail.trim(), tempPassword);
+      toast.success("E-mail atualizado.");
+      setEditDialog(null);
+      setTempPassword("");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erro ao atualizar e-mail.";
+      toast.error(msg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSavePhone = async () => {
+    setSaving(true);
+    try {
+      await updatePhone(tempPhone.trim());
+      setProfilePhone(tempPhone.trim());
+      toast.success("Telefone atualizado.");
+      setEditDialog(null);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erro ao atualizar telefone.";
+      toast.error(msg);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -84,8 +146,17 @@ const ProfilePage = () => {
           <div className="animate-slide-up" style={{ animationDelay: '100ms' }}>
             <div className="flex items-center gap-4">
               <div className="relative">
-                <div className="w-24 h-24 rounded-full gradient-primary flex items-center justify-center">
-                  <User className="h-12 w-12 text-primary-foreground" />
+                <div className="w-24 h-24 rounded-full overflow-hidden bg-primary flex items-center justify-center ring-2 ring-primary-foreground/20">
+                  {user.photoURL ? (
+                    <img
+                      src={user.photoURL}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <User className="h-12 w-12 text-primary-foreground" />
+                  )}
                 </div>
                 <button className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-primary-foreground flex items-center justify-center 
                                  transition-all duration-200 active:scale-90">
@@ -142,12 +213,21 @@ const ProfilePage = () => {
               label="E-mail"
               value={user.email ?? ""}
               delay={350}
+              onEdit={() => {
+                setTempEmail(user?.email ?? "");
+                setTempPassword("");
+                setEditDialog("email");
+              }}
             />
             <ProfileInfoItem
               icon={Phone}
               label="Telefone"
-              value="(11) 98765-4321"
+              value={profilePhone || "—"}
               delay={400}
+              onEdit={() => {
+                setTempPhone(profilePhone);
+                setEditDialog("phone");
+              }}
             />
             <ProfileInfoItem
               icon={MapPin}
@@ -254,6 +334,67 @@ const ProfilePage = () => {
         </p>
       </div>
 
+      <Dialog open={editDialog !== null} onOpenChange={(open) => !open && setEditDialog(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editDialog === "email" ? "Alterar e-mail" : "Alterar telefone"}</DialogTitle>
+            <DialogDescription>
+              {editDialog === "email"
+                ? "Informe o novo e-mail e sua senha atual para confirmar."
+                : "Informe o novo número de telefone."}
+            </DialogDescription>
+          </DialogHeader>
+          {editDialog === "email" && (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-email">Novo e-mail</Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={tempEmail}
+                  onChange={(e) => setTempEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-password">Senha atual</Label>
+                <Input
+                  id="edit-password"
+                  type="password"
+                  value={tempPassword}
+                  onChange={(e) => setTempPassword(e.target.value)}
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+          )}
+          {editDialog === "phone" && (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-phone">Telefone</Label>
+                <Input
+                  id="edit-phone"
+                  type="tel"
+                  value={tempPhone}
+                  onChange={(e) => setTempPhone(e.target.value)}
+                  placeholder="(11) 98765-4321"
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialog(null)} disabled={saving}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={editDialog === "email" ? handleSaveEmail : handleSavePhone}
+              disabled={saving}
+            >
+              {saving ? "Salvando..." : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
@@ -263,9 +404,10 @@ interface ProfileInfoItemProps {
   label: string;
   value: string;
   delay?: number;
+  onEdit?: () => void;
 }
 
-const ProfileInfoItem = ({ icon: Icon, label, value, delay = 0 }: ProfileInfoItemProps) => {
+const ProfileInfoItem = ({ icon: Icon, label, value, delay = 0, onEdit }: ProfileInfoItemProps) => {
   return (
     <div
       className="flex items-center gap-4 p-4 rounded-xl bg-card shadow-md
@@ -280,9 +422,15 @@ const ProfileInfoItem = ({ icon: Icon, label, value, delay = 0 }: ProfileInfoIte
         <p className="text-xs text-muted-foreground mb-1">{label}</p>
         <p className="font-medium text-card-foreground truncate">{value}</p>
       </div>
-      <button className="shrink-0 p-2 rounded-lg bg-muted transition-all duration-200 active:scale-90">
-        <Edit className="h-4 w-4 text-muted-foreground" />
-      </button>
+      {onEdit && (
+        <button
+          type="button"
+          onClick={onEdit}
+          className="shrink-0 p-2 rounded-lg bg-muted transition-all duration-200 active:scale-90"
+        >
+          <Edit className="h-4 w-4 text-muted-foreground" />
+        </button>
+      )}
     </div>
   );
 };

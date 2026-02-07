@@ -171,7 +171,7 @@ const StoreDetailPage = () => {
       <div className="relative -mt-4 rounded-t-3xl bg-background px-6 pt-6">
         {/* Tabs */}
         <div className="mb-6 animate-fade-in" style={{ animationDelay: '150ms' }}>
-          <div className="flex border-b border-border">
+          <div className="flex border-b border-border text-sm">
             <button
               onClick={() => setSelectedTab("info")}
               className={`flex-1 py-3 text-center font-medium transition-colors ${
@@ -192,7 +192,7 @@ const StoreDetailPage = () => {
             >
               Ofertas
               {store.offers > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 min-w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
                   {store.offers}
                 </span>
               )}
@@ -245,8 +245,8 @@ const StoreDetailPage = () => {
           <div className="space-y-4 animate-fade-in" style={{ animationDelay: '200ms' }}>
             {storeOffers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12">
-                <Tag className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">Nenhuma oferta disponível</p>
+                <Tag className="h-10 w-10 text-muted-foreground mb-3" />
+                <p className="text-sm text-muted-foreground">Nenhuma oferta disponível</p>
               </div>
             ) : (
               storeOffers.map((offer, index) => (
@@ -261,34 +261,34 @@ const StoreDetailPage = () => {
                         description: `Apresente este cupom em ${store.name}`,
                       });
                     }}
-                    className="w-full text-left bg-card rounded-2xl p-5 shadow-md 
+                    className="w-full text-left bg-card rounded-2xl p-4 shadow-md 
                              transition-all duration-300 hover:shadow-lg active:scale-[0.98]
                              border-2 border-transparent hover:border-primary/20"
                   >
                     <div className="flex gap-4">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-xl shrink-0 gradient-primary">
-                        <span className="text-2xl">☕</span>
+                      <div className="flex h-14 w-14 items-center justify-center rounded-xl shrink-0 gradient-primary">
+                        <span className="text-xl">☕</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h3 className="font-semibold text-card-foreground text-lg mb-1">
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-semibold text-card-foreground text-sm truncate mb-0.5">
                               {offer.title}
                             </h3>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xs text-muted-foreground line-clamp-2">
                               {offer.description}
                             </p>
                           </div>
-                          <div className="gradient-secondary text-secondary-foreground font-bold text-lg px-3 py-2 rounded-xl shrink-0 ml-2">
+                          <div className="gradient-secondary text-secondary-foreground font-bold text-sm px-2.5 py-1.5 rounded-lg shrink-0">
                             {offer.discount}
                           </div>
                         </div>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Clock className="h-3 w-3" />
+                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                          <Clock className="h-3 w-3 shrink-0" />
                           <span>Válido até {offer.validUntil}</span>
                         </div>
                       </div>
-                      <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 ml-2 self-center" />
+                      <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 self-center" />
                     </div>
                   </button>
                 </div>
