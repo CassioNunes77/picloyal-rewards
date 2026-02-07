@@ -16,6 +16,7 @@ import HistoryPage from "./pages/HistoryPage";
 import RewardsPage from "./pages/RewardsPage";
 import StoreDetailPage from "./pages/StoreDetailPage";
 import OfferDetailPage from "./pages/OfferDetailPage";
+import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -57,6 +58,7 @@ const App = () => (
                 <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/history" element={<HistoryPage />} />
                 <Route path="/rewards" element={<RewardsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

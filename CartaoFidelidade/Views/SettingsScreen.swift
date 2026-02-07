@@ -22,39 +22,41 @@ struct SettingsScreen: View {
     @State private var deleteAccountErrorMessage = ""
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                // Header
-                ZStack(alignment: .top) {
-                    VStack(spacing: 0) {
-                        // Back button and title
-                        HStack {
-                            Button(action: onBack) {
-                                ZStack {
-                                    Circle()
-                                        .fill(Color.white.opacity(0.2))
-                                        .frame(width: 40, height: 40)
-                                    
-                                    Image(systemName: "chevron.left")
-                                        .foregroundColor(.white)
-                                        .font(.system(size: 20))
+        GeometryReader { geo in
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Header (gradiente até o topo)
+                    ZStack(alignment: .top) {
+                        VStack(spacing: 0) {
+                            // Back button and title
+                            HStack {
+                                Button(action: onBack) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color.white.opacity(0.2))
+                                            .frame(width: 40, height: 40)
+                                        
+                                        Image(systemName: "chevron.left")
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 20))
+                                    }
                                 }
+                                
+                                Text("Configurações")
+                                    .font(.appTitle)
+                                    .foregroundColor(.white)
+                                
+                                Spacer()
                             }
-                            
-                            Text("Configurações")
-                                .font(.appTitle)
-                                .foregroundColor(.white)
-                            
-                            Spacer()
+                            .padding(.horizontal, AppSpacing.lg)
+                            .padding(.top, geo.safeAreaInsets.top + AppSpacing.md)
+                            .padding(.bottom, AppSpacing.lg)
                         }
-                        .padding(.horizontal, AppSpacing.lg)
-                        .padding(.top, 48)
                         .padding(.bottom, AppSpacing.lg)
+                        .frame(maxWidth: .infinity)
+                        .background(AppGradients.hero)
                     }
-                    .padding(.bottom, AppSpacing.lg)
-                    .background(AppGradients.hero)
                     .ignoresSafeArea(edges: .top)
-                }
                 
                 // Content
                 VStack(spacing: AppSpacing.lg) {
@@ -227,6 +229,8 @@ struct SettingsScreen: View {
                 .cornerRadius(AppRadius.xl, corners: [.topLeft, .topRight])
                 .offset(y: -AppRadius.xl)
             }
+        }
+        .ignoresSafeArea(edges: .top)
         }
         .transition(.move(edge: .trailing))
         .alert("Sair da conta?", isPresented: $showLogoutConfirmation) {

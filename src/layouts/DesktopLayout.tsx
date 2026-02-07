@@ -4,9 +4,7 @@ import { cn } from "@/lib/utils";
 import QRCodeCard from "@/components/QRCodeCard";
 import { useQR } from "@/contexts/QRContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { User } from "lucide-react";
-
-const SIDEBAR_WIDTH = 220;
+import { User, Bell, Settings } from "lucide-react";
 
 export default function DesktopLayout() {
   const { pathname } = useLocation();
@@ -18,78 +16,82 @@ export default function DesktopLayout() {
 
   return (
     <div className="min-h-screen h-screen bg-background flex flex-col">
-      {/* Sidebar */}
-      <aside
-        className="fixed left-0 top-0 bottom-0 z-40 w-[220px] border-r border-border bg-card shadow-sm flex flex-col"
-        style={{ width: SIDEBAR_WIDTH }}
-      >
-        <div className="p-4 border-b border-border">
-          <h2 className="font-bold text-lg text-card-foreground truncate">Cartão Fidelidade</h2>
-        </div>
-        <nav className="flex-1 py-4 gap-1 px-3 flex flex-col overflow-y-auto">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeId === item.id;
-            const isPrimary = item.primary;
+      {/* Top menu: logo + nav + notif/config + usuário */}
+      <header className="sticky top-0 z-30 shrink-0 h-14 px-4 sm:px-6 border-b border-border bg-card/95 backdrop-blur flex items-center justify-between gap-4">
+        <div className="flex items-center gap-6 min-w-0">
+          <h2 className="font-bold text-lg text-card-foreground truncate shrink-0">
+            Cartão Fidelidade
+          </h2>
+          <nav className="hidden sm:flex items-center gap-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeId === item.id;
+              const isPrimary = item.primary;
 
-            if (isPrimary) {
+              if (isPrimary) {
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => openQR()}
+                    className="flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-medium bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-sm hover:shadow transition-all"
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              }
+
               return (
                 <button
                   key={item.id}
-                  onClick={() => openQR()}
-                  className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-md hover:shadow-lg transition-all"
+                  onClick={() => navigate(item.path)}
+                  className={cn(
+                    "flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-accent text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-card-foreground"
+                  )}
                 >
-                  <Icon className="h-5 w-5 shrink-0" />
-                  <span className="text-sm font-medium">{item.label}</span>
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span>{item.label}</span>
                 </button>
               );
-            }
+            })}
+          </nav>
+        </div>
 
-            return (
-              <button
-                key={item.id}
-                onClick={() => navigate(item.path)}
-                className={cn(
-                  "flex h-11 w-full items-center gap-3 rounded-lg px-3 transition-colors",
-                  isActive
-                    ? "bg-accent text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-card-foreground"
-                )}
-              >
-                <Icon className="h-5 w-5 shrink-0" />
-                <span className="text-sm font-medium">{item.label}</span>
-              </button>
-            );
-          })}
-        </nav>
-      </aside>
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <button
+            type="button"
+            onClick={() => navigate("/notifications")}
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-card-foreground transition-colors"
+            aria-label="Notificações"
+          >
+            <Bell className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate("/settings")}
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-card-foreground transition-colors"
+            aria-label="Configurações"
+          >
+            <Settings className="h-5 w-5" />
+          </button>
+          <div className="flex items-center gap-2 pl-2 border-l border-border text-sm text-card-foreground">
+            <User className="h-4 w-4 text-muted-foreground shrink-0" />
+            <span className="font-medium truncate max-w-[140px] sm:max-w-[180px]">
+              {displayName}
+            </span>
+          </div>
+        </div>
+      </header>
 
-      {/* Dashboard area: header + full-width content */}
-      <div className="flex-1 flex flex-col min-w-0" style={{ marginLeft: SIDEBAR_WIDTH }}>
-        {/* Top bar */}
-        <header className="sticky top-0 z-30 shrink-0 h-14 px-6 border-b border-border bg-card/95 backdrop-blur flex items-center justify-between">
-          <div className="text-sm font-medium text-muted-foreground capitalize">
-            {activeId === "home" && "Início"}
-            {activeId === "offers" && "Ofertas"}
-            {activeId === "stores" && "Lojas"}
-            {activeId === "profile" && "Perfil"}
-            {activeId === "notifications" && "Notificações"}
-            {activeId === "history" && "Atividades"}
-            {activeId === "rewards" && "Recompensas"}
-          </div>
-          <div className="flex items-center gap-2 text-sm text-card-foreground">
-            <User className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium truncate max-w-[180px]">{displayName}</span>
-          </div>
-        </header>
-
-        {/* Main content - usa toda a área útil */}
-        <main className="flex-1 min-h-0 overflow-auto">
-          <div className="w-full h-full min-h-full p-6">
-            <Outlet />
-          </div>
-        </main>
-      </div>
+      {/* Conteúdo principal */}
+      <main className="flex-1 min-h-0 overflow-auto">
+        <div className="w-full h-full min-h-full p-6">
+          <Outlet />
+        </div>
+      </main>
       <QRCodeCard isOpen={showQR} onClose={closeQR} />
     </div>
   );

@@ -90,6 +90,14 @@ extension View {
     }
 }
 
+// MARK: - Transição entre telas (apenas fade — evita salto ao remover offset)
+extension AnyTransition {
+    /// Fade suave; sem offset para não haver reposicionamento/salto ao finalizar.
+    static var slideFadeShort: AnyTransition {
+        .opacity
+    }
+}
+
 // MARK: - Press Animation
 struct PressModifier: ViewModifier {
     @State private var isPressed = false

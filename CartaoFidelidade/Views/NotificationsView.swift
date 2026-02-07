@@ -205,8 +205,11 @@ struct NotificationsView: View {
                     .padding(.horizontal, AppSpacing.lg)
                     .padding(.top, AppSpacing.lg)
                 }
-                .background(Color.appBackground)
-                .cornerRadius(AppRadius.xl, corners: [.topLeft, .topRight])
+                .background(
+                    RoundedCorner(radius: AppRadius.xl, corners: [.topLeft, .topRight])
+                        .fill(Color.appBackground)
+                )
+                .clipShape(RoundedCorner(radius: AppRadius.xl, corners: [.topLeft, .topRight]))
                 .offset(y: -AppRadius.xl)
             }
             

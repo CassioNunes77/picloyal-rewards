@@ -14,40 +14,52 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            // Main Content
+            Color.appBackground
+                .ignoresSafeArea()
+            // Main Content — frame fixo em cada tela evita salto de reposicionamento ao fim da transição
             Group {
                 if showSettings {
                     SettingsScreen(onBack: { showSettings = false })
-                        .transition(.move(edge: .trailing))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .transition(.slideFadeShort)
                 } else {
                     switch activeTab {
                     case "home":
                         HomeView(showSettings: $showSettings, activeTab: $activeTab, showQRCode: $showQRCode)
-                            .transition(.move(edge: .leading))
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .transition(.slideFadeShort)
                     case "stores":
                         StoresView(activeTab: $activeTab)
-                            .transition(.move(edge: .leading))
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .transition(.slideFadeShort)
                     case "offers":
                         OffersView(activeTab: $activeTab)
-                            .transition(.move(edge: .leading))
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .transition(.slideFadeShort)
                     case "profile":
                         ProfileView(activeTab: $activeTab)
-                            .transition(.move(edge: .leading))
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .transition(.slideFadeShort)
                     case "notifications":
                         NotificationsView(activeTab: $activeTab)
-                            .transition(.move(edge: .leading))
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .transition(.slideFadeShort)
                     case "rewards":
                         RewardsView(activeTab: $activeTab)
-                            .transition(.move(edge: .leading))
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .transition(.slideFadeShort)
                     case "history":
                         HistoryView(activeTab: $activeTab)
-                            .transition(.move(edge: .leading))
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .transition(.slideFadeShort)
                     default:
                         HomeView(showSettings: $showSettings, activeTab: $activeTab, showQRCode: $showQRCode)
-                            .transition(.move(edge: .leading))
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .transition(.slideFadeShort)
                     }
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             
             // Bottom Navigation (only show if not in settings)
             if !showSettings {
@@ -59,8 +71,8 @@ struct ContentView: View {
                 QRCodeCard(isPresented: $showQRCode, qrCodeData: "CARTEIRA:4589")
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: showSettings)
-        .animation(.easeInOut(duration: 0.3), value: activeTab)
+        .animation(.easeInOut(duration: 0.38), value: showSettings)
+        .animation(.easeInOut(duration: 0.38), value: activeTab)
     }
 }
 

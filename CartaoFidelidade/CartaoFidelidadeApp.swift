@@ -53,6 +53,7 @@ struct CartaoFidelidadeApp: App {
                     )
                 }
             }
+            .background(Color.appBackground.ignoresSafeArea())
             .onOpenURL { url in
                 _ = handleGoogleSignInURL(url)
             }
