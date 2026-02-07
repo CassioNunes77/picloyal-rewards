@@ -5,30 +5,22 @@ import StampGrid from "@/components/StampGrid";
 import RewardCard from "@/components/RewardCard";
 import QuickAction from "@/components/QuickAction";
 import SettingsScreen from "@/components/SettingsScreen";
-import QRCodeCard from "@/components/QRCodeCard";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQR } from "@/contexts/QRContext";
 
 const Index = () => {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { openQR } = useQR();
   const { user, loading: authLoading } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
-  const [showQRCode, setShowQRCode] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/", { replace: true });
     }
   }, [authLoading, user, navigate]);
-
-  useEffect(() => {
-    if (searchParams.get("showQR") === "1") {
-      setShowQRCode(true);
-      setSearchParams({}, { replace: true });
-    }
-  }, [searchParams, setSearchParams]);
 
   if (authLoading || !user) {
     return (
@@ -143,7 +135,7 @@ const Index = () => {
           <QuickAction 
             icon={QrCode} 
             label="Escanear" 
-            onClick={() => setShowQRCode(true)}
+            onClick={() => openQR()}
           />
           <QuickAction 
             icon={History} 
@@ -227,9 +219,6 @@ const Index = () => {
           </div>
         </div>
       </div>
-
-      {/* QR Code Card */}
-      <QRCodeCard isOpen={showQRCode} onClose={() => setShowQRCode(false)} />
     </div>
   );
 };

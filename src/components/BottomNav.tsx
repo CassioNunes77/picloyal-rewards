@@ -1,22 +1,25 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { navItems, HOME_QR_SEARCH } from "@/config/nav";
+import { navItems } from "@/config/nav";
+import { useQR } from "@/contexts/QRContext";
 
 interface BottomNavProps {
   activeTab: string;
-  /** Se informado, ao clicar em Escanear navega para /home?showQR=1 (a página Home pode abrir o QR). */
-  useScanQuery?: boolean;
 }
 
-const BottomNav = ({ activeTab, useScanQuery = true }: BottomNavProps) => {
+const BottomNav = ({ activeTab }: BottomNavProps) => {
   const navigate = useNavigate();
+  const { openQR } = useQR();
   const [pressedTab, setPressedTab] = useState<string | null>(null);
 
   const handleTabPress = (id: string, path: string, primary?: boolean) => {
     setPressedTab(id);
     setTimeout(() => setPressedTab(null), 150);
-    const target = primary && useScanQuery ? `${path}${HOME_QR_SEARCH}` : path;
-    navigate(target);
+    if (primary) {
+      openQR();
+      return;
+    }
+    navigate(path);
   };
 
   return (
@@ -31,7 +34,7 @@ const BottomNav = ({ activeTab, useScanQuery = true }: BottomNavProps) => {
             return (
               <button
                 key={item.id}
-                onClick={() => handleTabPress(item.id, item.path, true)}
+                onClick={() => handleTabPress(item.id, item.path, !!item.primary)}
                 className={`
                   flex -mt-6 h-16 w-16 items-center justify-center rounded-full gradient-secondary shadow-lg 
                   transition-all duration-200

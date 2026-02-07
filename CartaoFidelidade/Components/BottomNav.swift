@@ -134,7 +134,10 @@ struct BottomNav: View {
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             pressedTab = nil
-            activeTab = id
+            // Botão Escanear só abre o QR; não muda de aba
+            if id != "scan" {
+                activeTab = id
+            }
         }
     }
 }
