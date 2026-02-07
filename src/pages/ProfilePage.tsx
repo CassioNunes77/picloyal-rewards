@@ -58,21 +58,27 @@ const ProfilePage = () => {
     toast.info("Editando perfil...");
   };
 
+  const closeEditDialog = () => {
+    setEditDialog(null);
+    setTempEmail("");
+    setTempPassword("");
+    setTempPhone("");
+  };
+
   const handleSaveEmail = async () => {
     if (!tempEmail.trim()) {
       toast.error("Informe o novo e-mail.");
       return;
     }
     if (!tempPassword) {
-      toast.error("Informe sua senha para confirmar.");
+      toast.error("Informe sua senha atual para confirmar.");
       return;
     }
     setSaving(true);
     try {
       await updateEmail(tempEmail.trim(), tempPassword);
       toast.success("E-mail atualizado.");
-      setEditDialog(null);
-      setTempPassword("");
+      closeEditDialog();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Erro ao atualizar e-mail.";
       toast.error(msg);
@@ -82,12 +88,13 @@ const ProfilePage = () => {
   };
 
   const handleSavePhone = async () => {
+    const trimmed = tempPhone.trim();
     setSaving(true);
     try {
-      await updatePhone(tempPhone.trim());
-      setProfilePhone(tempPhone.trim());
+      await updatePhone(trimmed);
+      setProfilePhone(trimmed);
       toast.success("Telefone atualizado.");
-      setEditDialog(null);
+      closeEditDialog();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Erro ao atualizar telefone.";
       toast.error(msg);
@@ -334,13 +341,13 @@ const ProfilePage = () => {
         </p>
       </div>
 
-      <Dialog open={editDialog !== null} onOpenChange={(open) => !open && setEditDialog(null)}>
+      <Dialog open={editDialog !== null} onOpenChange={(open) => !open && closeEditDialog()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{editDialog === "email" ? "Alterar e-mail" : "Alterar telefone"}</DialogTitle>
             <DialogDescription>
               {editDialog === "email"
-                ? "Informe o novo e-mail e sua senha atual para confirmar."
+                ? "Altere apenas o e-mail da sua conta. Informe sua senha atual para confirmar a alteração."
                 : "Informe o novo número de telefone."}
             </DialogDescription>
           </DialogHeader>
@@ -357,7 +364,7 @@ const ProfilePage = () => {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="edit-password">Senha atual</Label>
+                <Label htmlFor="edit-password">Senha atual (confirmação)</Label>
                 <Input
                   id="edit-password"
                   type="password"
@@ -383,10 +390,11 @@ const ProfilePage = () => {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialog(null)} disabled={saving}>
+            <Button variant="outline" onClick={closeEditDialog} disabled={saving}>
               Cancelar
             </Button>
             <Button
+              type="button"
               onClick={editDialog === "email" ? handleSaveEmail : handleSavePhone}
               disabled={saving}
             >
