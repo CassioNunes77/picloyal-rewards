@@ -68,7 +68,7 @@ const OfferDetailPage = () => {
             >
               <ChevronRight className="h-5 w-5 text-secondary-foreground rotate-180" />
             </button>
-            <h1 className="text-xl font-bold text-secondary-foreground flex-1 line-clamp-1">
+            <h1 className="text-lg font-bold text-secondary-foreground flex-1 line-clamp-1">
               Detalhes da Oferta
             </h1>
           </div>

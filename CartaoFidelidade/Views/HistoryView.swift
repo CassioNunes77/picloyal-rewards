@@ -69,7 +69,7 @@ struct HistoryView: View {
                             HStack(spacing: AppSpacing.sm) {
                                 Image(systemName: "clock.fill")
                                     .font(.system(size: 24))
-                                Text("Histórico")
+                                Text("Atividades")
                                     .font(.appTitle)
                                     .foregroundColor(.white)
                             }
@@ -82,7 +82,7 @@ struct HistoryView: View {
                         HStack {
                             Image(systemName: "magnifyingglass")
                                 .foregroundColor(.white.opacity(0.6))
-                            TextField("Buscar no histórico...", text: $searchQuery)
+                            TextField("Buscar nas atividades...", text: $searchQuery)
                                 .foregroundColor(.white)
                                 .tint(.white)
                         }

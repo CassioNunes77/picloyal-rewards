@@ -110,7 +110,7 @@ const RewardsPage = () => {
             >
               <ChevronRight className="h-5 w-5 text-secondary-foreground rotate-180" />
             </Link>
-            <h1 className="text-2xl font-bold text-secondary-foreground flex-1 flex items-center gap-2">
+            <h1 className="text-xl font-bold text-secondary-foreground flex-1 flex items-center gap-2">
               <Sparkles className="h-6 w-6" />
               Suas Recompensas
             </h1>

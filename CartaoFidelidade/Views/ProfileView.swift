@@ -61,7 +61,7 @@ struct ProfileView: View {
                                 }
                             }
                             
-                            Text("Meu Perfil")
+                            Text("Perfil")
                                 .font(.appTitle)
                                 .foregroundColor(.white)
                             

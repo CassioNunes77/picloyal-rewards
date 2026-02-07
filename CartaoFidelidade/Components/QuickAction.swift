@@ -65,7 +65,7 @@ struct QuickAction: View {
 #Preview {
     HStack {
         QuickAction(icon: "qrcode", label: "Escanear", badge: nil) {}
-        QuickAction(icon: "clock", label: "Histórico", badge: nil) {}
+        QuickAction(icon: "clock", label: "Atividades", badge: nil) {}
         QuickAction(icon: "tag", label: "Ofertas", badge: 3) {}
         QuickAction(icon: "storefront", label: "Lojas", badge: nil) {}
     }

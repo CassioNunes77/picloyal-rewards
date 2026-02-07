@@ -11,7 +11,7 @@ const Header = ({ userName, notifications = 0 }: HeaderProps) => {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-primary-foreground/80">Bem-vindo de volta,</p>
-          <h1 className="text-2xl font-bold text-primary-foreground">{userName}</h1>
+          <h1 className="text-xl font-bold text-primary-foreground">{userName}</h1>
         </div>
         <div className="flex items-center gap-3">
           <button className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20 transition-transform active:scale-95">

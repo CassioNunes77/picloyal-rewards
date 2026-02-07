@@ -139,7 +139,7 @@ const ProfilePage = () => {
             >
               <ChevronRight className="h-5 w-5 text-primary-foreground rotate-180" />
             </Link>
-            <h1 className="text-2xl font-bold text-primary-foreground flex-1">Meu Perfil</h1>
+            <h1 className="text-xl font-bold text-primary-foreground flex-1">Perfil</h1>
             <button
               onClick={handleEditProfile}
               className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20 
@@ -202,7 +202,7 @@ const ProfilePage = () => {
                 style={{ animationDelay: `${200 + index * 50}ms` }}
               >
                 <Icon className={`h-6 w-6 mx-auto mb-2 ${stat.color}`} />
-                <p className="text-2xl font-bold text-card-foreground">{stat.value}</p>
+                <p className="text-xl font-bold text-card-foreground">{stat.value}</p>
                 <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
               </div>
             );

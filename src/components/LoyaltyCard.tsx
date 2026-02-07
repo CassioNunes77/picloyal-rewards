@@ -33,7 +33,7 @@ const LoyaltyCard = ({ currentPoints, totalPoints, userName, cardNumber }: Loyal
         
         <div className="mt-6">
           <p className="text-sm opacity-80">Olá,</p>
-          <h2 className="text-xl font-bold">{userName}</h2>
+          <h2 className="text-lg font-bold">{userName}</h2>
         </div>
         
         <div className="mt-6">

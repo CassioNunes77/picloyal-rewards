@@ -101,7 +101,7 @@ const StoresPage = () => {
             >
               <ChevronRight className="h-5 w-5 text-primary-foreground rotate-180" />
             </Link>
-            <h1 className="text-2xl font-bold text-primary-foreground flex-1">Lojas Parceiras</h1>
+            <h1 className="text-xl font-bold text-primary-foreground flex-1">Lojas Parceiras</h1>
           </div>
 
           {/* Search Bar */}

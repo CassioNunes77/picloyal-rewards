@@ -145,7 +145,7 @@ const NotificationsPage = () => {
               </Link>
               <div className="flex items-center gap-2">
                 <Bell className="h-6 w-6 text-primary-foreground" />
-                <h1 className="text-2xl font-bold text-primary-foreground">Notificações</h1>
+                <h1 className="text-xl font-bold text-primary-foreground">Notificações</h1>
                 {unreadCount > 0 && (
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
                     {unreadCount > 9 ? "9+" : unreadCount}

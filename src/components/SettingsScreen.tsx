@@ -189,7 +189,7 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
           >
             <ChevronRight className="h-5 w-5 text-primary-foreground rotate-180" />
           </button>
-          <h1 className="text-2xl font-bold text-primary-foreground">Configurações</h1>
+          <h1 className="text-xl font-bold text-primary-foreground">Configurações</h1>
         </div>
       </header>
 

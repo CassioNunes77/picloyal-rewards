@@ -164,7 +164,7 @@ const HistoryPage = () => {
             >
               <ChevronRight className="h-5 w-5 text-primary-foreground rotate-180" />
             </Link>
-            <h1 className="text-xl font-bold text-primary-foreground flex-1 flex items-center gap-2">
+            <h1 className="text-lg font-bold text-primary-foreground flex-1 flex items-center gap-2">
               <Clock className="h-5 w-5" />
               Atividades
             </h1>

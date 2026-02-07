@@ -87,7 +87,7 @@ const Index = () => {
           <div className="flex items-center justify-between">
             <div className="animate-fade-in">
               <p className="text-sm text-primary-foreground/80">Bem-vindo de volta,</p>
-              <h1 className="text-2xl font-bold text-primary-foreground">{shortName}</h1>
+              <h1 className="text-xl font-bold text-primary-foreground">{shortName}</h1>
             </div>
             <div className="flex items-center gap-3">
               <button 
@@ -214,7 +214,7 @@ const Index = () => {
               </p>
             </div>
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary-foreground/20 animate-pulse">
-              <span className="text-2xl font-bold">2x</span>
+              <span className="text-xl font-bold">2x</span>
             </div>
           </div>
         </div>
