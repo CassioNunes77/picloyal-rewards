@@ -42,7 +42,7 @@ const RewardCard = ({
   return (
     <div 
       className={`
-        flex items-center gap-4 rounded-xl bg-card p-4 shadow-md 
+        flex items-center gap-4 rounded-2xl bg-card p-4 shadow-md 
         transition-all duration-300 cursor-pointer
         ${available ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : 'opacity-75'}
         ${isPressed ? 'scale-[0.98] shadow-sm' : 'hover:shadow-lg'}
@@ -62,16 +62,16 @@ const RewardCard = ({
         <Icon className="h-6 w-6" />
       </div>
       
-      <div className="flex-1 min-w-0">
-        <h4 className="font-semibold text-card-foreground text-base truncate">{title}</h4>
+      <div className="flex-1 min-w-0 overflow-hidden">
+        <h3 className="font-semibold text-card-foreground text-sm truncate mb-0.5">{title}</h3>
         <p className="text-xs text-muted-foreground truncate">{description}</p>
-        <div className="mt-1 flex items-center gap-2">
-          <span className={`text-xs font-medium ${available ? 'text-primary' : 'text-muted-foreground'}`}>
+        <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+          <span className={`font-medium ${available ? 'text-primary' : 'text-muted-foreground'}`}>
             {points} pontos
           </span>
           {expiresIn && (
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Clock className="h-3 w-3" />
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3 shrink-0" />
               {expiresIn}
             </span>
           )}
@@ -85,7 +85,7 @@ const RewardCard = ({
             handleClaim();
           }}
           className={`
-            shrink-0 px-4 py-2 rounded-lg gradient-primary text-primary-foreground text-sm font-medium
+            shrink-0 px-4 py-2 rounded-lg gradient-primary text-primary-foreground text-xs font-medium
             transition-all duration-200
             ${isClaimPressed ? 'scale-90 opacity-80' : 'hover:opacity-90 active:scale-95'}
           `}

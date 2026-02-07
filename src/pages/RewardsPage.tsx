@@ -143,7 +143,7 @@ const RewardsPage = () => {
             <p className="text-sm text-muted-foreground">Tente buscar com outros termos</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {filteredRewards.map((reward, index) => (
               <RewardCard key={index} {...reward} onClaim={() => handleClaimReward(reward.title)} />
             ))}
@@ -208,7 +208,7 @@ const RewardsPage = () => {
             <p className="text-sm text-muted-foreground">Tente buscar com outros termos</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {filteredRewards.map((reward, index) => (
               <div
                 key={index}
