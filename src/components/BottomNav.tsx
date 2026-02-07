@@ -1,33 +1,22 @@
-import { Home, Tag, QrCode, Store, User } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-const navItems = [
-  { icon: Home, label: "Início", id: "home", path: "/home" },
-  { icon: Tag, label: "Ofertas", id: "offers", path: "/offers" },
-  { icon: QrCode, label: "Escanear", id: "scan", primary: true, path: "/home" },
-  { icon: Store, label: "Lojas", id: "stores", path: "/stores" },
-  { icon: User, label: "Perfil", id: "profile", path: "/profile" },
-];
+import { navItems, HOME_QR_SEARCH } from "@/config/nav";
 
 interface BottomNavProps {
   activeTab: string;
-  onTabChange: (tab: string) => void;
-  showQRCode?: boolean;
-  setShowQRCode?: (show: boolean) => void;
+  /** Se informado, ao clicar em Escanear navega para /home?showQR=1 (a página Home pode abrir o QR). */
+  useScanQuery?: boolean;
 }
 
-const BottomNav = ({ activeTab, onTabChange, showQRCode, setShowQRCode }: BottomNavProps) => {
+const BottomNav = ({ activeTab, useScanQuery = true }: BottomNavProps) => {
   const navigate = useNavigate();
   const [pressedTab, setPressedTab] = useState<string | null>(null);
 
-  const handleTabPress = (id: string, path?: string) => {
+  const handleTabPress = (id: string, path: string, primary?: boolean) => {
     setPressedTab(id);
     setTimeout(() => setPressedTab(null), 150);
-    onTabChange(id);
-    if (path) {
-      navigate(path);
-    }
+    const target = primary && useScanQuery ? `${path}${HOME_QR_SEARCH}` : path;
+    navigate(target);
   };
 
   return (
@@ -37,28 +26,25 @@ const BottomNav = ({ activeTab, onTabChange, showQRCode, setShowQRCode }: Bottom
           const isActive = activeTab === item.id;
           const isPressed = pressedTab === item.id;
           const Icon = item.icon;
-          
+
           if (item.primary) {
             return (
               <button
                 key={item.id}
-                onClick={() => {
-                  handleTabPress(item.id, item.path);
-                  if (setShowQRCode) {
-                    setShowQRCode(true);
-                  }
-                }}
+                onClick={() => handleTabPress(item.id, item.path, true)}
                 className={`
                   flex -mt-6 h-16 w-16 items-center justify-center rounded-full gradient-secondary shadow-lg 
                   transition-all duration-200
-                  ${isPressed ? 'scale-90 shadow-md' : 'hover:shadow-xl active:scale-95'}
+                  ${isPressed ? "scale-90 shadow-md" : "hover:shadow-xl active:scale-95"}
                 `}
               >
-                <Icon className={`h-7 w-7 text-secondary-foreground transition-transform duration-200 ${isPressed ? 'scale-90' : ''}`} />
+                <Icon
+                  className={`h-7 w-7 text-secondary-foreground transition-transform duration-200 ${isPressed ? "scale-90" : ""}`}
+                />
               </button>
             );
           }
-          
+
           return (
             <button
               key={item.id}
@@ -66,24 +52,26 @@ const BottomNav = ({ activeTab, onTabChange, showQRCode, setShowQRCode }: Bottom
               className={`
                 relative flex flex-col items-center gap-1 py-2 
                 transition-all duration-200
-                ${isPressed ? 'scale-90' : ''}
+                ${isPressed ? "scale-90" : ""}
               `}
             >
               <div className="relative">
-                <Icon 
+                <Icon
                   className={`h-6 w-6 transition-all duration-200 ${
-                    isActive ? 'text-primary scale-110' : 'text-muted-foreground'
-                  } ${isPressed ? 'scale-90' : ''}`} 
+                    isActive ? "text-primary scale-110" : "text-muted-foreground"
+                  } ${isPressed ? "scale-90" : ""}`}
                 />
-                {item.badge && (
+                {item.badge != null && item.badge > 0 && (
                   <span className="absolute -right-2 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
                     {item.badge}
                   </span>
                 )}
               </div>
-              <span className={`text-[10px] font-medium transition-colors duration-200 ${
-                isActive ? 'text-primary' : 'text-muted-foreground'
-              }`}>
+              <span
+                className={`text-[10px] font-medium transition-colors duration-200 ${
+                  isActive ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
                 {item.label}
               </span>
               {isActive && (

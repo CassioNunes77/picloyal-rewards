@@ -15,7 +15,6 @@ import {
   Shield,
   LogOut
 } from "lucide-react";
-import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -23,7 +22,6 @@ import { toast } from "sonner";
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { user, loading, signOut } = useAuth();
-  const [activeTab, setActiveTab] = useState("profile");
   const [notifications, setNotifications] = useState(true);
 
   const userStats = [
@@ -256,8 +254,6 @@ const ProfilePage = () => {
         </p>
       </div>
 
-      {/* Bottom Navigation */}
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
 };

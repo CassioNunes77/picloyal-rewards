@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import AppLayout from "./layouts/AppLayout";
 import Index from "./pages/Index";
 import StoresPage from "./pages/StoresPage";
 import OffersPage from "./pages/OffersPage";
@@ -45,14 +46,16 @@ const App = () => (
           <AuthGuard>
             <Routes>
               <Route path="/" element={<LoginPage />} />
-              <Route path="/home" element={<Index />} />
-              <Route path="/stores" element={<StoresPage />} />
-              <Route path="/store/:id" element={<StoreDetailPage />} />
-              <Route path="/offers" element={<OffersPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/notifications" element={<NotificationsPage />} />
-              <Route path="/history" element={<HistoryPage />} />
-              <Route path="/rewards" element={<RewardsPage />} />
+              <Route element={<AppLayout />}>
+                <Route path="/home" element={<Index />} />
+                <Route path="/stores" element={<StoresPage />} />
+                <Route path="/store/:id" element={<StoreDetailPage />} />
+                <Route path="/offers" element={<OffersPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/notifications" element={<NotificationsPage />} />
+                <Route path="/history" element={<HistoryPage />} />
+                <Route path="/rewards" element={<RewardsPage />} />
+              </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

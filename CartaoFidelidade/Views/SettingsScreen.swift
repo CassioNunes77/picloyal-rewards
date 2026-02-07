@@ -256,7 +256,6 @@ struct SettingsScreen: View {
                 userDisplayName = ""
                 userEmail = ""
                 isLoggedIn = false
-                onBack()
             }
         }
     }

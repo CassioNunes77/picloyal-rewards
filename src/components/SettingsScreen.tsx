@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -74,7 +75,8 @@ interface SettingsScreenProps {
 }
 
 const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
-  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { user, signOut, deleteAccount } = useAuth();
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const displayName = user?.displayName ?? user?.email?.split("@")[0] ?? "Usuário";
@@ -116,7 +118,7 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
     try {
       await deleteAccount();
       toast.success("Conta excluída.");
-      onBack();
+      navigate("/", { replace: true });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Erro ao excluir conta.";
       toast.error(msg);

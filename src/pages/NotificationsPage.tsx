@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Bell, Tag, Star, Gift, CheckCircle, Clock, Sparkles, ChevronRight } from "lucide-react";
-import BottomNav from "@/components/BottomNav";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -16,7 +15,6 @@ interface Notification {
 
 const NotificationsPage = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("notifications");
   const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: 1,
@@ -240,7 +238,6 @@ const NotificationsPage = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
 };

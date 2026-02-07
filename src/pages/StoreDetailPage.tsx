@@ -10,7 +10,6 @@ import {
   Tag,
   MessageSquare
 } from "lucide-react";
-import BottomNav from "@/components/BottomNav";
 import { useNavigate, Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -39,7 +38,6 @@ interface Offer {
 const StoreDetailPage = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [activeTab, setActiveTab] = useState("stores");
   const [selectedTab, setSelectedTab] = useState<"info" | "offers" | "reviews">("info");
 
   // Mock data - em produção, buscar pelo ID

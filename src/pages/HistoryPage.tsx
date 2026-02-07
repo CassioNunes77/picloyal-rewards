@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Clock, Search, ChevronRight, ShoppingCart, Gift, Sparkles, Tag, List, MapPin, Coffee, UtensilsCrossed, Percent, Star } from "lucide-react";
-import BottomNav from "@/components/BottomNav";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -17,7 +16,6 @@ interface HistoryItem {
 
 const HistoryPage = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("history");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
 
@@ -299,7 +297,6 @@ const HistoryPage = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
 };

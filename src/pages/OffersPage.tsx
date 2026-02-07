@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Tag, Clock, MapPin, Percent, Gift, Coffee, Pizza, Sparkles, ChevronRight, Search } from "lucide-react";
-import BottomNav from "@/components/BottomNav";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -20,7 +19,6 @@ interface Offer {
 
 const OffersPage = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("offers");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
@@ -289,7 +287,6 @@ const OffersPage = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
 };

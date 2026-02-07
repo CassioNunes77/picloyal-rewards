@@ -1,21 +1,21 @@
 import { useState, useEffect } from "react";
 import { QrCode, History, Sparkles, Store, Settings } from "lucide-react";
-import Header from "@/components/Header";
 import LoyaltyCard from "@/components/LoyaltyCard";
 import StampGrid from "@/components/StampGrid";
 import RewardCard from "@/components/RewardCard";
 import QuickAction from "@/components/QuickAction";
-import BottomNav from "@/components/BottomNav";
 import SettingsScreen from "@/components/SettingsScreen";
 import QRCodeCard from "@/components/QRCodeCard";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState("home");
+  const [showSettings, setShowSettings] = useState(false);
+  const [showQRCode, setShowQRCode] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -23,8 +23,12 @@ const Index = () => {
     }
   }, [authLoading, user, navigate]);
 
-  const [showSettings, setShowSettings] = useState(false);
-  const [showQRCode, setShowQRCode] = useState(false);
+  useEffect(() => {
+    if (searchParams.get("showQR") === "1") {
+      setShowQRCode(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   if (authLoading || !user) {
     return (
@@ -84,7 +88,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background">
       {/* Hero Section with Gradient */}
       <div className="gradient-hero">
         <header className="relative z-10 px-6 pt-12 pb-4">
@@ -224,9 +228,6 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Bottom Navigation */}
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} showQRCode={showQRCode} setShowQRCode={setShowQRCode} />
-      
       {/* QR Code Card */}
       <QRCodeCard isOpen={showQRCode} onClose={() => setShowQRCode(false)} />
     </div>

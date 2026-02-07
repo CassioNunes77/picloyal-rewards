@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Sparkles, Search, ChevronRight, List, CheckCircle, Gift } from "lucide-react";
-import BottomNav from "@/components/BottomNav";
 import RewardCard from "@/components/RewardCard";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -191,7 +190,6 @@ const RewardsPage = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
 };
