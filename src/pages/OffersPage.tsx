@@ -208,14 +208,14 @@ const OffersPage = () => {
                 >
                   <button
                     onClick={() => handleOfferClick(offer)}
-                    className="w-full text-left bg-card rounded-2xl p-5 shadow-md 
+                    className="w-full text-left bg-card rounded-2xl p-4 shadow-md overflow-hidden
                              transition-all duration-300 hover:shadow-lg active:scale-[0.98]
                              border-2 border-transparent hover:border-primary/20"
                   >
-                    <div className="flex gap-4">
+                    <div className="flex gap-3 min-w-0">
                       {/* Icon */}
                       <div className={`
-                        flex h-16 w-16 items-center justify-center rounded-xl shrink-0
+                        flex h-14 w-14 items-center justify-center rounded-xl shrink-0
                         transition-all duration-300
                         ${offer.icon === 'coffee' ? 'gradient-primary' :
                           offer.icon === 'pizza' ? 'bg-orange-500' :
@@ -223,58 +223,54 @@ const OffersPage = () => {
                           'bg-blue-500'
                         }
                       `}>
-                        <Icon className="h-8 w-8 text-white" />
+                        <Icon className="h-7 w-7 text-white" />
                       </div>
 
                       {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-semibold text-card-foreground text-lg">
+                      <div className="flex-1 min-w-0 overflow-hidden">
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 mb-0.5 min-w-0">
+                              <h3 className="font-semibold text-card-foreground text-sm truncate min-w-0">
                                 {offer.title}
                               </h3>
                               {offer.isNew && (
-                                <span className="px-2 py-0.5 rounded-lg bg-destructive text-destructive-foreground text-xs font-bold">
+                                <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-destructive text-destructive-foreground text-[10px] font-bold whitespace-nowrap">
                                   NOVO
                                 </span>
                               )}
                             </div>
-                            <p className="text-sm text-muted-foreground mb-2">
+                            <p className="text-xs text-muted-foreground mb-1 line-clamp-2 break-words overflow-hidden">
                               {offer.description}
                             </p>
                           </div>
-                          <div className={`
-                            flex items-center justify-center rounded-xl px-3 py-2
-                            gradient-secondary text-secondary-foreground
-                            font-bold text-lg shrink-0 ml-2
-                          `}>
+                          <div className="shrink-0 flex items-center justify-center rounded-lg px-2 py-1 gradient-secondary text-secondary-foreground font-bold text-xs whitespace-nowrap">
                             {offer.discount}
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
-                          <div className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
+                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground mb-2 flex-wrap">
+                          <div className="flex items-center gap-1 min-w-0">
+                            <MapPin className="h-3 w-3 shrink-0" />
                             <span className="truncate">{offer.storeName}</span>
                           </div>
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 shrink-0">
                             <Clock className="h-3 w-3" />
                             <span>Válido até {offer.validUntil}</span>
                           </div>
                         </div>
 
                         {offer.pointsRequired && (
-                          <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-accent w-fit">
-                            <Sparkles className="h-3 w-3 text-accent-foreground" />
-                            <span className="text-xs font-medium text-accent-foreground">
+                          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-accent w-fit max-w-full">
+                            <Sparkles className="h-3 w-3 text-accent-foreground shrink-0" />
+                            <span className="text-[10px] font-medium text-accent-foreground truncate">
                               {offer.pointsRequired} pontos necessários
                             </span>
                           </div>
                         )}
                       </div>
 
-                      <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 ml-2 self-center" />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 self-center" />
                     </div>
                   </button>
                 </div>
