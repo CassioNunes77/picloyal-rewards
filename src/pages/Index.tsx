@@ -139,7 +139,7 @@ const Index = () => {
           />
           <QuickAction 
             icon={History} 
-            label="Histórico"
+            label="Atividades"
             onClick={() => navigate("/history")}
           />
           <QuickAction 

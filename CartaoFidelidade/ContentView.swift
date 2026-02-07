@@ -39,6 +39,9 @@ struct ContentView: View {
                     case "rewards":
                         RewardsView(activeTab: $activeTab)
                             .transition(.move(edge: .leading))
+                    case "history":
+                        HistoryView(activeTab: $activeTab)
+                            .transition(.move(edge: .leading))
                     default:
                         HomeView(showSettings: $showSettings, activeTab: $activeTab, showQRCode: $showQRCode)
                             .transition(.move(edge: .leading))
