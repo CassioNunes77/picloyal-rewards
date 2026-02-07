@@ -15,6 +15,7 @@ import NotificationsPage from "./pages/NotificationsPage";
 import HistoryPage from "./pages/HistoryPage";
 import RewardsPage from "./pages/RewardsPage";
 import StoreDetailPage from "./pages/StoreDetailPage";
+import OfferDetailPage from "./pages/OfferDetailPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ const App = () => (
                 <Route path="/stores" element={<StoresPage />} />
                 <Route path="/store/:id" element={<StoreDetailPage />} />
                 <Route path="/offers" element={<OffersPage />} />
+                <Route path="/offer" element={<OfferDetailPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/history" element={<HistoryPage />} />

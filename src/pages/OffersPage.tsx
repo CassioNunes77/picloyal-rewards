@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Tag, Clock, MapPin, Percent, Gift, Coffee, Pizza, Sparkles, ChevronRight, Search } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
+import type { OfferDetailData } from "./OfferDetailPage";
 
 interface Offer {
   id: number;
@@ -119,9 +120,7 @@ const OffersPage = () => {
   });
 
   const handleOfferClick = (offer: Offer) => {
-    toast.success(`🎉 Oferta "${offer.title}" ativada!`, {
-      description: `Apresente este cupom em ${offer.storeName}`,
-    });
+    navigate("/offer", { state: { offer: offer as OfferDetailData } });
   };
 
   return (

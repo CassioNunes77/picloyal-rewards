@@ -14,6 +14,7 @@ struct StoreDetailView: View {
     @State private var showToast = false
     @State private var toastMessage = ""
     @State private var selectedTab = "info"
+    @State private var selectedOffer: Offer?
     
     let storeOffers = [
         Offer(
@@ -196,7 +197,7 @@ struct StoreDetailView: View {
                         if selectedTab == "info" {
                             InfoTab(store: store)
                         } else if selectedTab == "offers" {
-                            OffersTab(offers: storeOffers, showToast: $showToast, toastMessage: $toastMessage)
+                            OffersTab(offers: storeOffers, showToast: $showToast, toastMessage: $toastMessage, onOfferTap: { selectedOffer = $0 })
                         } else {
                             ReviewsTab(store: store)
                         }
@@ -228,9 +229,19 @@ struct StoreDetailView: View {
                 .animation(.easeInOut, value: showToast)
             }
         }
+        .sheet(item: $selectedOffer) { offer in
+            OfferDetailView(
+                offer: offer,
+                storeNameOverride: store.name,
+                onUseOffer: {
+                    showToast(message: "🎉 Oferta \"\(offer.title)\" ativada!")
+                },
+                onDismiss: { selectedOffer = nil }
+            )
+        }
         .ignoresSafeArea(edges: .top)
     }
-    
+
     private func showToast(message: String) {
         toastMessage = message
         withAnimation {
@@ -397,7 +408,8 @@ struct OffersTab: View {
     let offers: [Offer]
     @Binding var showToast: Bool
     @Binding var toastMessage: String
-    
+    var onOfferTap: ((Offer) -> Void)?
+
     var body: some View {
         VStack(spacing: AppSpacing.md) {
             if offers.isEmpty {
@@ -405,7 +417,7 @@ struct OffersTab: View {
                     Image(systemName: "tag")
                         .font(.system(size: 40))
                         .foregroundColor(.mutedForeground)
-                    
+
                     Text("Nenhuma oferta disponível")
                         .font(.appCaption)
                         .foregroundColor(.mutedForeground)
@@ -416,15 +428,7 @@ struct OffersTab: View {
                     OfferCard(offer: offer, compact: true)
                         .fadeIn(delay: 0.2 + Double(index) * 0.05)
                         .onTapGesture {
-                            toastMessage = "🎉 Oferta \"\(offer.title)\" ativada!"
-                            withAnimation {
-                                showToast = true
-                            }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                withAnimation {
-                                    showToast = false
-                                }
-                            }
+                            onOfferTap?(offer)
                         }
                 }
             }

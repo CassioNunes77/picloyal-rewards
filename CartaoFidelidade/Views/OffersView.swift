@@ -27,6 +27,7 @@ struct OffersView: View {
     @State private var selectedCategory = "all"
     @State private var showToast = false
     @State private var toastMessage = ""
+    @State private var selectedOffer: Offer?
     
     let offers = [
         Offer(
@@ -243,7 +244,7 @@ struct OffersView: View {
                                 OfferCard(offer: offer, compact: true)
                                     .fadeIn(delay: 0.2 + Double(index) * 0.05)
                                     .onTapGesture {
-                                        showToast(message: "🎉 Oferta \"\(offer.title)\" ativada!")
+                                        selectedOffer = offer
                                     }
                             }
                         }
@@ -263,7 +264,7 @@ struct OffersView: View {
             if showToast {
                 VStack {
                     Spacer()
-                    
+
                     Text(toastMessage)
                         .font(.appBody)
                         .foregroundColor(.white)
@@ -276,6 +277,20 @@ struct OffersView: View {
                 }
                 .animation(.easeInOut, value: showToast)
             }
+        }
+        .sheet(item: $selectedOffer) { offer in
+            OfferDetailView(
+                offer: offer,
+                storeNameOverride: nil,
+                onUseOffer: {
+                    toastMessage = "🎉 Oferta \"\(offer.title)\" ativada!"
+                    withAnimation { showToast = true }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        withAnimation { showToast = false }
+                    }
+                },
+                onDismiss: { selectedOffer = nil }
+            )
         }
         .ignoresSafeArea(edges: .top)
     }

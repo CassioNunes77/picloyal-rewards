@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useNavigate, Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
+import type { OfferDetailData } from "./OfferDetailPage";
 
 interface Store {
   id: number;
@@ -257,8 +258,11 @@ const StoreDetailPage = () => {
                 >
                   <button
                     onClick={() => {
-                      toast.success(`🎉 Oferta "${offer.title}" ativada!`, {
-                        description: `Apresente este cupom em ${store.name}`,
+                      navigate("/offer", {
+                        state: {
+                          offer: { ...offer, storeName: store.name } as OfferDetailData,
+                          storeName: store.name,
+                        },
                       });
                     }}
                     className="w-full text-left bg-card rounded-2xl p-4 shadow-md 
