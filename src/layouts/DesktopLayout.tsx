@@ -98,7 +98,7 @@ export default function DesktopLayout() {
               cardNumber="**** **** **** 4589"
             />
           </div>
-          <div className="flex-1 min-w-0 min-h-[60vh] flex flex-col overflow-auto">
+          <div className="flex-1 min-w-0 min-h-[60vh] flex flex-col overflow-auto bg-background rounded-lg">
             <Outlet />
           </div>
         </div>
