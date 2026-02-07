@@ -1,0 +1,630 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		DF6543542F361630007B1B76 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = DF6543532F361630007B1B76 /* FirebaseAuth */; };
+		DF6543562F361630007B1B76 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = DF6543552F361630007B1B76 /* FirebaseCore */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		DF5AABD52F21B1EF00BCE4F0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DF5AABBB2F21B1EB00BCE4F0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DF5AABC22F21B1EB00BCE4F0;
+			remoteInfo = CartaoFidelidade;
+		};
+		DF5AABDF2F21B1EF00BCE4F0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DF5AABBB2F21B1EB00BCE4F0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DF5AABC22F21B1EB00BCE4F0;
+			remoteInfo = CartaoFidelidade;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		DF5AABC32F21B1EB00BCE4F0 /* CartaoFidelidade.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CartaoFidelidade.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DF5AABD42F21B1EF00BCE4F0 /* CartaoFidelidadeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CartaoFidelidadeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DF5AABDE2F21B1EF00BCE4F0 /* CartaoFidelidadeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CartaoFidelidadeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		DF5AABC52F21B1EB00BCE4F0 /* CartaoFidelidade */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = CartaoFidelidade;
+			sourceTree = "<group>";
+		};
+		DF5AABD72F21B1EF00BCE4F0 /* CartaoFidelidadeTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = CartaoFidelidadeTests;
+			sourceTree = "<group>";
+		};
+		DF5AABE12F21B1EF00BCE4F0 /* CartaoFidelidadeUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = CartaoFidelidadeUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		DF5AABC02F21B1EB00BCE4F0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DF6543562F361630007B1B76 /* FirebaseCore in Frameworks */,
+				DF6543542F361630007B1B76 /* FirebaseAuth in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF5AABD12F21B1EF00BCE4F0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF5AABDB2F21B1EF00BCE4F0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		DF5AABBA2F21B1EB00BCE4F0 = {
+			isa = PBXGroup;
+			children = (
+				DF5AABC52F21B1EB00BCE4F0 /* CartaoFidelidade */,
+				DF5AABD72F21B1EF00BCE4F0 /* CartaoFidelidadeTests */,
+				DF5AABE12F21B1EF00BCE4F0 /* CartaoFidelidadeUITests */,
+				DF5AABC42F21B1EB00BCE4F0 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		DF5AABC42F21B1EB00BCE4F0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DF5AABC32F21B1EB00BCE4F0 /* CartaoFidelidade.app */,
+				DF5AABD42F21B1EF00BCE4F0 /* CartaoFidelidadeTests.xctest */,
+				DF5AABDE2F21B1EF00BCE4F0 /* CartaoFidelidadeUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		DF5AABC22F21B1EB00BCE4F0 /* CartaoFidelidade */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DF5AABE82F21B1EF00BCE4F0 /* Build configuration list for PBXNativeTarget "CartaoFidelidade" */;
+			buildPhases = (
+				DF5AABBF2F21B1EB00BCE4F0 /* Sources */,
+				DF5AABC02F21B1EB00BCE4F0 /* Frameworks */,
+				DF5AABC12F21B1EB00BCE4F0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				DF5AABC52F21B1EB00BCE4F0 /* CartaoFidelidade */,
+			);
+			name = CartaoFidelidade;
+			packageProductDependencies = (
+				DF6543532F361630007B1B76 /* FirebaseAuth */,
+				DF6543552F361630007B1B76 /* FirebaseCore */,
+			);
+			productName = CartaoFidelidade;
+			productReference = DF5AABC32F21B1EB00BCE4F0 /* CartaoFidelidade.app */;
+			productType = "com.apple.product-type.application";
+		};
+		DF5AABD32F21B1EF00BCE4F0 /* CartaoFidelidadeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DF5AABEB2F21B1F000BCE4F0 /* Build configuration list for PBXNativeTarget "CartaoFidelidadeTests" */;
+			buildPhases = (
+				DF5AABD02F21B1EF00BCE4F0 /* Sources */,
+				DF5AABD12F21B1EF00BCE4F0 /* Frameworks */,
+				DF5AABD22F21B1EF00BCE4F0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DF5AABD62F21B1EF00BCE4F0 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				DF5AABD72F21B1EF00BCE4F0 /* CartaoFidelidadeTests */,
+			);
+			name = CartaoFidelidadeTests;
+			packageProductDependencies = (
+			);
+			productName = CartaoFidelidadeTests;
+			productReference = DF5AABD42F21B1EF00BCE4F0 /* CartaoFidelidadeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		DF5AABDD2F21B1EF00BCE4F0 /* CartaoFidelidadeUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DF5AABEE2F21B1F000BCE4F0 /* Build configuration list for PBXNativeTarget "CartaoFidelidadeUITests" */;
+			buildPhases = (
+				DF5AABDA2F21B1EF00BCE4F0 /* Sources */,
+				DF5AABDB2F21B1EF00BCE4F0 /* Frameworks */,
+				DF5AABDC2F21B1EF00BCE4F0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DF5AABE02F21B1EF00BCE4F0 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				DF5AABE12F21B1EF00BCE4F0 /* CartaoFidelidadeUITests */,
+			);
+			name = CartaoFidelidadeUITests;
+			packageProductDependencies = (
+			);
+			productName = CartaoFidelidadeUITests;
+			productReference = DF5AABDE2F21B1EF00BCE4F0 /* CartaoFidelidadeUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		DF5AABBB2F21B1EB00BCE4F0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					DF5AABC22F21B1EB00BCE4F0 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					DF5AABD32F21B1EF00BCE4F0 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = DF5AABC22F21B1EB00BCE4F0;
+					};
+					DF5AABDD2F21B1EF00BCE4F0 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = DF5AABC22F21B1EB00BCE4F0;
+					};
+				};
+			};
+			buildConfigurationList = DF5AABBE2F21B1EB00BCE4F0 /* Build configuration list for PBXProject "CartaoFidelidade" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = DF5AABBA2F21B1EB00BCE4F0;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				DF6543522F361630007B1B76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = DF5AABC42F21B1EB00BCE4F0 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				DF5AABC22F21B1EB00BCE4F0 /* CartaoFidelidade */,
+				DF5AABD32F21B1EF00BCE4F0 /* CartaoFidelidadeTests */,
+				DF5AABDD2F21B1EF00BCE4F0 /* CartaoFidelidadeUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		DF5AABC12F21B1EB00BCE4F0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF5AABD22F21B1EF00BCE4F0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF5AABDC2F21B1EF00BCE4F0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		DF5AABBF2F21B1EB00BCE4F0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF5AABD02F21B1EF00BCE4F0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF5AABDA2F21B1EF00BCE4F0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		DF5AABD62F21B1EF00BCE4F0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DF5AABC22F21B1EB00BCE4F0 /* CartaoFidelidade */;
+			targetProxy = DF5AABD52F21B1EF00BCE4F0 /* PBXContainerItemProxy */;
+		};
+		DF5AABE02F21B1EF00BCE4F0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DF5AABC22F21B1EB00BCE4F0 /* CartaoFidelidade */;
+			targetProxy = DF5AABDF2F21B1EF00BCE4F0 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		DF5AABE62F21B1EF00BCE4F0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		DF5AABE72F21B1EF00BCE4F0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		DF5AABE92F21B1EF00BCE4F0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = CartaoFidelidade/CartaoFidelidade.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"CartaoFidelidade/Preview Content\"";
+				DEVELOPMENT_TEAM = 4Y6MWV9B36;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.7;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = corevo.CartaoFidelidade;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Debug;
+		};
+		DF5AABEA2F21B1EF00BCE4F0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = CartaoFidelidade/CartaoFidelidade.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"CartaoFidelidade/Preview Content\"";
+				DEVELOPMENT_TEAM = 4Y6MWV9B36;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.7;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = corevo.CartaoFidelidade;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Release;
+		};
+		DF5AABEC2F21B1F000BCE4F0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4Y6MWV9B36;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.7;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = corevo.CartaoFidelidadeTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CartaoFidelidade.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/CartaoFidelidade";
+				XROS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Debug;
+		};
+		DF5AABED2F21B1F000BCE4F0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4Y6MWV9B36;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.7;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = corevo.CartaoFidelidadeTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CartaoFidelidade.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/CartaoFidelidade";
+				XROS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Release;
+		};
+		DF5AABEF2F21B1F000BCE4F0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4Y6MWV9B36;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.7;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = corevo.CartaoFidelidadeUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = CartaoFidelidade;
+				XROS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Debug;
+		};
+		DF5AABF02F21B1F000BCE4F0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4Y6MWV9B36;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.7;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = corevo.CartaoFidelidadeUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = CartaoFidelidade;
+				XROS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		DF5AABBE2F21B1EB00BCE4F0 /* Build configuration list for PBXProject "CartaoFidelidade" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DF5AABE62F21B1EF00BCE4F0 /* Debug */,
+				DF5AABE72F21B1EF00BCE4F0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DF5AABE82F21B1EF00BCE4F0 /* Build configuration list for PBXNativeTarget "CartaoFidelidade" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DF5AABE92F21B1EF00BCE4F0 /* Debug */,
+				DF5AABEA2F21B1EF00BCE4F0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DF5AABEB2F21B1F000BCE4F0 /* Build configuration list for PBXNativeTarget "CartaoFidelidadeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DF5AABEC2F21B1F000BCE4F0 /* Debug */,
+				DF5AABED2F21B1F000BCE4F0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DF5AABEE2F21B1F000BCE4F0 /* Build configuration list for PBXNativeTarget "CartaoFidelidadeUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DF5AABEF2F21B1F000BCE4F0 /* Debug */,
+				DF5AABF02F21B1F000BCE4F0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		DF6543522F361630007B1B76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.9.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		DF6543532F361630007B1B76 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DF6543522F361630007B1B76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		DF6543552F361630007B1B76 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DF6543522F361630007B1B76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = DF5AABBB2F21B1EB00BCE4F0 /* Project object */;
+}
