@@ -154,52 +154,52 @@ const StoresPage = () => {
                     </div>
 
                     {/* Store Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h3 className="font-semibold text-card-foreground text-lg mb-1">
+                    <div className="flex-1 min-w-0 overflow-hidden">
+                      <div className="flex items-start justify-between gap-2 mb-1.5">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold text-card-foreground text-sm truncate mb-0.5">
                             {store.name}
                           </h3>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                            <MapPin className="h-4 w-4" />
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5 shrink-0" />
                             <span className="truncate">{store.address}</span>
                           </div>
                         </div>
                         {store.isOpen ? (
-                          <span className="px-2 py-1 rounded-lg bg-primary/10 text-primary text-xs font-medium">
+                          <span className="shrink-0 px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-medium whitespace-nowrap">
                             Aberto
                           </span>
                         ) : (
-                          <span className="px-2 py-1 rounded-lg bg-muted text-muted-foreground text-xs font-medium">
+                          <span className="shrink-0 px-2 py-0.5 rounded-md bg-muted text-muted-foreground text-[10px] font-medium whitespace-nowrap">
                             Fechado
                           </span>
                         )}
                       </div>
 
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
+                      <div className="flex items-center gap-3 text-[11px] text-muted-foreground mb-2">
                         <div className="flex items-center gap-1">
-                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 shrink-0" />
                           <span>{store.rating}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
+                          <MapPin className="h-3 w-3 shrink-0" />
                           <span>{store.distance}</span>
                         </div>
                         {store.isOpen && (
                           <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
+                            <Clock className="h-3 w-3 shrink-0" />
                             <span>Até {store.openUntil}</span>
                           </div>
                         )}
                       </div>
 
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">{store.phone}</span>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <Phone className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <span className="text-xs text-muted-foreground truncate">{store.phone}</span>
                         </div>
                         {store.offers > 0 && (
-                          <span className="px-2 py-1 rounded-lg bg-secondary/10 text-secondary text-xs font-medium">
+                          <span className="shrink-0 px-2 py-0.5 rounded-md bg-secondary/10 text-secondary text-[10px] font-medium">
                             {store.offers} ofertas
                           </span>
                         )}

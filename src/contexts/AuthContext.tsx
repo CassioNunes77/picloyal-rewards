@@ -17,8 +17,13 @@ import {
   signInWithRedirect,
   getRedirectResult,
   GoogleAuthProvider,
+  reauthenticateWithCredential,
+  reauthenticateWithPopup,
+  EmailAuthProvider,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+
+export const AUTH_REQUIRES_RECENT_LOGIN = "auth/requires-recent-login";
 
 function getGoogleErrorMessage(e: unknown): string {
   const err = e as { code?: string; message?: string } | null;
@@ -51,6 +56,11 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
+  /** Reautenticar com e-mail/senha (para excluir conta após requires-recent-login). */
+  reauthenticateWithPassword: (password: string) => Promise<void>;
+  /** Reautenticar com Google (para excluir conta após requires-recent-login). */
+  reauthenticateWithGoogle: () => Promise<void>;
   authError: string | null;
   clearError: () => void;
 }
@@ -150,6 +160,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await deleteUser(auth.currentUser);
   }, []);
 
+  const reauthenticateWithPassword = useCallback(async (password: string) => {
+    const u = auth?.currentUser;
+    if (!u?.email) throw new Error("Usuário sem e-mail. Use outra forma de login.");
+    setAuthError(null);
+    const credential = EmailAuthProvider.credential(u.email, password);
+    await reauthenticateWithCredential(u, credential);
+  }, []);
+
+  const reauthenticateWithGoogle = useCallback(async () => {
+    if (!auth?.currentUser) throw new Error("Nenhum usuário logado.");
+    setAuthError(null);
+    const provider = new GoogleAuthProvider();
+    await reauthenticateWithPopup(auth.currentUser, provider);
+  }, []);
+
   const clearError = useCallback(() => setAuthError(null), []);
 
   const value: AuthContextType = {
@@ -160,6 +185,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signInWithGoogle,
     signOut,
     deleteAccount,
+    reauthenticateWithPassword,
+    reauthenticateWithGoogle,
     authError,
     clearError,
   };
