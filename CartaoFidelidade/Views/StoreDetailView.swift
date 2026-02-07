@@ -425,11 +425,8 @@ struct OffersTab: View {
                 .padding(.top, AppSpacing.xl)
             } else {
                 ForEach(Array(offers.enumerated()), id: \.element.id) { index, offer in
-                    OfferCard(offer: offer, compact: true)
+                    OfferCard(offer: offer, compact: true, onTap: { onOfferTap?(offer) })
                         .fadeIn(delay: 0.2 + Double(index) * 0.05)
-                        .onTapGesture {
-                            onOfferTap?(offer)
-                        }
                 }
             }
         }

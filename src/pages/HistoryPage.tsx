@@ -164,15 +164,15 @@ const HistoryPage = () => {
             >
               <ChevronRight className="h-5 w-5 text-primary-foreground rotate-180" />
             </Link>
-            <h1 className="text-2xl font-bold text-primary-foreground flex-1 flex items-center gap-2">
-              <Clock className="h-6 w-6" />
-              Histórico
+            <h1 className="text-xl font-bold text-primary-foreground flex-1 flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Atividades
             </h1>
           </div>
 
           {/* Search Bar */}
           <div className="relative animate-fade-in" style={{ animationDelay: '100ms' }}>
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-primary-foreground/60" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-foreground/60" />
             <input
               type="text"
               placeholder="Buscar no histórico..."
@@ -199,7 +199,7 @@ const HistoryPage = () => {
                   key={filter.id}
                   onClick={() => setSelectedFilter(filter.id)}
                   className={`
-                    flex items-center gap-2 px-4 py-2 rounded-xl whitespace-nowrap
+                    flex items-center gap-2 px-3 py-1.5 rounded-xl whitespace-nowrap text-sm
                     transition-all duration-200
                     ${isActive
                       ? 'gradient-hero text-primary-foreground shadow-md'
@@ -208,8 +208,8 @@ const HistoryPage = () => {
                     active:scale-95
                   `}
                 >
-                  <Icon className="h-4 w-4" />
-                  <span className="text-sm font-medium">{filter.label}</span>
+                  <Icon className="h-3.5 w-3.5" />
+                  <span className="font-medium">{filter.label}</span>
                 </button>
               );
             })}
@@ -219,9 +219,9 @@ const HistoryPage = () => {
         {/* History List */}
         {filteredItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 animate-fade-in">
-            <Clock className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-2">Nenhum registro encontrado</p>
-            <p className="text-sm text-muted-foreground">Tente buscar com outros termos</p>
+            <Clock className="h-10 w-10 text-muted-foreground mb-4" />
+            <p className="text-sm text-muted-foreground mb-2">Nenhum registro encontrado</p>
+            <p className="text-xs text-muted-foreground">Tente buscar com outros termos</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -234,29 +234,29 @@ const HistoryPage = () => {
                 >
                   <button
                     onClick={() => handleItemClick(item)}
-                    className="w-full text-left bg-card rounded-2xl p-5 shadow-md 
+                    className="w-full text-left bg-card rounded-xl p-4 shadow-sm text-sm 
                              transition-all duration-300 hover:shadow-lg active:scale-[0.98]
                              border-2 border-transparent hover:border-primary/20"
                   >
                     <div className="flex gap-4">
                       {/* Icon */}
                       <div className={`
-                        flex h-16 w-16 items-center justify-center rounded-xl shrink-0
+                        flex h-12 w-12 items-center justify-center rounded-xl shrink-0
                         transition-all duration-300
                         ${getTypeColor(item.type)}
                       `}>
                         {(() => {
                           const Icon = iconMap[item.icon];
-                          return <Icon className="h-8 w-8 text-white" />;
+                          return <Icon className="h-6 w-6 text-white" />;
                         })()}
                       </div>
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-card-foreground text-lg mb-1">
+                        <h3 className="font-semibold text-card-foreground text-base mb-1">
                           {item.title}
                         </h3>
-                        <p className="text-sm text-muted-foreground mb-2">
+                        <p className="text-xs text-muted-foreground mb-2">
                           {item.description}
                         </p>
 
@@ -275,16 +275,16 @@ const HistoryPage = () => {
                       {/* Points */}
                       {item.points !== 0 && (
                         <div className="flex flex-col items-end justify-center shrink-0">
-                          <span className={`text-lg font-bold ${
+                          <span className={`text-base font-bold ${
                             item.points > 0 ? 'text-secondary' : 'text-destructive'
                           }`}>
                             {item.points > 0 ? `+${item.points}` : item.points}
                           </span>
-                          <span className="text-xs text-muted-foreground">pts</span>
+                          <span className="text-[10px] text-muted-foreground">pts</span>
                         </div>
                       )}
 
-                      <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 ml-2 self-center" />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 ml-2 self-center" />
                     </div>
                   </button>
                 </div>

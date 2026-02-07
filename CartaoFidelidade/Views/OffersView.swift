@@ -241,11 +241,8 @@ struct OffersView: View {
                             .padding(.top, AppSpacing.xl * 2)
                         } else {
                             ForEach(Array(filteredOffers.enumerated()), id: \.element.id) { index, offer in
-                                OfferCard(offer: offer, compact: true)
+                                OfferCard(offer: offer, compact: true, onTap: { selectedOffer = offer })
                                     .fadeIn(delay: 0.2 + Double(index) * 0.05)
-                                    .onTapGesture {
-                                        selectedOffer = offer
-                                    }
                             }
                         }
                         
@@ -339,6 +336,8 @@ struct OfferCard: View {
     let offer: Offer
     /// Quando true, usa tamanhos de fonte alinhados à tela de Lojas (Detalhes da Loja > Ofertas).
     var compact: Bool = false
+    /// Chamado ao tocar no card; quando definido, o card abre detalhes da oferta.
+    var onTap: (() -> Void)? = nil
     @State private var isPressed = false
     
     var iconGradient: LinearGradient {

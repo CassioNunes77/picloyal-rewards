@@ -74,7 +74,7 @@ export default function DesktopLayout() {
             {activeId === "stores" && "Lojas"}
             {activeId === "profile" && "Perfil"}
             {activeId === "notifications" && "Notificações"}
-            {activeId === "history" && "Histórico"}
+            {activeId === "history" && "Atividades"}
             {activeId === "rewards" && "Recompensas"}
           </div>
           <div className="flex items-center gap-2 text-sm text-card-foreground">
