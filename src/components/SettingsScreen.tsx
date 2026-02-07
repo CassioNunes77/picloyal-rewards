@@ -29,6 +29,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth, AUTH_REQUIRES_RECENT_LOGIN } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SettingsItemProps {
   icon: React.ElementType;
@@ -87,6 +88,7 @@ interface SettingsScreenProps {
 
 const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const {
     user,
     signOut,
@@ -177,24 +179,8 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-background animate-slide-in-right">
-      {/* Header */}
-      <header className="gradient-hero px-6 pt-12 pb-8">
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={onBack}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20 
-                       transition-all duration-200 active:scale-90 active:bg-primary-foreground/30"
-          >
-            <ChevronRight className="h-5 w-5 text-primary-foreground rotate-180" />
-          </button>
-          <h1 className="text-xl font-bold text-primary-foreground">Configurações</h1>
-        </div>
-      </header>
-
-      {/* Content */}
-      <div className="relative -mt-4 rounded-t-3xl bg-background px-6 pt-6">
+  const content = (
+    <>
         {/* Profile Section */}
         <div className="mb-6 animate-fade-in">
           <button 
@@ -353,9 +339,85 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
         <p className="text-center text-xs text-muted-foreground pb-4 animate-fade-in" style={{ animationDelay: '650ms' }}>
           Versão 1.0.0 • Cartão Fidelidade
         </p>
-      </div>
+    </>
+  );
 
-      {/* Reauth dialog (requires-recent-login) */}
+  if (!isMobile) {
+    return (
+      <div className="min-h-full bg-background">
+        <div className="pb-4">
+          <h1 className="text-xl font-bold text-card-foreground">Configurações</h1>
+        </div>
+        <div className="pt-2">{content}</div>
+        <Dialog open={showReauthDialog} onOpenChange={setShowReauthDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirmar identidade</DialogTitle>
+            <DialogDescription>
+              Por segurança, confirme sua identidade para excluir a conta.
+              {isGoogleUser
+                ? " Clique no botão abaixo para entrar novamente com Google."
+                : " Digite sua senha abaixo."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-2">
+            {!isGoogleUser && (
+              <Input
+                type="password"
+                placeholder="Sua senha"
+                value={reauthPassword}
+                onChange={(e) => setReauthPassword(e.target.value)}
+                disabled={reauthLoading}
+                onKeyDown={(e) => e.key === "Enter" && void handleReauthAndDelete()}
+              />
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowReauthDialog(false)}
+              disabled={reauthLoading}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => void handleReauthAndDelete()}
+              disabled={reauthLoading || (!isGoogleUser && !reauthPassword.trim())}
+            >
+              {reauthLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Aguarde...
+                </>
+              ) : isGoogleUser ? (
+                "Confirmar com Google"
+              ) : (
+                "Confirmar e excluir"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background animate-slide-in-right">
+      <header className="gradient-hero px-6 pt-12 pb-8">
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20 transition-all duration-200 active:scale-90 active:bg-primary-foreground/30"
+          >
+            <ChevronRight className="h-5 w-5 text-primary-foreground rotate-180" />
+          </button>
+          <h1 className="text-xl font-bold text-primary-foreground">Configurações</h1>
+        </div>
+      </header>
+      <div className="relative -mt-4 rounded-t-3xl bg-background px-6 pt-6">{content}</div>
       <Dialog open={showReauthDialog} onOpenChange={setShowReauthDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

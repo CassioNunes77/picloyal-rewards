@@ -3,6 +3,7 @@ import { Sparkles, Search, ChevronRight, List, CheckCircle, Gift } from "lucide-
 import RewardCard from "@/components/RewardCard";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Reward {
   title: string;
@@ -15,6 +16,7 @@ interface Reward {
 
 const RewardsPage = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState("rewards");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
@@ -97,17 +99,66 @@ const RewardsPage = () => {
     });
   };
 
+  if (!isMobile) {
+    return (
+      <div className="min-h-full bg-background">
+        <div className="pb-4">
+          <h1 className="text-xl font-bold text-card-foreground flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            Suas Recompensas
+          </h1>
+        </div>
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Buscar recompensas..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 rounded-xl bg-card text-card-foreground placeholder:text-muted-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary/30"
+          />
+        </div>
+        <div className="mb-6 flex flex-wrap gap-2">
+          {filters.map((filter) => {
+            const Icon = filter.icon;
+            const isActive = selectedFilter === filter.id;
+            return (
+              <button
+                key={filter.id}
+                onClick={() => setSelectedFilter(filter.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl whitespace-nowrap text-sm font-medium transition-all ${
+                  isActive ? "bg-primary text-primary-foreground" : "bg-card text-card-foreground border border-border hover:bg-muted"
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {filter.label}
+              </button>
+            );
+          })}
+        </div>
+        {filteredRewards.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Gift className="h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground mb-2">Nenhuma recompensa encontrada</p>
+            <p className="text-sm text-muted-foreground">Tente buscar com outros termos</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filteredRewards.map((reward, index) => (
+              <RewardCard key={index} {...reward} onClaim={() => handleClaimReward(reward.title)} />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <div className="gradient-secondary">
         <header className="px-6 pt-12 pb-6">
           <div className="flex items-center gap-4 mb-4">
-            <Link
-              to="/home"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary-foreground/20 
-                         transition-all duration-200 active:scale-90 active:bg-secondary-foreground/30"
-            >
+            <Link to="/home" className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary-foreground/20 transition-all duration-200 active:scale-90 active:bg-secondary-foreground/30">
               <ChevronRight className="h-5 w-5 text-secondary-foreground rotate-180" />
             </Link>
             <h1 className="text-xl font-bold text-secondary-foreground flex-1 flex items-center gap-2">
@@ -115,28 +166,21 @@ const RewardsPage = () => {
               Suas Recompensas
             </h1>
           </div>
-
-          {/* Search Bar */}
-          <div className="relative animate-fade-in" style={{ animationDelay: '100ms' }}>
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary-foreground/60" />
             <input
               type="text"
               placeholder="Buscar recompensas..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-secondary-foreground/20 text-secondary-foreground 
-                       placeholder:text-secondary-foreground/60 border border-secondary-foreground/30
-                       focus:outline-none focus:ring-2 focus:ring-secondary-foreground/50"
+              className="w-full pl-10 pr-4 py-3 rounded-xl bg-secondary-foreground/20 text-secondary-foreground placeholder:text-secondary-foreground/60 border border-secondary-foreground/30 focus:outline-none focus:ring-2 focus:ring-secondary-foreground/50"
             />
           </div>
         </header>
       </div>
-
-      {/* Content */}
       <div className="relative -mt-4 rounded-t-3xl bg-background px-6 pt-6">
-        {/* Filters */}
         <div className="mb-6 overflow-x-auto">
-          <div className="flex gap-2 pb-2 animate-fade-in" style={{ animationDelay: '150ms' }}>
+          <div className="flex gap-2 pb-2">
             {filters.map((filter) => {
               const Icon = filter.icon;
               const isActive = selectedFilter === filter.id;
@@ -144,15 +188,9 @@ const RewardsPage = () => {
                 <button
                   key={filter.id}
                   onClick={() => setSelectedFilter(filter.id)}
-                  className={`
-                    flex items-center gap-2 px-4 py-2 rounded-xl whitespace-nowrap
-                    transition-all duration-200
-                    ${isActive
-                      ? 'gradient-secondary text-secondary-foreground shadow-md'
-                      : 'bg-card text-card-foreground'
-                    }
-                    active:scale-95
-                  `}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl whitespace-nowrap transition-all ${
+                    isActive ? "gradient-secondary text-secondary-foreground shadow-md" : "bg-card text-card-foreground"
+                  }`}
                 >
                   <Icon className="h-4 w-4" />
                   <span className="text-sm font-medium">{filter.label}</span>

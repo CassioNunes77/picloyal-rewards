@@ -63,8 +63,8 @@ const RewardCard = ({
       </div>
       
       <div className="flex-1 min-w-0">
-        <h4 className="font-semibold text-card-foreground truncate">{title}</h4>
-        <p className="text-sm text-muted-foreground truncate">{description}</p>
+        <h4 className="font-semibold text-card-foreground text-base truncate">{title}</h4>
+        <p className="text-xs text-muted-foreground truncate">{description}</p>
         <div className="mt-1 flex items-center gap-2">
           <span className={`text-xs font-medium ${available ? 'text-primary' : 'text-muted-foreground'}`}>
             {points} pontos

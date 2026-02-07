@@ -16,6 +16,7 @@ import {
   LogOut
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -126,70 +127,109 @@ const ProfilePage = () => {
     return null;
   }
 
+  const profileHeader = (
+    <div className="flex items-center gap-4">
+      <div className="relative">
+        <div className="w-24 h-24 rounded-full overflow-hidden bg-primary flex items-center justify-center ring-2 ring-border">
+          {user.photoURL ? (
+            <img src={user.photoURL} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+          ) : (
+            <User className="h-12 w-12 text-primary-foreground" />
+          )}
+        </div>
+        <button className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-card border-2 border-border flex items-center justify-center shadow transition-all active:scale-90">
+          <Camera className="h-4 w-4 text-primary" />
+        </button>
+      </div>
+      <div className="flex-1">
+        <h2 className="text-xl font-bold text-card-foreground mb-1">
+          {user.displayName || user.email?.split("@")[0] || "Usuário"}
+        </h2>
+        <p className="text-sm text-muted-foreground mb-2">{user.email}</p>
+        <div className="flex items-center gap-2">
+          <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">Membro VIP ⭐</span>
+          <span className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium">Desde 2023</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (!isMobile) {
+    return (
+      <div className="min-h-full bg-background">
+        <div className="pb-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-card-foreground">Perfil</h1>
+          </div>
+          <button onClick={handleEditProfile} className="text-sm font-medium text-primary hover:underline">Editar</button>
+        </div>
+        <div className="bg-card rounded-2xl border border-border p-5 shadow-sm mb-6">{profileHeader}</div>
+        <div className="mb-6 grid grid-cols-3 gap-4">
+          {userStats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <div key={index} className="bg-card rounded-xl p-4 text-center shadow-md border border-border">
+                <Icon className={`h-6 w-6 mx-auto mb-2 ${stat.color}`} />
+                <p className="text-xl font-bold text-card-foreground">{stat.value}</p>
+                <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
+              </div>
+            );
+          })}
+        </div>
+        <div className="mb-4">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Informações Pessoais</h3>
+          <div className="space-y-2">
+            <ProfileInfoItem icon={Mail} label="E-mail" value={user.email ?? ""} delay={0} onEdit={() => setEditDialog("email")} />
+            <ProfileInfoItem icon={Phone} label="Telefone" value={profilePhone || "—"} delay={0} onEdit={() => setEditDialog("phone")} />
+          </div>
+        </div>
+        <div className="mb-4">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Preferências</h3>
+          <div className="space-y-2">
+            <ProfileInfoItem icon={Bell} label="Notificações" value={notifications ? "Ativadas" : "Desativadas"} delay={0} onEdit={() => setNotifications(!notifications)} />
+          </div>
+        </div>
+        <div className="mb-4">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Conta</h3>
+          <div className="space-y-2">
+            <button onClick={() => toast.info("Abrindo histórico...")} className="w-full flex items-center gap-3 p-3 rounded-xl bg-card border border-border text-left hover:bg-muted/50">
+              <CreditCard className="h-5 w-5 text-muted-foreground" />
+              <span className="text-card-foreground">Histórico de Recompensas</span>
+              <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />
+            </button>
+            <button onClick={() => toast.info("Abrindo configurações de segurança...")} className="w-full flex items-center gap-3 p-3 rounded-xl bg-card border border-border text-left hover:bg-muted/50">
+              <Shield className="h-5 w-5 text-muted-foreground" />
+              <span className="text-card-foreground">Segurança</span>
+              <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />
+            </button>
+            <button onClick={handleLogout} className="w-full flex items-center gap-3 p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive hover:bg-destructive/20">
+              <LogOut className="h-5 w-5" />
+              <span className="font-medium">Sair da conta</span>
+            </button>
+          </div>
+        </div>
+        {/* Dialogs - same as mobile */}
+        <ProfilePageDialogs editDialog={editDialog} closeEditDialog={closeEditDialog} tempEmail={tempEmail} setTempEmail={setTempEmail} tempPassword={tempPassword} setTempPassword={setTempPassword} tempPhone={tempPhone} setTempPhone={setTempPhone} saving={saving} handleSaveEmail={handleSaveEmail} handleSavePhone={handleSavePhone} user={user} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header with Gradient */}
       <div className="gradient-card">
         <header className="px-6 pt-12 pb-6">
           <div className="flex items-center gap-4 mb-4">
-            <Link
-              to="/home"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20 
-                         transition-all duration-200 active:scale-90 active:bg-primary-foreground/30"
-            >
+            <Link to="/home" className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20 transition-all duration-200 active:scale-90 active:bg-primary-foreground/30">
               <ChevronRight className="h-5 w-5 text-primary-foreground rotate-180" />
             </Link>
             <h1 className="text-xl font-bold text-primary-foreground flex-1">Perfil</h1>
-            <button
-              onClick={handleEditProfile}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20 
-                       transition-all duration-200 active:scale-90 active:bg-primary-foreground/30"
-            >
+            <button onClick={handleEditProfile} className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20 transition-all duration-200 active:scale-90 active:bg-primary-foreground/30">
               <Edit className="h-5 w-5 text-primary-foreground" />
             </button>
           </div>
-
-          {/* Profile Card */}
-          <div className="animate-slide-up" style={{ animationDelay: '100ms' }}>
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="w-24 h-24 rounded-full overflow-hidden bg-primary flex items-center justify-center ring-2 ring-primary-foreground/20">
-                  {user.photoURL ? (
-                    <img
-                      src={user.photoURL}
-                      alt=""
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <User className="h-12 w-12 text-primary-foreground" />
-                  )}
-                </div>
-                <button className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-primary-foreground flex items-center justify-center 
-                                 transition-all duration-200 active:scale-90">
-                  <Camera className="h-4 w-4 text-primary" />
-                </button>
-              </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-primary-foreground mb-1">
-                  {user.displayName || user.email?.split("@")[0] || "Usuário"}
-                </h2>
-                <p className="text-sm text-primary-foreground/80 mb-2">{user.email}</p>
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-full bg-primary-foreground/20 text-primary-foreground text-xs font-medium">
-                    Membro VIP ⭐
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-primary-foreground/20 text-primary-foreground text-xs font-medium">
-                    Desde 2023
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <div>{profileHeader}</div>
         </header>
       </div>
-
-      {/* Content */}
       <div className="relative -mt-4 rounded-t-3xl bg-background px-6 pt-6">
         {/* Stats */}
         <div className="mb-6 grid grid-cols-3 gap-4 animate-fade-in" style={{ animationDelay: '150ms' }}>

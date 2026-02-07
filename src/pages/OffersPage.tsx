@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Tag, Clock, MapPin, Percent, Gift, Coffee, Pizza, Sparkles, ChevronRight, Search } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { OfferDetailData } from "./OfferDetailPage";
 
 interface Offer {
@@ -123,17 +124,103 @@ const OffersPage = () => {
     navigate("/offer", { state: { offer: offer as OfferDetailData } });
   };
 
+  const searchInput = (
+    <div className="relative">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+      <input
+        type="text"
+        placeholder="Buscar ofertas..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className={isMobile
+          ? "w-full pl-10 pr-4 py-3 rounded-xl bg-secondary-foreground/20 text-secondary-foreground placeholder:text-secondary-foreground/60 border border-secondary-foreground/30 focus:outline-none focus:ring-2 focus:ring-secondary-foreground/50"
+          : "w-full pl-10 pr-4 py-3 rounded-xl bg-card text-card-foreground placeholder:text-muted-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary/30"
+        }
+      />
+    </div>
+  );
+
+  if (!isMobile) {
+    return (
+      <div className="min-h-full bg-background">
+        <div className="pb-4">
+          <h1 className="text-xl font-bold text-card-foreground flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            Ofertas Especiais
+          </h1>
+        </div>
+        <div className="mb-4">{searchInput}</div>
+        <div className="mb-6 flex flex-wrap gap-2">
+          {categories.map((category) => {
+            const Icon = category.icon;
+            const isActive = selectedCategory === category.id;
+            return (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl whitespace-nowrap text-sm font-medium transition-all ${
+                  isActive ? "bg-primary text-primary-foreground" : "bg-card text-card-foreground border border-border hover:bg-muted"
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {category.label}
+              </button>
+            );
+          })}
+        </div>
+        {filteredOffers.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Tag className="h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground mb-2">Nenhuma oferta encontrada</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredOffers.map((offer, index) => (
+              <button
+                key={offer.id}
+                onClick={() => handleOfferClick(offer)}
+                className="w-full text-left bg-card rounded-2xl p-4 shadow-md transition-all hover:shadow-lg active:scale-[0.98] border border-border"
+              >
+                <div className="flex gap-4">
+                  <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl ${
+                    offer.icon === 'coffee' ? 'gradient-primary' :
+                    offer.icon === 'pizza' ? 'bg-orange-500' :
+                    offer.icon === 'gift' ? 'gradient-secondary' : 'bg-blue-500'
+                  }`}>
+                    {(() => { const Icon = iconMap[offer.icon]; return <Icon className="h-7 w-7 text-white" />; })()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-semibold text-card-foreground">{offer.title}</h3>
+                      <span className="shrink-0 flex items-center justify-center rounded-lg px-2 py-1 gradient-secondary text-secondary-foreground font-bold text-xs whitespace-nowrap">
+                        {offer.discount}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-0.5">{offer.description}</p>
+                    <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                      <MapPin className="h-3 w-3" />
+                      <span>{offer.storeName}</span>
+                      <span>·</span>
+                      <Clock className="h-3 w-3" />
+                      <span>Válido até {offer.validUntil}</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <div className="gradient-secondary">
         <header className="px-6 pt-12 pb-6">
           <div className="flex items-center gap-4 mb-4">
-            <Link
-              to="/home"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary-foreground/20 
-                         transition-all duration-200 active:scale-90 active:bg-secondary-foreground/30"
-            >
+            <Link to="/home" className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary-foreground/20 transition-all duration-200 active:scale-90 active:bg-secondary-foreground/30">
               <ChevronRight className="h-5 w-5 text-secondary-foreground rotate-180" />
             </Link>
             <h1 className="text-xl font-bold text-secondary-foreground flex-1 flex items-center gap-2">
@@ -141,24 +228,9 @@ const OffersPage = () => {
               Ofertas Especiais
             </h1>
           </div>
-
-          {/* Search Bar */}
-          <div className="relative animate-fade-in" style={{ animationDelay: '100ms' }}>
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary-foreground/60" />
-            <input
-              type="text"
-              placeholder="Buscar ofertas..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-secondary-foreground/20 text-secondary-foreground 
-                       placeholder:text-secondary-foreground/60 border border-secondary-foreground/30
-                       focus:outline-none focus:ring-2 focus:ring-secondary-foreground/50"
-            />
-          </div>
+          <div className="relative">{searchInput}</div>
         </header>
       </div>
-
-      {/* Content */}
       <div className="relative -mt-4 rounded-t-3xl bg-background px-6 pt-6">
         {/* Categories */}
         <div className="mb-6 overflow-x-auto">

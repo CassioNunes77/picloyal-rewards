@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Bell, Tag, Star, Gift, CheckCircle, Clock, Sparkles, ChevronRight } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Notification {
   id: number;
@@ -15,6 +16,7 @@ interface Notification {
 
 const NotificationsPage = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: 1,
@@ -129,18 +131,71 @@ const NotificationsPage = () => {
     // Aqui você pode adicionar navegação para detalhes da notificação
   };
 
+  if (!isMobile) {
+    return (
+      <div className="min-h-full bg-background">
+        <div className="pb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-card-foreground flex items-center gap-2">
+              <Bell className="h-5 w-5 text-primary" />
+              Notificações
+              {unreadCount > 0 && (
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </h1>
+          </div>
+          {unreadCount > 0 && (
+            <button onClick={markAllAsRead} className="text-sm font-medium text-primary hover:underline">
+              Marcar todas
+            </button>
+          )}
+        </div>
+        {notifications.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Bell className="h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground mb-2">Nenhuma notificação</p>
+            <p className="text-sm text-muted-foreground">Você está em dia!</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {notifications.map((notification) => {
+              const IconComponent = getIcon(notification.icon);
+              return (
+                <button
+                  key={notification.id}
+                  onClick={() => handleNotificationClick(notification)}
+                  className={`w-full text-left rounded-xl p-4 shadow-sm transition-all hover:shadow-md border ${
+                    notification.isRead ? "bg-card border-border" : "bg-card/70 border-primary/20"
+                  }`}
+                >
+                  <div className="flex gap-4">
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${getTypeColor(notification.type)}`}>
+                      <IconComponent className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-card-foreground text-base">{notification.title}</h3>
+                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{notification.message}</p>
+                      <p className="text-xs text-muted-foreground">{notification.time}</p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <div className="gradient-hero">
         <header className="px-6 pt-12 pb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <Link
-                to="/home"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20 
-                           transition-all duration-200 active:scale-90 active:bg-primary-foreground/30"
-              >
+              <Link to="/home" className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20 transition-all duration-200 active:scale-90 active:bg-primary-foreground/30">
                 <ChevronRight className="h-5 w-5 text-primary-foreground rotate-180" />
               </Link>
               <div className="flex items-center gap-2">
@@ -154,19 +209,13 @@ const NotificationsPage = () => {
               </div>
             </div>
             {unreadCount > 0 && (
-              <button
-                onClick={markAllAsRead}
-                className="text-sm font-medium text-primary-foreground/90 
-                         hover:text-primary-foreground transition-colors"
-              >
+              <button onClick={markAllAsRead} className="text-sm font-medium text-primary-foreground/90 hover:text-primary-foreground transition-colors">
                 Marcar todas
               </button>
             )}
           </div>
         </header>
       </div>
-
-      {/* Content */}
       <div className="relative -mt-4 rounded-t-3xl bg-background px-6 pt-6">
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 animate-fade-in">
