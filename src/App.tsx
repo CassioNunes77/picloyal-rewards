@@ -16,6 +16,8 @@ import HistoryPage from "./pages/HistoryPage";
 import RewardsPage from "./pages/RewardsPage";
 import StoreDetailPage from "./pages/StoreDetailPage";
 import OfferDetailPage from "./pages/OfferDetailPage";
+import RewardDetailPage from "./pages/RewardDetailPage";
+import HistoryDetailPage from "./pages/HistoryDetailPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
@@ -57,7 +59,9 @@ const App = () => (
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/history" element={<HistoryPage />} />
+                <Route path="/history-detail" element={<HistoryDetailPage />} />
                 <Route path="/rewards" element={<RewardsPage />} />
+                <Route path="/reward" element={<RewardDetailPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

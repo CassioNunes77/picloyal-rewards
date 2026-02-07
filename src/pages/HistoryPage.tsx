@@ -3,6 +3,7 @@ import { Clock, Search, ChevronRight, ShoppingCart, Gift, Sparkles, Tag, List, M
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import type { HistoryDetailData } from "./HistoryDetailPage";
 
 interface HistoryItem {
   id: number;
@@ -148,8 +149,10 @@ const HistoryPage = () => {
   };
 
   const handleItemClick = (item: HistoryItem) => {
-    toast.info(`Detalhes: ${item.title}`, {
-      description: item.description,
+    navigate("/history-detail", {
+      state: {
+        item: item as HistoryDetailData,
+      },
     });
   };
 

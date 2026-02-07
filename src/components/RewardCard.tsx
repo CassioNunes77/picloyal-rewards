@@ -9,6 +9,7 @@ interface RewardCardProps {
   icon: "percent" | "gift" | "coffee" | "pizza";
   available: boolean;
   onClaim?: () => void;
+  onClick?: () => void;
 }
 
 const iconMap = {
@@ -25,7 +26,8 @@ const RewardCard = ({
   expiresIn, 
   icon, 
   available,
-  onClaim 
+  onClaim,
+  onClick
 }: RewardCardProps) => {
   const Icon = iconMap[icon];
   const [isPressed, setIsPressed] = useState(false);
@@ -41,6 +43,7 @@ const RewardCard = ({
   
   return (
     <div 
+      onClick={onClick}
       className={`
         flex items-center gap-4 rounded-2xl bg-card p-4 shadow-md 
         transition-all duration-300 cursor-pointer

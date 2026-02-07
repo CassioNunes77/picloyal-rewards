@@ -4,6 +4,7 @@ import RewardCard from "@/components/RewardCard";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import type { RewardDetailData } from "./RewardDetailPage";
 
 interface Reward {
   title: string;
@@ -99,6 +100,14 @@ const RewardsPage = () => {
     });
   };
 
+  const handleRewardClick = (reward: Reward) => {
+    navigate("/reward", {
+      state: {
+        reward: reward as RewardDetailData,
+      },
+    });
+  };
+
   if (!isMobile) {
     return (
       <div className="min-h-full bg-background">
@@ -145,7 +154,12 @@ const RewardsPage = () => {
         ) : (
           <div className="space-y-4">
             {filteredRewards.map((reward, index) => (
-              <RewardCard key={index} {...reward} onClaim={() => handleClaimReward(reward.title)} />
+              <RewardCard
+                key={index}
+                {...reward}
+                onClaim={() => handleClaimReward(reward.title)}
+                onClick={() => handleRewardClick(reward)}
+              />
             ))}
           </div>
         )}
@@ -218,6 +232,7 @@ const RewardsPage = () => {
                 <RewardCard
                   {...reward}
                   onClaim={() => handleClaimReward(reward.title)}
+                  onClick={() => handleRewardClick(reward)}
                 />
               </div>
             ))}
