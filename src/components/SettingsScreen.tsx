@@ -202,8 +202,17 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
             className="w-full flex items-center gap-4 p-4 rounded-2xl bg-card shadow-md 
                        transition-all duration-200 active:scale-[0.98] hover:shadow-lg"
           >
-            <div className="h-16 w-16 rounded-full gradient-card flex items-center justify-center">
-              <User className="h-8 w-8 text-primary-foreground" />
+            <div className="h-16 w-16 rounded-full overflow-hidden bg-primary flex items-center justify-center ring-2 ring-primary/20 shrink-0">
+              {user?.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <User className="h-8 w-8 text-primary-foreground" />
+              )}
             </div>
             <div className="flex-1 text-left">
               <h2 className="text-lg font-semibold text-card-foreground">{displayName}</h2>

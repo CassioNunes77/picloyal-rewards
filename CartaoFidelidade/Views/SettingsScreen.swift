@@ -13,6 +13,7 @@ struct SettingsScreen: View {
     @AppStorage("isLoggedIn") private var isLoggedIn = false
     @AppStorage("userDisplayName") private var userDisplayName = ""
     @AppStorage("userEmail") private var userEmail = ""
+    @AppStorage("userPhotoURL") private var userPhotoURL = ""
     @State private var notifications = true
     @State private var darkMode = false
     @State private var showLogoutConfirmation = false
@@ -60,15 +61,30 @@ struct SettingsScreen: View {
                     // Profile Section
                     Button(action: {}) {
                         HStack(spacing: AppSpacing.md) {
-                            ZStack {
-                                Circle()
-                                    .fill(AppGradients.card)
+                            Group {
+                                if let url = URL(string: userPhotoURL), !userPhotoURL.isEmpty {
+                                    AsyncImage(url: url) { phase in
+                                        switch phase {
+                                        case .success(let image):
+                                            image
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                        case .failure(_), .empty:
+                                            settingsPlaceholderAvatar
+                                        @unknown default:
+                                            settingsPlaceholderAvatar
+                                        }
+                                    }
                                     .frame(width: 64, height: 64)
-                                
-                                Image(systemName: "person.fill")
-                                    .foregroundColor(.primaryForeground)
-                                    .font(.system(size: 32))
+                                    .clipShape(Circle())
+                                } else {
+                                    settingsPlaceholderAvatar
+                                }
                             }
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.primary.opacity(0.2), lineWidth: 2)
+                            )
                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(userDisplayName.isEmpty ? "Usuário" : userDisplayName)
@@ -219,6 +235,7 @@ struct SettingsScreen: View {
                 try? Auth.auth().signOut()
                 userDisplayName = ""
                 userEmail = ""
+                userPhotoURL = ""
                 isLoggedIn = false
                 onBack()
             }
@@ -255,8 +272,20 @@ struct SettingsScreen: View {
                 }
                 userDisplayName = ""
                 userEmail = ""
+                userPhotoURL = ""
                 isLoggedIn = false
             }
+        }
+    }
+    
+    private var settingsPlaceholderAvatar: some View {
+        ZStack {
+            Circle()
+                .fill(AppGradients.card)
+                .frame(width: 64, height: 64)
+            Image(systemName: "person.fill")
+                .foregroundColor(.primaryForeground)
+                .font(.system(size: 32))
         }
     }
 }
