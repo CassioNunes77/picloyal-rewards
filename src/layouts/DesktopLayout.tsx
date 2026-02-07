@@ -87,18 +87,18 @@ export default function DesktopLayout() {
         </div>
       </header>
 
-      {/* Área principal: cartão fixo à esquerda + conteúdo da rota à direita */}
-      <main className="flex-1 min-h-0 flex overflow-hidden">
-        <div className="w-[300px] shrink-0 border-r border-border bg-card/30 p-4 flex flex-col items-start">
-          <LoyaltyCard
-            currentPoints={650}
-            totalPoints={1000}
-            userName={displayName}
-            cardNumber="**** **** **** 4589"
-          />
-        </div>
-        <div className="flex-1 min-w-0 overflow-auto">
-          <div className="w-full min-h-full p-6">
+      {/* Área principal: cartão e conteúdo no mesmo fluxo, sem divisória */}
+      <main className="flex-1 min-h-0 overflow-auto">
+        <div className="p-6 flex gap-6 min-h-full">
+          <div className="w-[300px] shrink-0">
+            <LoyaltyCard
+              currentPoints={650}
+              totalPoints={1000}
+              userName={displayName}
+              cardNumber="**** **** **** 4589"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
             <Outlet />
           </div>
         </div>
