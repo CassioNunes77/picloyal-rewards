@@ -196,7 +196,74 @@ const StoresPage = () => {
           <h1 className="text-xl font-bold text-card-foreground">Lojas Parceiras</h1>
         </div>
         <div className="mb-4">{searchBar}</div>
-        <div className="pt-2">{contentArea}</div>
+        <div className="pt-2">
+          {filteredStores.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <p className="text-muted-foreground mb-2">Nenhuma loja encontrada</p>
+              <p className="text-sm text-muted-foreground">Tente buscar com outros termos</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              {filteredStores.map((store, index) => (
+                <div key={store.id}>
+                  <button
+                    onClick={() => handleStoreClick(store)}
+                    className="w-full text-left bg-card rounded-2xl p-4 shadow-md transition-all duration-300 hover:shadow-lg active:scale-[0.98]"
+                  >
+                    <div className="flex gap-4">
+                      <div className="w-20 h-20 rounded-xl gradient-primary flex items-center justify-center shrink-0">
+                        <Store className="h-10 w-10 text-primary-foreground" />
+                      </div>
+                      <div className="flex-1 min-w-0 overflow-hidden">
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-semibold text-card-foreground text-sm truncate mb-0.5">{store.name}</h3>
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <MapPin className="h-3.5 w-3.5 shrink-0" />
+                              <span className="truncate">{store.address}</span>
+                            </div>
+                          </div>
+                          {store.isOpen ? (
+                            <span className="shrink-0 px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-medium whitespace-nowrap">Aberto</span>
+                          ) : (
+                            <span className="shrink-0 px-2 py-0.5 rounded-md bg-muted text-muted-foreground text-[10px] font-medium whitespace-nowrap">Fechado</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 text-[11px] text-muted-foreground mb-2">
+                          <div className="flex items-center gap-1">
+                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 shrink-0" />
+                            <span>{store.rating}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3 shrink-0" />
+                            <span>{store.distance}</span>
+                          </div>
+                          {store.isOpen && (
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3 shrink-0" />
+                              <span>Até {store.openUntil}</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <Phone className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <span className="text-xs text-muted-foreground truncate">{store.phone}</span>
+                          </div>
+                          {store.offers > 0 && (
+                            <span className="shrink-0 px-2 py-0.5 rounded-md bg-secondary/10 text-secondary text-[10px] font-medium">{store.offers} ofertas</span>
+                          )}
+                        </div>
+                      </div>
+                      <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 ml-2" />
+                    </div>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="h-6" />
+        </div>
       </div>
     );
   }
