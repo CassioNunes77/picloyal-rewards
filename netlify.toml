@@ -1,4 +1,6 @@
 # Build e publicação para o Cartão Fidelidade
+# Nota: este projeto NÃO usa submodules. Se o build falhar com "submodule fetch",
+# em Netlify: Deploy settings → Clear cache and retry deploy.
 [build]
   command = "npm run build"
   publish = "dist"
