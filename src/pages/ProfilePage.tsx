@@ -37,6 +37,7 @@ const ProfilePage = () => {
   };
 
   const handleLogout = async () => {
+    if (!window.confirm("Deseja realmente sair da sua conta?")) return;
     try {
       await signOut();
       toast.success("Até logo! 👋");

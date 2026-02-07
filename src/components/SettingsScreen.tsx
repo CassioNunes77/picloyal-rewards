@@ -74,7 +74,7 @@ interface SettingsScreenProps {
 }
 
 const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const displayName = user?.displayName ?? user?.email?.split("@")[0] ?? "Usuário";
@@ -95,8 +95,32 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
     toast.info(`Abrindo ${action}...`);
   };
 
-  const handleLogout = () => {
-    toast.success("Até logo! 👋");
+  const handleLogout = async () => {
+    if (!window.confirm("Deseja realmente sair da sua conta?")) return;
+    try {
+      await signOut();
+      toast.success("Até logo! 👋");
+      onBack();
+    } catch {
+      toast.error("Erro ao sair.");
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (
+      !window.confirm(
+        "Esta ação é definitiva. Todos os dados do usuário serão perdidos. Deseja continuar?"
+      )
+    )
+      return;
+    try {
+      await deleteAccount();
+      toast.success("Conta excluída.");
+      onBack();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erro ao excluir conta.";
+      toast.error(msg);
+    }
   };
 
   return (
@@ -250,18 +274,14 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
               description="Excluir permanentemente sua conta e todos os dados"
               delay={600}
               danger
-              onClick={() => {
-                // Aqui você pode adicionar a lógica para excluir a conta
-                // Por exemplo, mostrar um diálogo de confirmação
-                toast.error("Funcionalidade de exclusão de conta em desenvolvimento");
-              }}
+              onClick={() => void handleDeleteAccount()}
             />
             <SettingsItem
               icon={LogOut}
               label="Sair da Conta"
               delay={650}
               danger
-              onClick={handleLogout}
+              onClick={() => void handleLogout()}
             />
           </div>
         </div>

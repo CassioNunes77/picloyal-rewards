@@ -2,16 +2,58 @@
 //  CartaoFidelidadeApp.swift
 //  CartaoFidelidade
 //
-//  App principal
+//  App principal — fluxo igual à web: login como tela inicial, depois app
 //
 
 import SwiftUI
+import FirebaseCore
+import FirebaseAuth
 
 @main
 struct CartaoFidelidadeApp: App {
+    @AppStorage("isLoggedIn") private var isLoggedIn = false
+    @AppStorage("userDisplayName") private var userDisplayName = ""
+    @AppStorage("userEmail") private var userEmail = ""
+
+    init() {
+        FirebaseApp.configure()
+    }
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Group {
+                if isLoggedIn {
+                    ContentView()
+                } else {
+                    LoginView(
+                        onLogin: { email, _, _ in
+                            userEmail = email
+                            userDisplayName = email.components(separatedBy: "@").first ?? "Usuário"
+                        },
+                        onAppleSignIn: { result in
+                            let name = [result.fullName?.givenName, result.fullName?.familyName]
+                                .compactMap { $0 }
+                                .joined(separator: " ")
+                            userDisplayName = name.isEmpty ? "Usuário" : name
+                            userEmail = result.email ?? userEmail
+                        },
+                        onGoogleSignIn: {
+                            try await performGoogleSignIn()
+                        },
+                        onSuccess: {
+                            isLoggedIn = true
+                            if let user = Auth.auth().currentUser {
+                                if !(user.displayName?.isEmpty ?? true) { userDisplayName = user.displayName ?? userDisplayName }
+                                if !(user.email?.isEmpty ?? true) { userEmail = user.email ?? userEmail }
+                            }
+                        },
+                        onDismiss: nil
+                    )
+                }
+            }
+            .onOpenURL { url in
+                _ = handleGoogleSignInURL(url)
+            }
         }
     }
 }

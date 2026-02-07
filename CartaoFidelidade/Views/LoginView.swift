@@ -2,18 +2,25 @@
 //  LoginView.swift
 //  CartaoFidelidade
 //
-//  Tela de login (estilo PINEE) – Cartão Fidelidade
+//  Tela de login alinhada ao padrão visual da web (splash + hero + card)
 //
 
 import SwiftUI
+import UIKit
 
 struct LoginView: View {
     @Environment(\.dismiss) private var dismiss
     var onLogin: ((String, String, Bool) -> Void)?
-    var onGoogleSignIn: (() -> Void)?
+    var onAppleSignIn: ((AppleSignInResult) -> Void)?
+    var onGoogleSignIn: (() async throws -> Void)?
+    var onSuccess: (() -> Void)?
     var onDismiss: (() -> Void)?
     
+    private let splashDuration: Double = 1.8
+    
+    @State private var splashDone = false
     @State private var mode: LoginMode = .signin
+    @State private var appleLoading = false
     @State private var googleLoading = false
     @State private var email = ""
     @State private var password = ""
@@ -30,156 +37,105 @@ struct LoginView: View {
             Color.appBackground
                 .ignoresSafeArea()
             
-            ScrollView {
-                VStack(spacing: 0) {
-                    // Topo: gradiente + nome do app (estilo PINEE)
-                    VStack(alignment: .leading, spacing: 0) {
-                        Button(action: {
-                            onDismiss?()
-                            dismiss()
-                        }) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.white.opacity(0.2))
-                                    .frame(width: 40, height: 40)
-                                Image(systemName: "chevron.left")
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 20))
-                            }
-                        }
-                        .padding(.bottom, AppSpacing.lg)
-                        
-                        Text("Cartão Fidelidade")
-                            .font(.system(size: 28, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
-                        
-                        Text("Seu cartão de benefícios e descontos")
-                            .font(.appBody)
-                            .foregroundColor(.white.opacity(0.9))
-                            .padding(.top, AppSpacing.xs)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, AppSpacing.lg)
-                    .padding(.top, 48)
-                    .padding(.bottom, AppSpacing.xl)
-                    .background(AppGradients.hero)
-                    .cornerRadius(0)
+            if !splashDone {
+                splashView
+            } else {
+                formView
+            }
+        }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + splashDuration) {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    splashDone = true
+                }
+            }
+        }
+    }
+    
+    // MARK: - Splash (tela cheia gradiente + logo + título, igual à web)
+    private var splashView: some View {
+        VStack(spacing: 0) {
+            Spacer()
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.white.opacity(0.2))
+                .frame(width: 80, height: 80)
+                .padding(.bottom, AppSpacing.lg)
+            Text("Cartão Fidelidade")
+                .font(.system(size: 30, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+            Text("Seu cartão de benefícios e descontos")
+                .font(.system(size: 16, weight: .regular, design: .rounded))
+                .foregroundColor(.white.opacity(0.9))
+                .padding(.top, 12)
+                .multilineTextAlignment(.center)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, AppSpacing.lg)
+        .background(AppGradients.hero)
+        .ignoresSafeArea()
+    }
+    
+    // MARK: - Form (hero com cantos inferiores arredondados + card branco)
+    private var formView: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                // Hero: gradiente + nome do app (cantos inferiores arredondados, como na web)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Cartão Fidelidade")
+                        .font(.system(size: 30, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
                     
-                    // Card branco central com formulário
-                    VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                        Text(mode == .signin ? "Entrar" : "Criar conta")
-                            .font(.appHeadline)
-                            .foregroundColor(.cardForeground)
-                        
-                        Text(mode == .signin ? "Use seu e-mail e senha para acessar" : "Preencha os dados para se cadastrar")
-                            .font(.appCaption)
-                            .foregroundColor(.mutedForeground)
-                            .padding(.bottom, AppSpacing.xs)
-                        
-                        // E-mail
-                        VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                            Text("E-mail")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.cardForeground)
-                            HStack {
-                                Image(systemName: "envelope.fill")
-                                    .foregroundColor(.mutedForeground)
-                                    .font(.system(size: 16))
-                                TextField("seu@email.com", text: $email)
-                                    .textContentType(.emailAddress)
-                                    .keyboardType(.emailAddress)
-                                    .autocapitalization(.none)
-                                    .disabled(loading)
-                            }
-                            .padding(AppSpacing.md)
-                            .background(Color.appBackground)
-                            .cornerRadius(AppRadius.lg)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: AppRadius.lg)
-                                    .stroke(Color.border, lineWidth: 1)
-                            )
-                        }
-                        
-                        // Senha
-                        VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                            HStack {
-                                Text("Senha")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(.cardForeground)
-                                Spacer()
-                                if mode == .signin {
-                                    Button("Esqueci minha senha") {
-                                        // TODO: fluxo de recuperação
-                                    }
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(.primary)
-                                }
-                            }
-                            HStack {
-                                Image(systemName: "lock.fill")
-                                    .foregroundColor(.mutedForeground)
-                                    .font(.system(size: 16))
-                                SecureField("••••••••", text: $password)
-                                    .textContentType(mode == .signin ? .password : .newPassword)
-                                    .disabled(loading)
-                            }
-                            .padding(AppSpacing.md)
-                            .background(Color.appBackground)
-                            .cornerRadius(AppRadius.lg)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: AppRadius.lg)
-                                    .stroke(Color.border, lineWidth: 1)
-                            )
-                        }
-                        
-                        if let msg = errorMessage {
-                            Text(msg)
-                                .font(.appCaption)
-                                .foregroundColor(.destructive)
-                        }
-                        
-                        // Botão Entrar / Criar conta (gradiente primary)
-                        Button(action: submit) {
-                            HStack {
-                                if loading {
+                    Text("Seu cartão de benefícios e descontos")
+                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                        .foregroundColor(.white.opacity(0.9))
+                        .padding(.top, 8)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 24)
+                .padding(.top, 56)
+                .padding(.bottom, 48)
+                .background(
+                    AppGradients.hero
+                        .clipShape(BottomRoundedShape(radius: 32))
+                )
+                
+                // Card branco central (sobreposição -mt-6 como na web)
+                VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                    Text(mode == .signin ? "Entrar" : "Criar conta")
+                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                        .foregroundColor(.cardForeground)
+                    
+                    if mode == .signin {
+                        // Botão Entrar com Apple (estilo outline, alinhado ao Google)
+                        Button(action: performAppleSignIn) {
+                            HStack(spacing: AppSpacing.sm) {
+                                if appleLoading {
                                     ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: .primaryForeground))
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .cardForeground))
                                 } else {
-                                    Text(mode == .signin ? "Entrar" : "Criar conta")
-                                        .font(.system(size: 16, weight: .semibold))
-                                        .foregroundColor(.primaryForeground)
+                                    Image(systemName: "apple.logo")
+                                        .font(.system(size: 20, weight: .semibold))
+                                        .foregroundColor(.cardForeground)
+                                    Text("Entrar com Apple")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(.cardForeground)
                                 }
                             }
                             .frame(maxWidth: .infinity)
-                            .frame(height: 52)
-                            .background(AppGradients.primary)
-                            .cornerRadius(AppRadius.lg)
-                            .appShadow(AppShadow.md)
+                            .frame(height: 48)
                         }
-                        .disabled(loading || googleLoading || email.isEmpty || password.isEmpty)
-                        .padding(.top, AppSpacing.sm)
-                        
-                        // Divisor "ou"
-                        HStack {
-                            Rectangle()
-                                .fill(Color.border)
-                                .frame(height: 1)
-                            Text("ou")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.mutedForeground)
-                                .textCase(.uppercase)
-                            Rectangle()
-                                .fill(Color.border)
-                                .frame(height: 1)
-                        }
-                        .padding(.vertical, AppSpacing.md)
+                        .background(Color.appBackground)
+                        .cornerRadius(AppRadius.lg)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppRadius.lg)
+                                .stroke(Color.border, lineWidth: 1)
+                        )
+                        .disabled(loading || appleLoading || googleLoading)
                         
                         // Botão Entrar com Google
-                        Button(action: {
-                            googleLoading = true
-                            onGoogleSignIn?()
-                            googleLoading = false
-                        }) {
+                        Button(action: performGoogleSignIn) {
                             HStack(spacing: AppSpacing.sm) {
                                 if googleLoading {
                                     ProgressView()
@@ -194,7 +150,52 @@ struct LoginView: View {
                                 }
                             }
                             .frame(maxWidth: .infinity)
-                            .frame(height: 52)
+                            .frame(height: 48)
+                        }
+                        .background(Color.appBackground)
+                        .cornerRadius(AppRadius.lg)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppRadius.lg)
+                                .stroke(Color.border, lineWidth: 1)
+                        )
+                        .disabled(loading || appleLoading || googleLoading)
+                        .padding(.top, 4)
+                        
+                        // Divisor "ou"
+                        HStack {
+                            Rectangle()
+                                .fill(Color.border)
+                                .frame(height: 1)
+                            Text("ou")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.mutedForeground)
+                                .textCase(.uppercase)
+                            Rectangle()
+                                .fill(Color.border)
+                                .frame(height: 1)
+                        }
+                        .padding(.top, 16)
+                        .padding(.bottom, 8)
+                    }
+                    
+                    // Via E-mail e Senha (mais próximos)
+                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                            Text("E-mail")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.cardForeground)
+                            HStack(spacing: 12) {
+                                Image(systemName: "envelope.fill")
+                                    .foregroundColor(.mutedForeground)
+                                    .font(.system(size: 16))
+                                TextField("", text: $email)
+                                    .textContentType(.emailAddress)
+                                    .keyboardType(.emailAddress)
+                                    .autocapitalization(.none)
+                                    .foregroundColor(.cardForeground)
+                                    .disabled(loading)
+                            }
+                            .padding(AppSpacing.md)
                             .background(Color.appBackground)
                             .cornerRadius(AppRadius.lg)
                             .overlay(
@@ -202,31 +203,90 @@ struct LoginView: View {
                                     .stroke(Color.border, lineWidth: 1)
                             )
                         }
-                        .disabled(loading || googleLoading)
-                        .padding(.top, AppSpacing.xs)
                         
-                        // Toggle Criar conta / Já tem conta
-                        Button(action: {
-                            errorMessage = nil
-                            mode = mode == .signin ? .signup : .signin
-                        }) {
-                            Text(mode == .signin ? "Não tem conta? Cadastre-se" : "Já tem conta? Entrar")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.primary)
+                        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                            HStack {
+                                Text("Senha")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.cardForeground)
+                                Spacer()
+                                if mode == .signin {
+                                    Button("Esqueci minha senha") {}
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.primary)
+                                }
+                            }
+                            HStack(spacing: 12) {
+                                Image(systemName: "lock.fill")
+                                    .foregroundColor(.mutedForeground)
+                                    .font(.system(size: 16))
+                                SecureField("••••••••", text: $password)
+                                    .textContentType(mode == .signin ? .password : .newPassword)
+                                    .foregroundColor(.cardForeground)
+                                    .disabled(loading)
+                            }
+                            .padding(AppSpacing.md)
+                            .background(Color.appBackground)
+                            .cornerRadius(AppRadius.lg)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: AppRadius.lg)
+                                    .stroke(Color.border, lineWidth: 1)
+                            )
+                        }
+                    }
+                    
+                    if let msg = errorMessage {
+                        Text(msg)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.destructive)
+                    }
+                    
+                    // Botão Entrar / Criar conta (via e-mail)
+                    Button(action: submit) {
+                        Group {
+                            if loading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .primaryForeground))
+                            } else {
+                                Text(mode == .signin ? "Entrar" : "Criar conta")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.primaryForeground)
+                            }
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(.top, AppSpacing.md)
+                        .frame(height: 48)
                     }
-                    .padding(AppSpacing.lg)
-                    .background(Color.card)
-                    .cornerRadius(AppRadius.xl)
-                    .appShadow(AppShadow.lg)
-                    .padding(.horizontal, AppSpacing.lg)
-                    .offset(y: -AppSpacing.xl)
+                    .background(AppGradients.primary)
+                    .cornerRadius(AppRadius.lg)
+                    .appShadow(AppShadow.md)
+                    .disabled(loading || appleLoading || googleLoading || email.isEmpty || password.isEmpty)
+                    .padding(.top, AppSpacing.sm)
+                    
+                    // Toggle Criar conta / Já tem conta
+                    Button(action: {
+                        errorMessage = nil
+                        mode = mode == .signin ? .signup : .signin
+                    }) {
+                        Text(mode == .signin ? "Não tem conta? Cadastre-se" : "Já tem conta? Entrar")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.primary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, AppSpacing.md)
                 }
+                .padding(AppSpacing.lg)
+                .background(Color.card)
+                .cornerRadius(24)
+                .appShadow(AppShadow.lg)
+                .padding(.horizontal, 24)
+                .offset(y: -24)
             }
-            .ignoresSafeArea(edges: .top)
         }
+        .scrollDismissesKeyboard(.interactively)
+        .onTapGesture {
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        }
+        .ignoresSafeArea(edges: .top)
     }
     
     private func submit() {
@@ -238,14 +298,49 @@ struct LoginView: View {
         loading = true
         let isSignUp = mode == .signup
         onLogin?(email.trimmingCharacters(in: .whitespaces), password, isSignUp)
+        onSuccess?()
         loading = false
+    }
+    
+    private func performAppleSignIn() {
+        errorMessage = nil
+        appleLoading = true
+        Task { @MainActor in
+            defer { appleLoading = false }
+            let helper = AppleSignInHelper()
+            do {
+                let result = try await helper.signIn()
+                onAppleSignIn?(result)
+                onSuccess?()
+            } catch is CancellationError {
+                // usuário cancelou
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+    
+    private func performGoogleSignIn() {
+        errorMessage = nil
+        googleLoading = true
+        Task { @MainActor in
+            defer { googleLoading = false }
+            do {
+                try await onGoogleSignIn?()
+                onSuccess?()
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        }
     }
 }
 
 #Preview {
     LoginView(
         onLogin: { _, _, _ in },
-        onGoogleSignIn: {},
-        onDismiss: {}
+        onAppleSignIn: { _ in },
+        onGoogleSignIn: { },
+        onSuccess: { },
+        onDismiss: { }
     )
 }

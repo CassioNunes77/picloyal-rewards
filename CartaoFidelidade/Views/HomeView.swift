@@ -11,6 +11,8 @@ struct HomeView: View {
     @Binding var showSettings: Bool
     @Binding var activeTab: String
     @Binding var showQRCode: Bool
+    @AppStorage("userDisplayName") private var userDisplayName = ""
+    @AppStorage("userEmail") private var userEmail = ""
     @State private var showToast = false
     @State private var toastMessage = ""
     
@@ -65,7 +67,7 @@ struct HomeView: View {
                                     .font(.appCaption)
                                     .foregroundColor(.white.opacity(0.8))
                                 
-                                Text("Maria")
+                                Text(userDisplayName.isEmpty ? "Usuário" : String(userDisplayName.split(separator: " ").first ?? Substring(userDisplayName)))
                                     .font(.appTitle)
                                     .foregroundColor(.white)
                             }
@@ -130,7 +132,7 @@ struct HomeView: View {
                         LoyaltyCard(
                             currentPoints: 650,
                             totalPoints: 1000,
-                            userName: "Maria Silva",
+                            userName: userDisplayName.isEmpty ? "Usuário" : userDisplayName,
                             cardNumber: "**** **** **** 4589"
                         )
                         .padding(.horizontal, AppSpacing.lg)

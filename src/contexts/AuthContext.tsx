@@ -11,6 +11,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
+  deleteUser,
   onAuthStateChanged,
   signInWithPopup,
   signInWithRedirect,
@@ -143,6 +144,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (auth) await firebaseSignOut(auth);
   }, []);
 
+  const deleteAccount = useCallback(async () => {
+    setAuthError(null);
+    if (!auth?.currentUser) throw new Error("Nenhum usuário logado.");
+    await deleteUser(auth.currentUser);
+  }, []);
+
   const clearError = useCallback(() => setAuthError(null), []);
 
   const value: AuthContextType = {
@@ -152,6 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signUp,
     signInWithGoogle,
     signOut,
+    deleteAccount,
     authError,
     clearError,
   };

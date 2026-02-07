@@ -6,12 +6,17 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct ProfileView: View {
     @Binding var activeTab: String
+    @AppStorage("isLoggedIn") private var isLoggedIn = false
+    @AppStorage("userDisplayName") private var userDisplayName = ""
+    @AppStorage("userEmail") private var userEmail = ""
     @State private var notifications = true
     @State private var showToast = false
     @State private var toastMessage = ""
+    @State private var showLogoutConfirmation = false
     
     let userStats = [
         ("Pontos", "650", "star.fill", Color.primary),
@@ -52,8 +57,8 @@ struct ProfileView: View {
                             
                             Spacer()
                             
-                            Button(action: { showLoginView = true }) {
-                                Text("Entrar")
+                            Button(action: { showLogoutConfirmation = true }) {
+                                Text("Sair")
                                     .font(.system(size: 15, weight: .semibold))
                                     .foregroundColor(.white)
                                     .padding(.horizontal, AppSpacing.md)
@@ -94,13 +99,13 @@ struct ProfileView: View {
                             }
                             
                             VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                                Text("Maria Silva")
+                                Text(userDisplayName.isEmpty ? "Usuário" : userDisplayName)
                                     .font(.appTitle)
                                     .foregroundColor(.white)
                                 
-                                Text("maria.silva@email.com")
+                                Text(userEmail.isEmpty ? "—" : userEmail)
                                     .font(.appCaption)
-                                    .foregroundColor(.white)
+                                    .foregroundStyle(Color.white)
                                 
                                 HStack(spacing: AppSpacing.sm) {
                                     Text("Membro VIP ⭐")
@@ -166,7 +171,7 @@ struct ProfileView: View {
                             ProfileInfoItem(
                                 icon: "envelope.fill",
                                 label: "E-mail",
-                                value: "maria.silva@email.com",
+                                value: userEmail.isEmpty ? "—" : userEmail,
                                 delay: 0.3
                             )
                             
@@ -178,7 +183,7 @@ struct ProfileView: View {
                             )
                             
                             ProfileInfoItem(
-                                icon: "mappin.fill",
+                                icon: "location.fill",
                                 label: "Endereço",
                                 value: "Rua Exemplo, 123 - São Paulo, SP",
                                 delay: 0.4
@@ -250,6 +255,7 @@ struct ProfileView: View {
                         
                         // Logout
                         Button(action: {
+                            performLogout()
                             showToast(message: "Até logo! 👋")
                         }) {
                             HStack(spacing: AppSpacing.md) {
@@ -314,17 +320,14 @@ struct ProfileView: View {
                 .animation(.easeInOut, value: showToast)
             }
         }
-        .fullScreenCover(isPresented: $showLoginView) {
-            LoginView(
-                onLogin: { _, _, _ in
-                    showToast(message: "Login em breve com Firebase")
-                    showLoginView = false
-                },
-                onGoogleSignIn: {
-                    showToast(message: "Entrar com Google em breve")
-                },
-                onDismiss: { showLoginView = false }
-            )
+        .alert("Sair da conta?", isPresented: $showLogoutConfirmation) {
+            Button("Cancelar", role: .cancel) {}
+            Button("Sair", role: .destructive) {
+                performLogout()
+                showToast(message: "Até logo! 👋")
+            }
+        } message: {
+            Text("Deseja realmente sair da sua conta?")
         }
         .ignoresSafeArea(edges: .top)
     }
@@ -339,6 +342,13 @@ struct ProfileView: View {
                 showToast = false
             }
         }
+    }
+    
+    private func performLogout() {
+        try? Auth.auth().signOut()
+        userDisplayName = ""
+        userEmail = ""
+        isLoggedIn = false
     }
 }
 

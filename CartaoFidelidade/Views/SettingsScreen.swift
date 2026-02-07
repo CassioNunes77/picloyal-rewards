@@ -6,11 +6,19 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct SettingsScreen: View {
     let onBack: () -> Void
+    @AppStorage("isLoggedIn") private var isLoggedIn = false
+    @AppStorage("userDisplayName") private var userDisplayName = ""
+    @AppStorage("userEmail") private var userEmail = ""
     @State private var notifications = true
     @State private var darkMode = false
+    @State private var showLogoutConfirmation = false
+    @State private var showDeleteAccountConfirmation = false
+    @State private var showDeleteAccountError = false
+    @State private var deleteAccountErrorMessage = ""
     
     var body: some View {
         ScrollView {
@@ -63,11 +71,11 @@ struct SettingsScreen: View {
                             }
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Maria Silva")
+                                Text(userDisplayName.isEmpty ? "Usuário" : userDisplayName)
                                     .font(.appHeadline)
                                     .foregroundColor(.cardForeground)
                                 
-                                Text("maria.silva@email.com")
+                                Text(userEmail.isEmpty ? "—" : userEmail)
                                     .font(.appCaption)
                                     .foregroundColor(.mutedForeground)
                                 
@@ -177,17 +185,15 @@ struct SettingsScreen: View {
                             description: "Excluir permanentemente sua conta e todos os dados",
                             delay: 0.6,
                             isDanger: true,
-                            action: {
-                                // Aqui você pode adicionar a lógica para excluir a conta
-                                // Por exemplo, mostrar um alerta de confirmação
-                            }
+                            action: { showDeleteAccountConfirmation = true }
                         )
                         
                         SettingsItem(
                             icon: "arrow.right.square.fill",
                             label: "Sair da Conta",
                             delay: 0.65,
-                            isDanger: true
+                            isDanger: true,
+                            action: { showLogoutConfirmation = true }
                         )
                     }
                     
@@ -207,6 +213,52 @@ struct SettingsScreen: View {
             }
         }
         .transition(.move(edge: .trailing))
+        .alert("Sair da conta?", isPresented: $showLogoutConfirmation) {
+            Button("Cancelar", role: .cancel) {}
+            Button("Sair", role: .destructive) {
+                try? Auth.auth().signOut()
+                userDisplayName = ""
+                userEmail = ""
+                isLoggedIn = false
+                onBack()
+            }
+        } message: {
+            Text("Deseja realmente sair da sua conta?")
+        }
+        .alert("Excluir conta?", isPresented: $showDeleteAccountConfirmation) {
+            Button("Cancelar", role: .cancel) {}
+            Button("Excluir", role: .destructive) {
+                performDeleteAccount()
+            }
+        } message: {
+            Text("Esta ação é definitiva. Todos os dados do usuário serão perdidos. Deseja continuar?")
+        }
+        .alert("Erro ao excluir conta", isPresented: $showDeleteAccountError) {
+            Button("OK") { showDeleteAccountError = false }
+        } message: {
+            Text(deleteAccountErrorMessage)
+        }
+    }
+    
+    private func performDeleteAccount() {
+        guard let user = Auth.auth().currentUser else {
+            deleteAccountErrorMessage = "Nenhum usuário logado."
+            showDeleteAccountError = true
+            return
+        }
+        user.delete { error in
+            DispatchQueue.main.async {
+                if let error = error as NSError? {
+                    deleteAccountErrorMessage = error.localizedDescription
+                    showDeleteAccountError = true
+                    return
+                }
+                userDisplayName = ""
+                userEmail = ""
+                isLoggedIn = false
+                onBack()
+            }
+        }
     }
 }
 

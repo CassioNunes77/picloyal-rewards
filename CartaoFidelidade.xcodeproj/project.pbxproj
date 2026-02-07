@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		DF6543542F361630007B1B76 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = DF6543532F361630007B1B76 /* FirebaseAuth */; };
 		DF6543562F361630007B1B76 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = DF6543552F361630007B1B76 /* FirebaseCore */; };
+		DF65469E2F368261007B1B76 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = DF6543592F361640007B1B76 /* GoogleSignIn */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +58,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DF65469E2F368261007B1B76 /* GoogleSignIn in Frameworks */,
 				DF6543562F361630007B1B76 /* FirebaseCore in Frameworks */,
 				DF6543542F361630007B1B76 /* FirebaseAuth in Frameworks */,
 			);
@@ -121,6 +123,7 @@
 			packageProductDependencies = (
 				DF6543532F361630007B1B76 /* FirebaseAuth */,
 				DF6543552F361630007B1B76 /* FirebaseCore */,
+				DF6543592F361640007B1B76 /* GoogleSignIn */,
 			);
 			productName = CartaoFidelidade;
 			productReference = DF5AABC32F21B1EB00BCE4F0 /* CartaoFidelidade.app */;
@@ -206,6 +209,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				DF6543522F361630007B1B76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				DF6543582F361640007B1B76 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DF5AABC42F21B1EB00BCE4F0 /* Products */;
@@ -407,6 +411,7 @@
 				DEVELOPMENT_TEAM = 4Y6MWV9B36;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -445,6 +450,7 @@
 				DEVELOPMENT_TEAM = 4Y6MWV9B36;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -611,6 +617,14 @@
 				minimumVersion = 12.9.0;
 			};
 		};
+		DF6543582F361640007B1B76 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -623,6 +637,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = DF6543522F361630007B1B76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCore;
+		};
+		DF6543592F361640007B1B76 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DF6543582F361640007B1B76 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

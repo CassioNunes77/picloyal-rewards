@@ -298,7 +298,7 @@ struct InfoTab: View {
         VStack(spacing: AppSpacing.lg) {
             // Address
             InfoCard(
-                icon: "mappin.fill",
+                icon: "location.fill",
                 title: "Endereço",
                 content: store.address,
                 color: .primary

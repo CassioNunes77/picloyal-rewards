@@ -129,3 +129,19 @@ extension View {
         self.shadow(color: shadow.color, radius: shadow.radius, x: shadow.x, y: shadow.y)
     }
 }
+
+// MARK: - Bottom-rounded shape (evita depender de UnevenRoundedRectangle / dyld)
+struct BottomRoundedShape: Shape {
+    var radius: CGFloat
+    func path(in rect: CGRect) -> Path {
+        Path {
+            $0.move(to: CGPoint(x: rect.minX, y: rect.minY))
+            $0.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+            $0.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - radius))
+            $0.addArc(tangent1End: CGPoint(x: rect.maxX, y: rect.maxY), tangent2End: CGPoint(x: rect.maxX - radius, y: rect.maxY), radius: radius)
+            $0.addLine(to: CGPoint(x: rect.minX + radius, y: rect.maxY))
+            $0.addArc(tangent1End: CGPoint(x: rect.minX, y: rect.maxY), tangent2End: CGPoint(x: rect.minX, y: rect.maxY - radius), radius: radius)
+            $0.closeSubpath()
+        }
+    }
+}
