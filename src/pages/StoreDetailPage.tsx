@@ -39,7 +39,7 @@ interface Offer {
 const StoreDetailPage = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [selectedTab, setSelectedTab] = useState<"info" | "offers" | "reviews">("info");
+  const [selectedTab, setSelectedTab] = useState<"info" | "offers" | "reviews">("offers");
 
   // Mock data - em produção, buscar pelo ID
   const store: Store = {
@@ -174,16 +174,6 @@ const StoreDetailPage = () => {
         <div className="mb-6 animate-fade-in" style={{ animationDelay: '150ms' }}>
           <div className="flex border-b border-border text-sm">
             <button
-              onClick={() => setSelectedTab("info")}
-              className={`flex-1 py-3 text-center font-medium transition-colors ${
-                selectedTab === "info"
-                  ? "text-primary border-b-2 border-primary"
-                  : "text-muted-foreground"
-              }`}
-            >
-              Informações
-            </button>
-            <button
               onClick={() => setSelectedTab("offers")}
               className={`flex-1 py-3 text-center font-medium transition-colors relative ${
                 selectedTab === "offers"
@@ -197,6 +187,16 @@ const StoreDetailPage = () => {
                   {store.offers}
                 </span>
               )}
+            </button>
+            <button
+              onClick={() => setSelectedTab("info")}
+              className={`flex-1 py-3 text-center font-medium transition-colors ${
+                selectedTab === "info"
+                  ? "text-primary border-b-2 border-primary"
+                  : "text-muted-foreground"
+              }`}
+            >
+              Informações
             </button>
             <button
               onClick={() => setSelectedTab("reviews")}

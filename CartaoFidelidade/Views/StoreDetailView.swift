@@ -13,7 +13,7 @@ struct StoreDetailView: View {
     @Binding var isPresented: Bool
     @State private var showToast = false
     @State private var toastMessage = ""
-    @State private var selectedTab = "info"
+    @State private var selectedTab = "offers"
     @State private var selectedOffer: Offer?
     
     let storeOffers = [
@@ -177,12 +177,12 @@ struct StoreDetailView: View {
                     VStack(spacing: AppSpacing.lg) {
                         // Tabs
                         HStack(spacing: 0) {
-                            TabButton(title: "Informações", isSelected: selectedTab == "info") {
-                                selectedTab = "info"
-                            }
-                            
                             TabButton(title: "Ofertas", isSelected: selectedTab == "offers", badge: store.offers > 0 ? "\(store.offers)" : nil) {
                                 selectedTab = "offers"
+                            }
+                            
+                            TabButton(title: "Informações", isSelected: selectedTab == "info") {
+                                selectedTab = "info"
                             }
                             
                             TabButton(title: "Avaliações", isSelected: selectedTab == "reviews") {
