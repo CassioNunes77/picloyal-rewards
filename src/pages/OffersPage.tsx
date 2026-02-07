@@ -175,7 +175,7 @@ const OffersPage = () => {
             <p className="text-muted-foreground mb-2">Nenhuma oferta encontrada</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             {filteredOffers.map((offer, index) => (
               <button
                 key={offer.id}
