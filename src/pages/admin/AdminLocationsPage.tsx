@@ -324,16 +324,16 @@ const AdminLocationsPage = () => {
         acc[country] = {};
       }
       const stateCode = region.state || "";
-      if (stateCode) {
-        if (!acc[country][stateCode]) {
-          acc[country][stateCode] = {
-            stateCode,
-            stateName: region.stateName || stateCode,
-            cities: [],
-          };
-        }
-        acc[country][stateCode].cities.push(region);
+      // Se não há stateCode, criar uma entrada genérica ou usar "Desconhecido"
+      const finalStateCode = stateCode || "UNKNOWN";
+      if (!acc[country][finalStateCode]) {
+        acc[country][finalStateCode] = {
+          stateCode: finalStateCode,
+          stateName: region.stateName || stateCode || "Desconhecido",
+          cities: [],
+        };
       }
+      acc[country][finalStateCode].cities.push(region);
     } catch (error) {
       console.error("Erro ao agrupar região:", region, error);
     }
@@ -346,8 +346,13 @@ const AdminLocationsPage = () => {
       return [];
     }
     const countryKeys = Object.keys(groupedByCountry);
+    console.log("🔍 [AdminLocationsPage] Países encontrados no agrupamento:", countryKeys);
+    console.log("🔍 [AdminLocationsPage] Total de regiões:", regions.length);
+    console.log("🔍 [AdminLocationsPage] Agrupamento:", JSON.stringify(groupedByCountry, null, 2));
+    
     // Se há regiões mas nenhum país no agrupamento, adicionar "Brasil"
     if (countryKeys.length === 0) {
+      console.warn("⚠️ [AdminLocationsPage] Nenhum país encontrado no agrupamento, adicionando 'Brasil'");
       return ["Brasil"];
     }
     return countryKeys;
@@ -367,18 +372,34 @@ const AdminLocationsPage = () => {
   const getFilteredItems = (): any[] => {
     try {
       if (currentLevel === "country") {
-        // Se não há países mas há regiões, retornar "Brasil"
-        if (countries.length === 0 && regions.length > 0) {
-          return ["Brasil"];
+        // SEMPRE retornar pelo menos "Brasil" se há regiões
+        if (regions.length > 0) {
+          // Se não há países no array, retornar "Brasil"
+          if (countries.length === 0) {
+            console.log("⚠️ [AdminLocationsPage] Nenhum país encontrado, retornando 'Brasil'");
+            return ["Brasil"];
+          }
+          
+          // Filtrar países pela busca
+          const filtered = countries.filter((country) =>
+            country.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+          
+          // Se o filtro não encontrou nada mas não há busca, mostrar todos os países
+          if (filtered.length === 0 && !searchQuery) {
+            console.log("✅ [AdminLocationsPage] Retornando todos os países:", countries);
+            return countries;
+          }
+          
+          // Se há busca e encontrou resultados, retornar filtrados
+          if (filtered.length > 0) {
+            return filtered;
+          }
+          
+          // Se há busca mas não encontrou nada, retornar vazio (mostrar mensagem "não encontrado")
+          return [];
         }
-        const filtered = countries.filter((country) =>
-          country.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-        // Se o filtro não encontrou nada mas há regiões e não há busca, mostrar todos os países
-        if (filtered.length === 0 && regions.length > 0 && !searchQuery) {
-          return countries.length > 0 ? countries : ["Brasil"];
-        }
-        return filtered;
+        return [];
       } else if (currentLevel === "state" && selectedCountry) {
         const states = getStatesForCountry(selectedCountry);
         return states.filter((state) =>
@@ -394,9 +415,10 @@ const AdminLocationsPage = () => {
       }
       return [];
     } catch (error) {
-      console.error("Erro ao filtrar itens:", error);
+      console.error("❌ [AdminLocationsPage] Erro ao filtrar itens:", error);
       // Em caso de erro, se há regiões e estamos no nível de países, retornar "Brasil"
       if (currentLevel === "country" && regions.length > 0) {
+        console.log("⚠️ [AdminLocationsPage] Erro ao filtrar, retornando 'Brasil' como fallback");
         return ["Brasil"];
       }
       return [];
@@ -407,18 +429,28 @@ const AdminLocationsPage = () => {
   
   // Debug: log para verificar o estado
   useEffect(() => {
+    console.log("🔍 [AdminLocationsPage] Debug completo:", {
+      regionsCount: regions.length,
+      currentLevel,
+      selectedCountry,
+      selectedState,
+      countries: countries.length > 0 ? countries : "VAZIO",
+      filteredItems: filteredItems.length > 0 ? filteredItems : "VAZIO",
+      groupedByCountryKeys: Object.keys(groupedByCountry),
+      searchQuery,
+      loadingRegions,
+    });
+    
     if (regions.length > 0) {
-      console.log("🔍 [AdminLocationsPage] Debug:", {
-        regionsCount: regions.length,
-        currentLevel,
-        selectedCountry,
-        selectedState,
-        countries,
-        filteredItems: filteredItems.length,
-        groupedByCountry: Object.keys(groupedByCountry),
-      });
+      console.log("📋 [AdminLocationsPage] Primeiras 3 regiões:", regions.slice(0, 3).map(r => ({
+        id: r.id,
+        country: r.country,
+        state: r.state,
+        stateName: r.stateName,
+        city: r.city,
+      })));
     }
-  }, [regions.length, currentLevel, selectedCountry, selectedState, countries.length, filteredItems.length]);
+  }, [regions.length, currentLevel, selectedCountry, selectedState, countries.length, filteredItems.length, searchQuery, loadingRegions]);
 
   // Handlers de navegação
   const handleCountryClick = (country: string) => {
