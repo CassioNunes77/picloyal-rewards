@@ -302,15 +302,15 @@ const AdminLocationsPage = () => {
         active: true,
       });
 
-      // Fechar modal e limpar campos antes de mostrar toast
+      // Limpar campos
       setNewRegion({ state: "", stateName: "", stateCode: "", city: "", cityId: "" });
-      setShowAddModal(false);
       setCities([]);
       
-      // Toast após fechar o modal
-      setTimeout(() => {
-        toast.success("Região adicionada com sucesso");
-      }, 100);
+      // Fechar modal imediatamente
+      setShowAddModal(false);
+      
+      // Toast de sucesso
+      toast.success("Região adicionada com sucesso");
     } catch (error) {
       console.error("Erro ao adicionar região:", error);
       toast.error("Erro ao adicionar região. Tente novamente.");
