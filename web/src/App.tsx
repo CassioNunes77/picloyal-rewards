@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import DarkModeLoader from "@/components/DarkModeLoader";
 import Index from "./pages/Index";
 import StoresPage from "./pages/StoresPage";
 import OffersPage from "./pages/OffersPage";
@@ -43,6 +44,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthGuard>
+            <DarkModeLoader />
             <Routes>
               <Route path="/" element={<LoginPage />} />
               <Route path="/home" element={<Index />} />

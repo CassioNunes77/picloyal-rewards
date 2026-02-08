@@ -17,6 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDarkMode } from "@/hooks/use-dark-mode";
 
 interface SettingsItemProps {
   icon: React.ElementType;
@@ -76,7 +77,7 @@ interface SettingsScreenProps {
 const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
+  const { darkMode, toggleDarkMode } = useDarkMode();
   const displayName = user?.displayName ?? user?.email?.split("@")[0] ?? "Usuário";
   const userEmail = user?.email ?? "";
 
@@ -85,10 +86,13 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
     toast.success(checked ? "Notificações ativadas" : "Notificações desativadas");
   };
 
-  const handleToggleDarkMode = (checked: boolean) => {
-    setDarkMode(checked);
-    document.documentElement.classList.toggle('dark', checked);
-    toast.success(checked ? "Modo escuro ativado" : "Modo claro ativado");
+  const handleToggleDarkMode = async (checked: boolean) => {
+    try {
+      await toggleDarkMode(checked);
+      toast.success(checked ? "Modo escuro ativado" : "Modo claro ativado");
+    } catch (error) {
+      toast.error("Erro ao salvar preferência. Tente novamente.");
+    }
   };
 
   const handleAction = (action: string) => {

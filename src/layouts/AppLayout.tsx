@@ -1,5 +1,6 @@
 import { useIsMobile } from "@/hooks/use-mobile";
 import { QRProvider } from "@/contexts/QRContext";
+import DarkModeLoader from "@/components/DarkModeLoader";
 import MobileLayout from "./MobileLayout";
 import DesktopLayout from "./DesktopLayout";
 
@@ -8,6 +9,7 @@ export default function AppLayout() {
 
   return (
     <QRProvider>
+      <DarkModeLoader />
       {isMobile ? <MobileLayout /> : <DesktopLayout />}
     </QRProvider>
   );

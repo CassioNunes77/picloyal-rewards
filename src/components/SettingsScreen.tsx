@@ -24,13 +24,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth, AUTH_REQUIRES_RECENT_LOGIN } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { getUserData, updateUserData } from "@/services/usersService";
+import { useDarkMode } from "@/hooks/use-dark-mode";
 
 interface SettingsItemProps {
   icon: React.ElementType;
@@ -98,8 +98,7 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
     reauthenticateWithGoogle,
   } = useAuth();
   const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [loadingDarkMode, setLoadingDarkMode] = useState(true);
+  const { darkMode, toggleDarkMode } = useDarkMode();
   const [showReauthDialog, setShowReauthDialog] = useState(false);
   const [reauthPassword, setReauthPassword] = useState("");
   const [reauthLoading, setReauthLoading] = useState(false);
@@ -107,55 +106,18 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
   const userEmail = user?.email ?? "";
   const isGoogleUser = user?.providerData?.some((p) => p.providerId === "google.com") ?? false;
 
-  // Carregar preferência de modo escuro do Firebase
-  useEffect(() => {
-    const loadDarkModePreference = async () => {
-      if (!user?.uid) {
-        setLoadingDarkMode(false);
-        return;
-      }
-
-      try {
-        const userData = await getUserData(user.uid);
-        if (userData?.preferences?.darkMode !== undefined) {
-          const savedDarkMode = userData.preferences.darkMode;
-          setDarkMode(savedDarkMode);
-          document.documentElement.classList.toggle('dark', savedDarkMode);
-        }
-      } catch (error) {
-        console.error("Erro ao carregar preferência de modo escuro:", error);
-      } finally {
-        setLoadingDarkMode(false);
-      }
-    };
-
-    loadDarkModePreference();
-  }, [user?.uid]);
-
   const handleToggleNotifications = (checked: boolean) => {
     setNotifications(checked);
     toast.success(checked ? "Notificações ativadas" : "Notificações desativadas");
   };
 
   const handleToggleDarkMode = async (checked: boolean) => {
-    setDarkMode(checked);
-    document.documentElement.classList.toggle('dark', checked);
-    
-    // Salvar preferência no Firebase
-    if (user?.uid) {
-      try {
-        await updateUserData(user.uid, {
-          preferences: {
-            darkMode: checked,
-          },
-        });
-      } catch (error) {
-        console.error("Erro ao salvar preferência de modo escuro:", error);
-        toast.error("Erro ao salvar preferência. Tente novamente.");
-      }
+    try {
+      await toggleDarkMode(checked);
+      toast.success(checked ? "Modo escuro ativado" : "Modo claro ativado");
+    } catch (error) {
+      toast.error("Erro ao salvar preferência. Tente novamente.");
     }
-    
-    toast.success(checked ? "Modo escuro ativado" : "Modo claro ativado");
   };
 
   const handleAction = (action: string) => {
