@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { MapPin, Plus, Search, Trash2, Check, X, Loader2, ChevronLeft, Folder } from "lucide-react";
+import { MapPin, Plus, Search, Trash2, Check, X, Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -163,15 +163,10 @@ function LocationAutocomplete({
   );
 }
 
-type ViewLevel = "country" | "state" | "city";
-
 const AdminLocationsPage = () => {
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
-  const [currentLevel, setCurrentLevel] = useState<ViewLevel>("country");
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
-  const [selectedState, setSelectedState] = useState<string | null>(null);
   const [newRegion, setNewRegion] = useState({
     state: "",
     stateName: "",
@@ -265,25 +260,6 @@ const AdminLocationsPage = () => {
     };
   }, []);
 
-  // Pré-selecionar estado quando abrir modal no nível de cidades
-  useEffect(() => {
-    if (showAddModal && currentLevel === "city" && selectedState && selectedCountry) {
-      const stateObj = states.find((s) => s.sigla === selectedState);
-      if (stateObj) {
-        setNewRegion({
-          state: stateObj.name,
-          stateName: stateObj.name,
-          stateCode: stateObj.sigla,
-          city: "",
-          cityId: "",
-        });
-      }
-    } else if (!showAddModal) {
-      // Limpar quando fechar o modal
-      setNewRegion({ state: "", stateName: "", stateCode: "", city: "", cityId: "" });
-      setCities([]);
-    }
-  }, [showAddModal, currentLevel, selectedState, selectedCountry, states]);
 
   // Carregar cidades quando um estado é selecionado
   useEffect(() => {
@@ -315,185 +291,13 @@ const AdminLocationsPage = () => {
     fetchCities();
   }, [newRegion.stateCode]);
 
-  // Agrupar regiões por país e estado
-  const groupedByCountry = regions.reduce((acc, region) => {
-    try {
-      // Sempre usar "Brasil" como país padrão
-      const country = region.country || "Brasil";
-      if (!acc[country]) {
-        acc[country] = {};
-      }
-      const stateCode = region.state || "";
-      // Se não há stateCode, criar uma entrada genérica ou usar "Desconhecido"
-      const finalStateCode = stateCode || "UNKNOWN";
-      if (!acc[country][finalStateCode]) {
-        acc[country][finalStateCode] = {
-          stateCode: finalStateCode,
-          stateName: region.stateName || stateCode || "Desconhecido",
-          cities: [],
-        };
-      }
-      acc[country][finalStateCode].cities.push(region);
-    } catch (error) {
-      console.error("Erro ao agrupar região:", region, error);
-    }
-    return acc;
-  }, {} as Record<string, Record<string, { stateCode: string; stateName: string; cities: Region[] }>>);
-
-  // Obter países únicos - sempre incluir "Brasil" se houver regiões
-  const countries = (() => {
-    if (regions.length === 0) {
-      return [];
-    }
-    const countryKeys = Object.keys(groupedByCountry);
-    console.log("🔍 [AdminLocationsPage] Países encontrados no agrupamento:", countryKeys);
-    console.log("🔍 [AdminLocationsPage] Total de regiões:", regions.length);
-    console.log("🔍 [AdminLocationsPage] Agrupamento:", JSON.stringify(groupedByCountry, null, 2));
-    
-    // Se há regiões mas nenhum país no agrupamento, adicionar "Brasil"
-    if (countryKeys.length === 0) {
-      console.warn("⚠️ [AdminLocationsPage] Nenhum país encontrado no agrupamento, adicionando 'Brasil'");
-      return ["Brasil"];
-    }
-    return countryKeys;
-  })();
-
-  // Obter estados de um país
-  const getStatesForCountry = (country: string) => {
-    return Object.values(groupedByCountry[country] || {});
-  };
-
-  // Obter cidades de um estado
-  const getCitiesForState = (country: string, stateCode: string) => {
-    return groupedByCountry[country]?.[stateCode]?.cities || [];
-  };
-
-  // Filtrar baseado no nível atual - SIMPLIFICADO para garantir que sempre funcione
-  const getFilteredItems = (): any[] => {
-    try {
-      if (currentLevel === "country") {
-        // SEMPRE retornar pelo menos "Brasil" se há regiões
-        if (regions.length === 0) {
-          return [];
-        }
-        
-        // Se não há países no array, retornar "Brasil"
-        if (countries.length === 0) {
-          console.log("⚠️ [AdminLocationsPage] Nenhum país encontrado, retornando 'Brasil'");
-          return ["Brasil"];
-        }
-        
-        // Filtrar países pela busca (se houver)
-        if (searchQuery.trim()) {
-          const filtered = countries.filter((country) =>
-            country.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-          // Se encontrou algo na busca, retornar
-          if (filtered.length > 0) {
-            return filtered;
-          }
-          // Se não encontrou na busca, retornar vazio para mostrar mensagem "não encontrado"
-          return [];
-        }
-        
-        // Sem busca: retornar todos os países ou "Brasil" se não houver países
-        return countries.length > 0 ? countries : ["Brasil"];
-      } else if (currentLevel === "state" && selectedCountry) {
-        const states = getStatesForCountry(selectedCountry);
-        if (searchQuery.trim()) {
-          return states.filter((state) =>
-            state.stateName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            state.stateCode.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-        }
-        return states;
-      } else if (currentLevel === "city" && selectedCountry && selectedState) {
-        const cities = getCitiesForState(selectedCountry, selectedState);
-        if (searchQuery.trim()) {
-          return cities.filter((city) =>
-            city.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            city.name.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-        }
-        return cities;
-      }
-      return [];
-    } catch (error) {
-      console.error("❌ [AdminLocationsPage] Erro ao filtrar itens:", error);
-      // Em caso de erro, se há regiões e estamos no nível de países, retornar "Brasil"
-      if (currentLevel === "country" && regions.length > 0) {
-        console.log("⚠️ [AdminLocationsPage] Erro ao filtrar, retornando 'Brasil' como fallback");
-        return ["Brasil"];
-      }
-      return [];
-    }
-  };
-
-  const filteredItems = getFilteredItems();
-  
-  // Debug: log para verificar o estado
-  useEffect(() => {
-    console.log("🔍 [AdminLocationsPage] Debug completo:", {
-      regionsCount: regions.length,
-      currentLevel,
-      selectedCountry,
-      selectedState,
-      countries: countries.length > 0 ? countries : "VAZIO",
-      filteredItems: filteredItems.length > 0 ? filteredItems : "VAZIO",
-      groupedByCountryKeys: Object.keys(groupedByCountry),
-      searchQuery,
-      loadingRegions,
-    });
-    
-    if (regions.length > 0) {
-      console.log("📋 [AdminLocationsPage] Primeiras 3 regiões:", regions.slice(0, 3).map(r => ({
-        id: r.id,
-        country: r.country,
-        state: r.state,
-        stateName: r.stateName,
-        city: r.city,
-      })));
-    }
-  }, [regions.length, currentLevel, selectedCountry, selectedState, countries.length, filteredItems.length, searchQuery, loadingRegions]);
-
-  // Handlers de navegação
-  const handleCountryClick = (country: string) => {
-    setSelectedCountry(country);
-    setCurrentLevel("state");
-    setSearchQuery("");
-  };
-
-  const handleStateClick = (stateCode: string) => {
-    setSelectedState(stateCode);
-    setCurrentLevel("city");
-    setSearchQuery("");
-  };
-
-  const handleBack = () => {
-    if (currentLevel === "city") {
-      setCurrentLevel("state");
-      setSelectedState(null);
-    } else if (currentLevel === "state") {
-      setCurrentLevel("country");
-      setSelectedCountry(null);
-    }
-    setSearchQuery("");
-  };
-
-  // Breadcrumb
-  const getBreadcrumb = () => {
-    const items = [
-      { label: "Países", onClick: () => { setCurrentLevel("country"); setSelectedCountry(null); setSelectedState(null); } },
-    ];
-    if (selectedCountry) {
-      items.push({ label: selectedCountry, onClick: () => { setCurrentLevel("state"); setSelectedState(null); } });
-    }
-    if (selectedState && selectedCountry) {
-      const state = groupedByCountry[selectedCountry]?.[selectedState];
-      items.push({ label: state?.stateName || selectedState, onClick: null });
-    }
-    return items;
-  };
+  // Filtrar regiões pela busca
+  const filteredRegions = regions.filter((region) =>
+    region.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    region.state.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    region.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    region.stateName?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleToggleActive = async (id: string) => {
     const region = regions.find((r) => r.id === id);
@@ -549,25 +353,11 @@ const AdminLocationsPage = () => {
       
       // Fechar modal e limpar campos apenas após sucesso
       setShowAddModal(false);
-      // Manter estado pré-selecionado se estiver no nível de cidades
-      if (currentLevel === "city" && selectedState) {
-        const stateObj = states.find((s) => s.sigla === selectedState);
-        if (stateObj) {
-          setNewRegion({
-            state: stateObj.name,
-            stateName: stateObj.name,
-            stateCode: stateObj.sigla,
-            city: "",
-            cityId: "",
-          });
-        }
-      } else {
-        setNewRegion({ state: "", stateName: "", stateCode: "", city: "", cityId: "" });
-        setCities([]);
-      }
+      setNewRegion({ state: "", stateName: "", stateCode: "", city: "", cityId: "" });
+      setCities([]);
       
       // Toast de sucesso
-      toast.success("Cidade adicionada com sucesso");
+      toast.success("Região adicionada com sucesso");
       
       // A lista será atualizada automaticamente pelo subscribeToRegions
     } catch (error: any) {
@@ -660,13 +450,7 @@ const AdminLocationsPage = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <input
             type="text"
-            placeholder={
-              currentLevel === "country"
-                ? "Buscar país..."
-                : currentLevel === "state"
-                ? "Buscar estado..."
-                : "Buscar cidade..."
-            }
+            placeholder="Buscar região..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-3 rounded-xl bg-card text-card-foreground placeholder:text-muted-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -674,7 +458,7 @@ const AdminLocationsPage = () => {
         </div>
       </div>
 
-      {/* Lista Hierárquica */}
+      {/* Lista de Regiões */}
       {loadingRegions ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
@@ -696,191 +480,91 @@ const AdminLocationsPage = () => {
             </div>
           )}
         </div>
-      ) : filteredItems.length > 0 ? (
-        <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
-          {currentLevel === "country" &&
-            filteredItems.map((country) => {
-              try {
-                const states = getStatesForCountry(country);
-                const totalCities = states.reduce((sum, state) => sum + state.cities.length, 0);
-                return (
-                  <div
-                    key={country}
-                    onClick={() => handleCountryClick(country)}
-                    className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-all cursor-pointer"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="p-3 rounded-xl bg-primary/10 shrink-0">
-                        <Folder className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-card-foreground mb-1">{country}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {states.length} estado{states.length !== 1 ? "s" : ""} • {totalCities} cidade{totalCities !== 1 ? "s" : ""}
-                        </p>
-                      </div>
-                      <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
-                    </div>
-                  </div>
-                );
-              } catch (error) {
-                console.error("Erro ao renderizar país:", country, error);
-                return null;
-              }
-            })}
-
-          {currentLevel === "state" &&
-            selectedCountry &&
-            filteredItems.map((state) => (
-              <div
-                key={state.stateCode}
-                onClick={() => handleStateClick(state.stateCode)}
-                className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-all cursor-pointer"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="p-3 rounded-xl bg-primary/10 shrink-0">
-                    <Folder className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-card-foreground mb-1">
-                      {state.stateName} ({state.stateCode})
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {state.cities.length} cidade{state.cities.length !== 1 ? "s" : ""}
-                    </p>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
-                </div>
-              </div>
-            ))}
-
-          {currentLevel === "city" &&
-            selectedCountry &&
-            selectedState &&
-            filteredItems.map((region) => (
-              <div
-                key={region.id}
-                className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-all"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <div className="p-3 rounded-xl bg-primary/10 shrink-0">
-                      <MapPin className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-card-foreground truncate">{region.city}</h3>
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${
-                            region.active
-                              ? "bg-green-100 text-green-700"
-                              : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          {region.active ? "Ativa" : "Inativa"}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {region.stateName || region.state}
-                        {region.country && ` - ${region.country}`}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <span className="text-sm text-muted-foreground">
-                    {region.storesCount} lojas
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleToggleActive(region.id);
-                      }}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                        region.active
-                          ? "bg-green-100 text-green-700 hover:bg-green-200"
-                          : "bg-muted text-muted-foreground hover:bg-muted/80"
-                      }`}
-                      title={region.active ? "Desativar região" : "Ativar região"}
-                    >
-                      {region.active ? (
-                        <span className="flex items-center gap-1">
-                          <Check className="h-4 w-4" />
-                          Ativa
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1">
-                          <X className="h-4 w-4" />
-                          Inativa
-                        </span>
-                      )}
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteClick(region);
-                      }}
-                      disabled={deletingRegionId === region.id}
-                      className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Excluir região"
-                    >
-                      {deletingRegionId === region.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-        </div>
-      ) : regions.length > 0 && currentLevel === "country" && !searchQuery ? (
-        // Fallback: se há regiões mas filteredItems está vazio e não há busca, mostrar Brasil
-        <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
-          {["Brasil"].map((country) => {
-            try {
-              const states = getStatesForCountry(country);
-              const totalCities = states.reduce((sum, state) => sum + state.cities.length, 0);
-              return (
-                <div
-                  key={country}
-                  onClick={() => handleCountryClick(country)}
-                  className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-all cursor-pointer"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="p-3 rounded-xl bg-primary/10 shrink-0">
-                      <Folder className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-card-foreground mb-1">{country}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {states.length} estado{states.length !== 1 ? "s" : ""} • {totalCities} cidade{totalCities !== 1 ? "s" : ""}
-                      </p>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
-                  </div>
-                </div>
-              );
-            } catch (error) {
-              console.error("Erro ao renderizar país:", country, error);
-              return null;
-            }
-          })}
-        </div>
-      ) : regions.length > 0 ? (
+      ) : filteredRegions.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12">
           <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-2">Nenhum item encontrado</p>
+          <p className="text-muted-foreground mb-2">Nenhuma região encontrada</p>
           <p className="text-sm text-muted-foreground">
-            {searchQuery ? "Tente buscar com outros termos" : "Erro ao carregar itens"}
-          </p>
-          <p className="text-xs text-muted-foreground mt-2">
-            Total de regiões: {regions.length} | Nível: {currentLevel} | Países: {countries.length} | Filtrados: {filteredItems.length}
+            Tente buscar com outros termos
           </p>
         </div>
-      ) : null}
+      ) : (
+        <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
+          {filteredRegions.map((region) => (
+            <div
+              key={region.id}
+              className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-all"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <div className="p-3 rounded-xl bg-primary/10 shrink-0">
+                    <MapPin className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-card-foreground truncate">{region.name}</h3>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${
+                          region.active
+                            ? "bg-green-100 text-green-700"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {region.active ? "Ativa" : "Inativa"}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {region.city && `${region.city}, `}
+                      {region.stateName || region.state}
+                      {region.country && ` - ${region.country}`}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between pt-4 border-t border-border">
+                <span className="text-sm text-muted-foreground">
+                  {region.storesCount} lojas
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleToggleActive(region.id)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      region.active
+                        ? "bg-green-100 text-green-700 hover:bg-green-200"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    }`}
+                    title={region.active ? "Desativar região" : "Ativar região"}
+                  >
+                    {region.active ? (
+                      <span className="flex items-center gap-1">
+                        <Check className="h-4 w-4" />
+                        Ativa
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1">
+                        <X className="h-4 w-4" />
+                        Inativa
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteClick(region)}
+                    disabled={deletingRegionId === region.id}
+                    className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Excluir região"
+                  >
+                    {deletingRegionId === region.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Modal Adicionar Região */}
       {showAddModal && (
