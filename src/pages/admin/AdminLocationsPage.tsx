@@ -292,12 +292,36 @@ const AdminLocationsPage = () => {
   }, [newRegion.stateCode]);
 
   // Filtrar regiões pela busca
-  const filteredRegions = regions.filter((region) =>
-    region.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    region.state.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    region.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    region.stateName?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredRegions = regions.filter((region) => {
+    const matches = 
+      region.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      region.state?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      region.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      region.stateName?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matches;
+  });
+
+  // Debug: log para verificar o estado
+  useEffect(() => {
+    console.log("🔍 [AdminLocationsPage] Estado atual:", {
+      loadingRegions,
+      regionsCount: regions.length,
+      filteredRegionsCount: filteredRegions.length,
+      searchQuery,
+      firestoreConfigured: !!firestore,
+    });
+    if (regions.length > 0) {
+      console.log("📋 [AdminLocationsPage] Primeiras 3 regiões:", regions.slice(0, 3).map(r => ({
+        id: r.id,
+        name: r.name,
+        city: r.city,
+        state: r.state,
+        stateName: r.stateName,
+        country: r.country,
+        active: r.active,
+      })));
+    }
+  }, [regions.length, filteredRegions.length, loadingRegions, searchQuery]);
 
   const handleToggleActive = async (id: string) => {
     const region = regions.find((r) => r.id === id);
@@ -450,15 +474,18 @@ const AdminLocationsPage = () => {
             </div>
           )}
         </div>
-      ) : filteredRegions.length === 0 ? (
+      ) : filteredRegions.length === 0 && searchQuery ? (
         <div className="flex flex-col items-center justify-center py-12">
           <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
           <p className="text-muted-foreground mb-2">Nenhuma região encontrada</p>
           <p className="text-sm text-muted-foreground">
             Tente buscar com outros termos
           </p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Total de regiões: {regions.length} | Busca: "{searchQuery}"
+          </p>
         </div>
-      ) : (
+      ) : filteredRegions.length > 0 ? (
         <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
           {filteredRegions.map((region) => (
             <div
