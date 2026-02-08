@@ -103,11 +103,15 @@ export default function LoginPage() {
     );
   }
 
-  /* Splash: tela cheia com gradiente + nome do app */
+  /* Splash: tela cheia com gradiente + logo do app */
   if (!splashDone) {
     return (
       <div className="min-h-screen gradient-hero flex flex-col items-center justify-center px-8 animate-fade-in">
-        <div className="w-20 h-20 rounded-2xl bg-white/20 mb-6 animate-scale-in" />
+        <img 
+          src="/logo-core-plus.png" 
+          alt="Core+" 
+          className="w-32 h-32 mb-6 animate-scale-in object-contain"
+        />
         <h1 className="text-3xl font-bold text-white tracking-tight text-center">
           Core+
         </h1>
