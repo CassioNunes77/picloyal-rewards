@@ -702,7 +702,14 @@ const AdminLocationsPage = () => {
       ) : (filteredItems.length > 0 || (regions.length > 0 && currentLevel === "country")) ? (
         <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
           {currentLevel === "country" &&
-            (filteredItems.length > 0 ? filteredItems : (regions.length > 0 ? ["Brasil"] : [])).map((country) => {
+            (() => {
+              // Garantir que sempre tenha algo para renderizar quando há regiões
+              const itemsToRender = filteredItems.length > 0 
+                ? filteredItems 
+                : (regions.length > 0 ? ["Brasil"] : []);
+              console.log("🎨 [AdminLocationsPage] Renderizando países:", itemsToRender, "| filteredItems:", filteredItems, "| regions:", regions.length);
+              return itemsToRender;
+            })().map((country) => {
               try {
                 const states = getStatesForCountry(country);
                 const totalCities = states.reduce((sum, state) => sum + state.cities.length, 0);
