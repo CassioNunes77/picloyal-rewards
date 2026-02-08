@@ -461,15 +461,31 @@ const AdminLocationsPage = () => {
           <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
           <span className="ml-3 text-muted-foreground">Carregando regiões...</span>
         </div>
-      ) : regions.length === 0 ? (
+      ) : filteredRegions.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12">
           <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-2">Nenhuma região cadastrada</p>
-          <p className="text-sm text-muted-foreground mb-4">
-            Adicione uma região para começar
+          <p className="text-muted-foreground mb-2">
+            {regions.length === 0 
+              ? "Nenhuma região cadastrada" 
+              : searchQuery 
+                ? "Nenhuma região encontrada" 
+                : "Nenhuma região para exibir"}
           </p>
+          <p className="text-sm text-muted-foreground mb-2">
+            {regions.length === 0 
+              ? "Adicione uma região para começar"
+              : searchQuery 
+                ? "Tente buscar com outros termos"
+                : "Verifique os logs do console para mais informações"}
+          </p>
+          {regions.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              Total de regiões carregadas: {regions.length} | Filtradas: {filteredRegions.length}
+              {searchQuery && ` | Busca: "${searchQuery}"`}
+            </p>
+          )}
           {!firestore && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md">
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mt-4">
               <p className="text-sm text-destructive font-medium mb-1">⚠️ Firebase não configurado</p>
               <p className="text-xs text-destructive/80">
                 Verifique as variáveis de ambiente do Firebase no arquivo .env
@@ -477,24 +493,11 @@ const AdminLocationsPage = () => {
             </div>
           )}
         </div>
-      ) : filteredRegions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-2">
-            {searchQuery ? "Nenhuma região encontrada" : "Nenhuma região cadastrada"}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            {searchQuery ? "Tente buscar com outros termos" : "Adicione uma região para começar"}
-          </p>
-          {searchQuery && (
-            <p className="text-xs text-muted-foreground mt-2">
-              Total de regiões: {regions.length} | Busca: "{searchQuery}"
-            </p>
-          )}
-        </div>
       ) : (
         <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
-          {filteredRegions.map((region) => (
+          {filteredRegions.map((region) => {
+            console.log("🎨 [AdminLocationsPage] Renderizando região:", region.id, region.name);
+            return (
             <div
               key={region.id}
               className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-all"
@@ -564,9 +567,10 @@ const AdminLocationsPage = () => {
                     )}
                   </button>
                 </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
