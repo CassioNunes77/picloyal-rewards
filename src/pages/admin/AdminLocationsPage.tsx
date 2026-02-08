@@ -3,6 +3,7 @@ import { MapPin, Plus, Search, Trash2, Check, X, Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   getAllRegions,
   addRegion,
@@ -165,6 +166,7 @@ function LocationAutocomplete({
 
 const AdminLocationsPage = () => {
   const isMobile = useIsMobile();
+  const { user: firebaseUser } = useAuth(); // Usar Firebase Auth para acessar Firestore
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [newRegion, setNewRegion] = useState({
@@ -217,6 +219,17 @@ const AdminLocationsPage = () => {
       return;
     }
 
+    // Verificar se há usuário autenticado no Firebase Auth
+    if (!firebaseUser) {
+      console.warn("⚠️ [AdminLocationsPage] Nenhum usuário autenticado no Firebase Auth. As regras do Firestore podem bloquear a leitura.");
+      console.warn("⚠️ [AdminLocationsPage] Para o painel admin funcionar, é necessário estar autenticado no Firebase Auth também.");
+      toast.warning("É necessário estar autenticado no Firebase para acessar as regiões.");
+      setLoadingRegions(false);
+      return;
+    }
+
+    console.log("🔐 [AdminLocationsPage] Usuário Firebase Auth:", firebaseUser?.uid || "Nenhum");
+
     setLoadingRegions(true);
     console.log("🔍 [AdminLocationsPage] Iniciando carregamento de regiões do Firebase...");
     console.log("📁 [AdminLocationsPage] Firestore configurado:", !!firestore);
@@ -258,7 +271,7 @@ const AdminLocationsPage = () => {
       clearTimeout(timeoutId);
       unsubscribe();
     };
-  }, []);
+  }, [firebaseUser]);
 
 
   // Carregar cidades quando um estado é selecionado
