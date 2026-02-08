@@ -318,6 +318,7 @@ const AdminLocationsPage = () => {
   // Agrupar regiões por país e estado
   const groupedByCountry = regions.reduce((acc, region) => {
     try {
+      // Sempre usar "Brasil" como país padrão
       const country = region.country || "Brasil";
       if (!acc[country]) {
         acc[country] = {};
@@ -340,17 +341,17 @@ const AdminLocationsPage = () => {
   }, {} as Record<string, Record<string, { stateCode: string; stateName: string; cities: Region[] }>>);
 
   // Obter países únicos - sempre incluir "Brasil" se houver regiões
-  const countries = regions.length > 0 
-    ? (() => {
-        const countryKeys = Object.keys(groupedByCountry);
-        if (countryKeys.length > 0) {
-          return countryKeys;
-        }
-        // Se não há países no agrupamento mas há regiões, criar entrada "Brasil" vazia
-        // Isso garante que sempre mostre algo quando há regiões
-        return ["Brasil"];
-      })()
-    : [];
+  const countries = (() => {
+    if (regions.length === 0) {
+      return [];
+    }
+    const countryKeys = Object.keys(groupedByCountry);
+    // Se há regiões mas nenhum país no agrupamento, adicionar "Brasil"
+    if (countryKeys.length === 0) {
+      return ["Brasil"];
+    }
+    return countryKeys;
+  })();
 
   // Obter estados de um país
   const getStatesForCountry = (country: string) => {
@@ -366,12 +367,16 @@ const AdminLocationsPage = () => {
   const getFilteredItems = (): any[] => {
     try {
       if (currentLevel === "country") {
+        // Se não há países mas há regiões, retornar "Brasil"
+        if (countries.length === 0 && regions.length > 0) {
+          return ["Brasil"];
+        }
         const filtered = countries.filter((country) =>
           country.toLowerCase().includes(searchQuery.toLowerCase())
         );
-        // Se não há países mas há regiões, mostrar "Brasil" como padrão
-        if (filtered.length === 0 && regions.length > 0 && countries.length === 0) {
-          return ["Brasil"];
+        // Se o filtro não encontrou nada mas há regiões e não há busca, mostrar todos os países
+        if (filtered.length === 0 && regions.length > 0 && !searchQuery) {
+          return countries.length > 0 ? countries : ["Brasil"];
         }
         return filtered;
       } else if (currentLevel === "state" && selectedCountry) {
@@ -390,11 +395,30 @@ const AdminLocationsPage = () => {
       return [];
     } catch (error) {
       console.error("Erro ao filtrar itens:", error);
+      // Em caso de erro, se há regiões e estamos no nível de países, retornar "Brasil"
+      if (currentLevel === "country" && regions.length > 0) {
+        return ["Brasil"];
+      }
       return [];
     }
   };
 
   const filteredItems = getFilteredItems();
+  
+  // Debug: log para verificar o estado
+  useEffect(() => {
+    if (regions.length > 0) {
+      console.log("🔍 [AdminLocationsPage] Debug:", {
+        regionsCount: regions.length,
+        currentLevel,
+        selectedCountry,
+        selectedState,
+        countries,
+        filteredItems: filteredItems.length,
+        groupedByCountry: Object.keys(groupedByCountry),
+      });
+    }
+  }, [regions.length, currentLevel, selectedCountry, selectedState, countries.length, filteredItems.length]);
 
   // Handlers de navegação
   const handleCountryClick = (country: string) => {
@@ -638,17 +662,6 @@ const AdminLocationsPage = () => {
             </div>
           )}
         </div>
-      ) : filteredItems.length === 0 && regions.length > 0 ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-2">Nenhum item encontrado</p>
-          <p className="text-sm text-muted-foreground">
-            Tente buscar com outros termos
-          </p>
-          <p className="text-xs text-muted-foreground mt-2">
-            Total de regiões: {regions.length} | Nível: {currentLevel}
-          </p>
-        </div>
       ) : filteredItems.length > 0 ? (
         <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
           {currentLevel === "country" &&
@@ -788,6 +801,17 @@ const AdminLocationsPage = () => {
                 </div>
               </div>
             ))}
+        </div>
+      ) : regions.length > 0 ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
+          <p className="text-muted-foreground mb-2">Nenhum item encontrado</p>
+          <p className="text-sm text-muted-foreground">
+            {searchQuery ? "Tente buscar com outros termos" : "Erro ao carregar itens"}
+          </p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Total de regiões: {regions.length} | Nível: {currentLevel} | Países: {countries.length} | Filtrados: {filteredItems.length}
+          </p>
         </div>
       ) : null}
 
