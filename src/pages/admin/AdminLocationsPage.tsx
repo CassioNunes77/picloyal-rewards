@@ -12,6 +12,7 @@ import {
   subscribeToRegions,
   type Region,
 } from "@/services/regionsService";
+import { firestore } from "@/lib/firebase";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -208,8 +209,17 @@ const AdminLocationsPage = () => {
 
   // Carregar regiões do Firestore e escutar mudanças em tempo real
   useEffect(() => {
+    // Verificar se Firestore está configurado
+    if (!firestore) {
+      console.error("❌ [AdminLocationsPage] Firestore não está configurado!");
+      toast.error("Firebase não está configurado. Verifique as variáveis de ambiente.");
+      setLoadingRegions(false);
+      return;
+    }
+
     setLoadingRegions(true);
     console.log("🔍 [AdminLocationsPage] Iniciando carregamento de regiões do Firebase...");
+    console.log("📁 [AdminLocationsPage] Firestore configurado:", !!firestore);
     
     let hasReceivedData = false;
     
@@ -331,8 +341,12 @@ const AdminLocationsPage = () => {
 
     // Adicionar região no Firebase ANTES de fechar o modal
     try {
+      console.log("🚀 [AdminLocationsPage] Tentando salvar região:", regionData);
       const regionId = await addRegion(regionData);
-      console.log("Região salva no Firebase com ID:", regionId);
+      console.log("✅ [AdminLocationsPage] Região salva no Firebase com ID:", regionId);
+      
+      // Aguardar um pouco para garantir que o Firestore processou
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Fechar modal e limpar campos apenas após sucesso
       setShowAddModal(false);
@@ -341,9 +355,12 @@ const AdminLocationsPage = () => {
       
       // Toast de sucesso
       toast.success("Região adicionada e salva com sucesso");
-    } catch (error) {
-      console.error("Erro ao adicionar região no Firebase:", error);
-      toast.error("Erro ao salvar região no Firebase. Tente novamente.");
+      
+      // A lista será atualizada automaticamente pelo subscribeToRegions
+    } catch (error: any) {
+      console.error("❌ [AdminLocationsPage] Erro ao adicionar região no Firebase:", error);
+      const errorMessage = error?.message || "Erro desconhecido ao salvar região";
+      toast.error(`Erro ao salvar região: ${errorMessage}`);
       // NÃO fecha o modal em caso de erro para o usuário poder tentar novamente
     }
   };
@@ -379,6 +396,11 @@ const AdminLocationsPage = () => {
               <span className="ml-2 text-xs">({regions.length} região{regions.length !== 1 ? "ões" : ""} cadastrada{regions.length !== 1 ? "s" : ""})</span>
             )}
           </p>
+          {!firestore && (
+            <p className="text-xs text-destructive mt-1">
+              ⚠️ Firebase não está configurado. As regiões não serão salvas.
+            </p>
+          )}
         </div>
         <button
           onClick={() => setShowAddModal(true)}
@@ -413,11 +435,19 @@ const AdminLocationsPage = () => {
         <div className="flex flex-col items-center justify-center py-12">
           <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
           <p className="text-muted-foreground mb-2">Nenhuma região cadastrada</p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground mb-4">
             Adicione uma região para começar
           </p>
-          <p className="text-xs text-muted-foreground mt-2">
-            Verifique o console do navegador (F12) para logs de debug
+          {!firestore && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md">
+              <p className="text-sm text-destructive font-medium mb-1">⚠️ Firebase não configurado</p>
+              <p className="text-xs text-destructive/80">
+                Verifique as variáveis de ambiente do Firebase no arquivo .env
+              </p>
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground mt-4">
+            💡 Dica: Abra o console do navegador (F12) para ver logs de debug
           </p>
         </div>
       ) : filteredRegions.length === 0 ? (

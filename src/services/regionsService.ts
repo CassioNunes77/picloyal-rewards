@@ -46,20 +46,51 @@ const COLLECTION_NAME = "regions";
 /**
  * Converte um documento do Firestore para o tipo Region
  */
-function firestoreToRegion(docId: string, data: RegionData): Region {
-  return {
-    id: docId,
-    name: data.name,
-    state: data.state,
-    stateName: data.stateName,
-    city: data.city,
-    cityId: data.cityId,
-    country: data.country,
-    active: data.active,
-    storesCount: data.storesCount,
-    createdAt: data.createdAt.toDate(),
-    updatedAt: data.updatedAt.toDate(),
-  };
+function firestoreToRegion(docId: string, data: any): Region {
+  try {
+    // Validar e converter timestamps
+    let createdAt: Date;
+    let updatedAt: Date;
+
+    if (data.createdAt && data.createdAt.toDate) {
+      createdAt = data.createdAt.toDate();
+    } else if (data.createdAt && data.createdAt instanceof Date) {
+      createdAt = data.createdAt;
+    } else if (data.createdAt && typeof data.createdAt === 'number') {
+      createdAt = new Date(data.createdAt);
+    } else {
+      console.warn("⚠️ [regionsService] createdAt inválido, usando data atual:", data.createdAt);
+      createdAt = new Date();
+    }
+
+    if (data.updatedAt && data.updatedAt.toDate) {
+      updatedAt = data.updatedAt.toDate();
+    } else if (data.updatedAt && data.updatedAt instanceof Date) {
+      updatedAt = data.updatedAt;
+    } else if (data.updatedAt && typeof data.updatedAt === 'number') {
+      updatedAt = new Date(data.updatedAt);
+    } else {
+      console.warn("⚠️ [regionsService] updatedAt inválido, usando data atual:", data.updatedAt);
+      updatedAt = new Date();
+    }
+
+    return {
+      id: docId,
+      name: data.name || "",
+      state: data.state || "",
+      stateName: data.stateName || "",
+      city: data.city || "",
+      cityId: data.cityId || "",
+      country: data.country || "Brasil",
+      active: data.active !== undefined ? data.active : true,
+      storesCount: data.storesCount || 0,
+      createdAt,
+      updatedAt,
+    };
+  } catch (error) {
+    console.error("❌ [regionsService] Erro ao converter documento:", error, "Data:", data);
+    throw error;
+  }
 }
 
 /**
@@ -161,28 +192,62 @@ export async function getActiveRegions(): Promise<Region[]> {
 export async function addRegion(
   region: Omit<Region, "id" | "createdAt" | "updatedAt" | "storesCount">
 ): Promise<string> {
+  console.log("🔍 [regionsService] addRegion chamado com:", region);
+  
   if (!firestore) {
-    throw new Error("Firestore não está configurado");
+    console.error("❌ [regionsService] Firestore não está configurado!");
+    throw new Error("Firestore não está configurado. Verifique as variáveis de ambiente do Firebase.");
+  }
+
+  // Validar dados obrigatórios
+  if (!region.name || !region.state || !region.city) {
+    const missing = [];
+    if (!region.name) missing.push("name");
+    if (!region.state) missing.push("state");
+    if (!region.city) missing.push("city");
+    console.error("❌ [regionsService] Dados obrigatórios faltando:", missing);
+    throw new Error(`Campos obrigatórios faltando: ${missing.join(", ")}`);
   }
 
   try {
     const now = Timestamp.now();
     const regionData: RegionData = {
-      ...regionToFirestore({
-        ...region,
-        storesCount: 0,
-      }),
+      name: region.name.trim(),
+      state: region.state.trim(),
+      stateName: region.stateName?.trim() || region.state.trim(),
+      city: region.city.trim(),
+      cityId: region.cityId || "",
+      country: region.country || "Brasil",
+      active: region.active !== undefined ? region.active : true,
+      storesCount: 0,
       createdAt: now,
       updatedAt: now,
     };
 
+    console.log("💾 [regionsService] Salvando no Firestore:", regionData);
+    console.log("📁 [regionsService] Coleção:", COLLECTION_NAME);
+
     const regionsRef = collection(firestore, COLLECTION_NAME);
     const docRef = await addDoc(regionsRef, regionData);
 
+    console.log("✅ [regionsService] Região salva com sucesso! ID:", docRef.id);
     return docRef.id;
-  } catch (error) {
-    console.error("Erro ao adicionar região:", error);
-    throw error;
+  } catch (error: any) {
+    console.error("❌ [regionsService] Erro ao adicionar região:", error);
+    console.error("Detalhes do erro:", {
+      code: error?.code,
+      message: error?.message,
+      stack: error?.stack,
+    });
+    
+    // Mensagem de erro mais amigável
+    if (error?.code === "permission-denied") {
+      throw new Error("Permissão negada. Verifique as regras de segurança do Firestore.");
+    } else if (error?.code === "unavailable") {
+      throw new Error("Firestore indisponível. Verifique sua conexão com a internet.");
+    } else {
+      throw new Error(`Erro ao salvar região: ${error?.message || "Erro desconhecido"}`);
+    }
   }
 }
 
@@ -243,12 +308,17 @@ export function subscribeToRegions(
   activeOnly: boolean = false
 ): () => void {
   if (!firestore) {
-    console.error("❌ Firestore não está configurado");
+    console.error("❌ [regionsService] Firestore não está configurado!");
+    console.error("Verifique se as variáveis de ambiente do Firebase estão configuradas:");
+    console.error("- VITE_FIREBASE_API_KEY");
+    console.error("- VITE_FIREBASE_AUTH_DOMAIN");
+    console.error("- VITE_FIREBASE_PROJECT_ID");
+    callback([]);
     return () => {};
   }
 
   try {
-    console.log("🔍 Configurando listener do Firestore para coleção:", COLLECTION_NAME);
+    console.log("🔍 [regionsService] Configurando listener do Firestore para coleção:", COLLECTION_NAME);
     const regionsRef = collection(firestore, COLLECTION_NAME);
     
     // Tentar query com orderBy primeiro
@@ -257,42 +327,79 @@ export function subscribeToRegions(
       q = activeOnly
         ? query(regionsRef, where("active", "==", true), orderBy("createdAt", "desc"))
         : query(regionsRef, orderBy("createdAt", "desc"));
-    } catch (orderByError) {
+      console.log("✅ [regionsService] Query com orderBy criada com sucesso");
+    } catch (orderByError: any) {
       // Se orderBy falhar (pode precisar de índice), tenta sem orderBy
-      console.warn("⚠️ Erro com orderBy, tentando sem ordenação:", orderByError);
+      console.warn("⚠️ [regionsService] Erro com orderBy, tentando sem ordenação:", orderByError.message);
+      if (orderByError.code === "failed-precondition") {
+        console.warn("⚠️ [regionsService] Índice necessário no Firestore. Usando query sem orderBy...");
+        console.warn("💡 Para criar o índice, vá no Firebase Console > Firestore > Indexes");
+      }
       q = activeOnly
         ? query(regionsRef, where("active", "==", true))
         : query(regionsRef);
     }
 
+    console.log("👂 [regionsService] Configurando onSnapshot...");
     const unsubscribe = onSnapshot(
       q,
       (querySnapshot) => {
-        console.log("📥 Snapshot recebido:", querySnapshot.docs.length, "documentos");
-        const regions = querySnapshot.docs.map((doc) => {
-          const data = doc.data() as RegionData;
-          console.log("📄 Documento:", doc.id, data);
-          return firestoreToRegion(doc.id, data);
+        console.log("📥 [regionsService] Snapshot recebido:", querySnapshot.docs.length, "documentos");
+        
+        if (querySnapshot.docs.length === 0) {
+          console.log("ℹ️ [regionsService] Nenhum documento encontrado na coleção", COLLECTION_NAME);
+          callback([]);
+          return;
+        }
+
+        const regions: Region[] = [];
+        querySnapshot.docs.forEach((doc) => {
+          try {
+            const data = doc.data();
+            console.log("📄 [regionsService] Processando documento:", doc.id, "- Nome:", data.name);
+            const region = firestoreToRegion(doc.id, data);
+            regions.push(region);
+          } catch (error) {
+            console.error("❌ [regionsService] Erro ao processar documento", doc.id, ":", error);
+          }
         });
-        console.log("✅ Regiões processadas:", regions.length);
+
+        // Ordenar manualmente se não usou orderBy
+        if (regions.length > 0 && regions[0].createdAt) {
+          regions.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+        }
+
+        console.log("✅ [regionsService] Regiões processadas e ordenadas:", regions.length);
         callback(regions);
       },
-      (error) => {
-        console.error("❌ Erro ao escutar mudanças nas regiões:", error);
+      (error: any) => {
+        console.error("❌ [regionsService] Erro ao escutar mudanças nas regiões:", error);
         console.error("Detalhes do erro:", {
-          code: (error as any)?.code,
-          message: (error as any)?.message,
-          stack: (error as any)?.stack,
+          code: error?.code,
+          message: error?.message,
+          stack: error?.stack,
         });
+        
+        // Mensagens de erro mais específicas
+        if (error?.code === "permission-denied") {
+          console.error("❌ [regionsService] Permissão negada. Verifique as regras de segurança do Firestore.");
+        } else if (error?.code === "unavailable") {
+          console.error("❌ [regionsService] Firestore indisponível. Verifique sua conexão.");
+        }
+        
         // Tenta callback com array vazio para não travar a UI
         callback([]);
       }
     );
 
-    console.log("✅ Listener configurado com sucesso");
+    console.log("✅ [regionsService] Listener configurado com sucesso");
     return unsubscribe;
-  } catch (error) {
-    console.error("❌ Erro ao configurar listener de regiões:", error);
+  } catch (error: any) {
+    console.error("❌ [regionsService] Erro ao configurar listener de regiões:", error);
+    console.error("Detalhes:", {
+      code: error?.code,
+      message: error?.message,
+    });
     callback([]); // Retorna array vazio em caso de erro
     return () => {};
   }
