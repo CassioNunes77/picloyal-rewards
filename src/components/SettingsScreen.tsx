@@ -344,61 +344,229 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
 
   if (!isMobile) {
     return (
-      <div className="min-h-full bg-background">
-        <div className="pb-4">
-          <h1 className="text-xl font-bold text-card-foreground">Configurações</h1>
-        </div>
-        <div className="pt-2">{content}</div>
-        <Dialog open={showReauthDialog} onOpenChange={setShowReauthDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Confirmar identidade</DialogTitle>
-            <DialogDescription>
-              Por segurança, confirme sua identidade para excluir a conta.
-              {isGoogleUser
-                ? " Clique no botão abaixo para entrar novamente com Google."
-                : " Digite sua senha abaixo."}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-4 py-2">
-            {!isGoogleUser && (
-              <Input
-                type="password"
-                placeholder="Sua senha"
-                value={reauthPassword}
-                onChange={(e) => setReauthPassword(e.target.value)}
-                disabled={reauthLoading}
-                onKeyDown={(e) => e.key === "Enter" && void handleReauthAndDelete()}
-              />
-            )}
+      <div className="min-h-full bg-background w-full">
+        <div className="pb-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-card-foreground">Configurações</h1>
           </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowReauthDialog(false)}
-              disabled={reauthLoading}
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => void handleReauthAndDelete()}
-              disabled={reauthLoading || (!isGoogleUser && !reauthPassword.trim())}
-            >
-              {reauthLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Aguarde...
-                </>
-              ) : isGoogleUser ? (
-                "Confirmar com Google"
-              ) : (
-                "Confirmar e excluir"
+        </div>
+        
+        <div className="grid grid-cols-2 gap-6">
+          {/* Coluna Esquerda: Perfil, Preferências e Conta */}
+          <div className="space-y-6">
+            {/* Profile Section */}
+            <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
+              <button 
+                onClick={() => handleAction("Perfil")}
+                className="w-full flex items-center gap-4 transition-all duration-200 active:scale-[0.98]"
+              >
+                <div className="h-16 w-16 rounded-full overflow-hidden bg-primary flex items-center justify-center ring-2 ring-primary/20 shrink-0">
+                  {user?.photoURL ? (
+                    <img
+                      src={user.photoURL}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <User className="h-8 w-8 text-primary-foreground" />
+                  )}
+                </div>
+                <div className="flex-1 text-left">
+                  <h2 className="text-lg font-semibold text-card-foreground">{displayName}</h2>
+                  <p className="text-sm text-muted-foreground">{userEmail || "—"}</p>
+                  <p className="text-xs text-primary font-medium mt-1">Membro VIP ⭐</p>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </button>
+            </div>
+
+            {/* Preferences Section */}
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
+                Preferências
+              </h3>
+              <div className="space-y-2">
+                <SettingsItem
+                  icon={Bell}
+                  label="Notificações"
+                  description="Receber alertas de ofertas e pontos"
+                  delay={50}
+                  rightElement={
+                    <Switch 
+                      checked={notifications} 
+                      onCheckedChange={handleToggleNotifications}
+                      className="data-[state=checked]:bg-primary"
+                    />
+                  }
+                />
+                <SettingsItem
+                  icon={Moon}
+                  label="Modo Escuro"
+                  description="Alterar aparência do app"
+                  delay={100}
+                  rightElement={
+                    <Switch 
+                      checked={darkMode} 
+                      onCheckedChange={handleToggleDarkMode}
+                      className="data-[state=checked]:bg-primary"
+                    />
+                  }
+                />
+                <SettingsItem
+                  icon={Smartphone}
+                  label="Instalar App"
+                  description="Adicionar à tela inicial"
+                  delay={150}
+                  onClick={() => handleAction("Instalação")}
+                />
+              </div>
+            </div>
+
+            {/* Account Section */}
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
+                Conta
+              </h3>
+              <div className="space-y-2">
+                <SettingsItem
+                  icon={CreditCard}
+                  label="Formas de Pagamento"
+                  description="Gerenciar cartões salvos"
+                  delay={250}
+                  onClick={() => handleAction("Pagamentos")}
+                />
+                <SettingsItem
+                  icon={Shield}
+                  label="Segurança"
+                  description="Senha e autenticação"
+                  delay={300}
+                  onClick={() => handleAction("Segurança")}
+                />
+                <SettingsItem
+                  icon={Share2}
+                  label="Indicar Amigos"
+                  description="Ganhe 50 pontos por indicação"
+                  delay={350}
+                  onClick={() => handleAction("Indicações")}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Coluna Direita: Suporte e Ações da Conta */}
+          <div className="space-y-6">
+            {/* Support Section */}
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
+                Suporte
+              </h3>
+              <div className="space-y-2">
+                <SettingsItem
+                  icon={HelpCircle}
+                  label="Central de Ajuda"
+                  description="Perguntas frequentes"
+                  delay={450}
+                  onClick={() => handleAction("Ajuda")}
+                />
+                <SettingsItem
+                  icon={MessageCircle}
+                  label="Fale Conosco"
+                  description="Chat ou e-mail"
+                  delay={500}
+                  onClick={() => handleAction("Contato")}
+                />
+                <SettingsItem
+                  icon={Star}
+                  label="Avalie o App"
+                  description="Sua opinião é importante"
+                  delay={550}
+                  onClick={() => handleAction("Avaliação")}
+                />
+              </div>
+            </div>
+
+            {/* Account Actions */}
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
+                Ações da Conta
+              </h3>
+              <div className="space-y-2">
+                <SettingsItem
+                  icon={Trash2}
+                  label="Excluir Conta"
+                  description="Excluir permanentemente sua conta e todos os dados"
+                  delay={600}
+                  danger
+                  onClick={() => void handleDeleteAccount()}
+                />
+                <SettingsItem
+                  icon={LogOut}
+                  label="Sair da Conta"
+                  delay={650}
+                  danger
+                  onClick={() => void handleLogout()}
+                />
+              </div>
+            </div>
+
+            {/* Version */}
+            <p className="text-xs text-muted-foreground pt-4">
+              Versão 1.0.0 • Core+
+            </p>
+          </div>
+        </div>
+
+        <Dialog open={showReauthDialog} onOpenChange={setShowReauthDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Confirmar identidade</DialogTitle>
+              <DialogDescription>
+                Por segurança, confirme sua identidade para excluir a conta.
+                {isGoogleUser
+                  ? " Clique no botão abaixo para entrar novamente com Google."
+                  : " Digite sua senha abaixo."}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-4 py-2">
+              {!isGoogleUser && (
+                <Input
+                  type="password"
+                  placeholder="Sua senha"
+                  value={reauthPassword}
+                  onChange={(e) => setReauthPassword(e.target.value)}
+                  disabled={reauthLoading}
+                  onKeyDown={(e) => e.key === "Enter" && void handleReauthAndDelete()}
+                />
               )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowReauthDialog(false)}
+                disabled={reauthLoading}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => void handleReauthAndDelete()}
+                disabled={reauthLoading || (!isGoogleUser && !reauthPassword.trim())}
+              >
+                {reauthLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Aguarde...
+                  </>
+                ) : isGoogleUser ? (
+                  "Confirmar com Google"
+                ) : (
+                  "Confirmar e excluir"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
