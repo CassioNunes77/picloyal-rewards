@@ -209,31 +209,43 @@ const AdminLocationsPage = () => {
   // Carregar regiões do Firestore e escutar mudanças em tempo real
   useEffect(() => {
     setLoadingRegions(true);
+    console.log("🔍 [AdminLocationsPage] Iniciando carregamento de regiões do Firebase...");
     
-    // Primeiro, carrega as regiões existentes
-    const loadInitialRegions = async () => {
-      try {
-        const initialRegions = await getAllRegions();
-        setRegions(initialRegions);
+    let hasReceivedData = false;
+    
+    // Escuta mudanças em tempo real (isso carrega e atualiza automaticamente)
+    const unsubscribe = subscribeToRegions(
+      (updatedRegions) => {
+        hasReceivedData = true;
+        console.log("✅ [AdminLocationsPage] Regiões recebidas do Firebase:", updatedRegions.length);
+        if (updatedRegions.length > 0) {
+          console.log("📋 [AdminLocationsPage] Primeira região:", updatedRegions[0]);
+        }
+        setRegions(updatedRegions);
         setLoadingRegions(false);
-        console.log("Regiões carregadas do Firebase:", initialRegions.length);
-      } catch (error) {
-        console.error("Erro ao carregar regiões iniciais:", error);
-        toast.error("Erro ao carregar regiões. Verifique sua conexão.");
-        setLoadingRegions(false);
-      }
-    };
+      },
+      false // false = carregar todas as regiões, não apenas ativas
+    );
 
-    loadInitialRegions();
-    
-    // Depois, escuta mudanças em tempo real (isso vai atualizar automaticamente quando houver mudanças)
-    const unsubscribe = subscribeToRegions((updatedRegions) => {
-      console.log("Regiões atualizadas em tempo real:", updatedRegions.length);
-      setRegions(updatedRegions);
-      setLoadingRegions(false);
-    }, false); // false = carregar todas as regiões, não apenas ativas
+    // Fallback: se o subscribe não funcionar, tenta carregar manualmente após 3 segundos
+    const timeoutId = setTimeout(async () => {
+      if (!hasReceivedData) {
+        console.warn("⚠️ [AdminLocationsPage] Timeout: Tentando carregar regiões manualmente...");
+        try {
+          const initialRegions = await getAllRegions();
+          console.log("🔄 [AdminLocationsPage] Fallback: Regiões carregadas manualmente:", initialRegions.length);
+          setRegions(initialRegions);
+          setLoadingRegions(false);
+        } catch (error) {
+          console.error("❌ [AdminLocationsPage] Erro ao carregar regiões:", error);
+          toast.error("Erro ao carregar regiões. Verifique sua conexão com o Firebase.");
+          setLoadingRegions(false);
+        }
+      }
+    }, 3000);
 
     return () => {
+      clearTimeout(timeoutId);
       unsubscribe();
     };
   }, []);
@@ -361,7 +373,12 @@ const AdminLocationsPage = () => {
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-card-foreground mb-2">Localização</h1>
-          <p className="text-sm text-muted-foreground">Gerenciar regiões e localizações</p>
+          <p className="text-sm text-muted-foreground">
+            Gerenciar regiões e localizações
+            {regions.length > 0 && (
+              <span className="ml-2 text-xs">({regions.length} região{regions.length !== 1 ? "ões" : ""} cadastrada{regions.length !== 1 ? "s" : ""})</span>
+            )}
+          </p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
@@ -392,12 +409,26 @@ const AdminLocationsPage = () => {
           <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
           <span className="ml-3 text-muted-foreground">Carregando regiões...</span>
         </div>
+      ) : regions.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
+          <p className="text-muted-foreground mb-2">Nenhuma região cadastrada</p>
+          <p className="text-sm text-muted-foreground">
+            Adicione uma região para começar
+          </p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Verifique o console do navegador (F12) para logs de debug
+          </p>
+        </div>
       ) : filteredRegions.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12">
           <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
           <p className="text-muted-foreground mb-2">Nenhuma região encontrada</p>
           <p className="text-sm text-muted-foreground">
-            {searchQuery ? "Tente buscar com outros termos" : "Adicione uma região para começar"}
+            Tente buscar com outros termos
+          </p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Total de regiões: {regions.length} | Filtradas: {filteredRegions.length}
           </p>
         </div>
       ) : (

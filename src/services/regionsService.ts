@@ -83,19 +83,48 @@ function regionToFirestore(region: Omit<Region, "id" | "createdAt" | "updatedAt"
  */
 export async function getAllRegions(): Promise<Region[]> {
   if (!firestore) {
+    console.error("❌ [regionsService] Firestore não está configurado");
     throw new Error("Firestore não está configurado");
   }
 
   try {
+    console.log("🔍 [regionsService] Buscando todas as regiões...");
     const regionsRef = collection(firestore, COLLECTION_NAME);
-    const q = query(regionsRef, orderBy("createdAt", "desc"));
-    const querySnapshot = await getDocs(q);
+    
+    // Tentar com orderBy primeiro
+    let querySnapshot;
+    try {
+      const q = query(regionsRef, orderBy("createdAt", "desc"));
+      querySnapshot = await getDocs(q);
+      console.log("✅ [regionsService] Query com orderBy funcionou:", querySnapshot.docs.length, "documentos");
+    } catch (orderByError: any) {
+      // Se orderBy falhar (pode precisar de índice), tenta sem orderBy
+      console.warn("⚠️ [regionsService] Erro com orderBy, tentando sem ordenação:", orderByError.message);
+      if (orderByError.code === "failed-precondition") {
+        console.warn("⚠️ [regionsService] Índice necessário no Firestore. Criando query sem orderBy...");
+      }
+      querySnapshot = await getDocs(regionsRef);
+      console.log("✅ [regionsService] Query sem orderBy funcionou:", querySnapshot.docs.length, "documentos");
+    }
 
-    return querySnapshot.docs.map((doc) =>
-      firestoreToRegion(doc.id, doc.data() as RegionData)
-    );
+    const regions = querySnapshot.docs.map((doc) => {
+      const data = doc.data() as RegionData;
+      console.log("📄 [regionsService] Processando documento:", doc.id, "- Nome:", data.name);
+      return firestoreToRegion(doc.id, data);
+    });
+
+    // Ordenar manualmente se não usou orderBy
+    if (regions.length > 0 && !regions[0].createdAt) {
+      console.warn("⚠️ [regionsService] Regiões sem createdAt, ordenando por nome");
+      regions.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (regions.length > 0) {
+      regions.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    }
+
+    console.log("✅ [regionsService] Total de regiões retornadas:", regions.length);
+    return regions;
   } catch (error) {
-    console.error("Erro ao buscar regiões:", error);
+    console.error("❌ [regionsService] Erro ao buscar regiões:", error);
     throw error;
   }
 }
@@ -214,32 +243,57 @@ export function subscribeToRegions(
   activeOnly: boolean = false
 ): () => void {
   if (!firestore) {
-    console.error("Firestore não está configurado");
+    console.error("❌ Firestore não está configurado");
     return () => {};
   }
 
   try {
+    console.log("🔍 Configurando listener do Firestore para coleção:", COLLECTION_NAME);
     const regionsRef = collection(firestore, COLLECTION_NAME);
-    const q = activeOnly
-      ? query(regionsRef, where("active", "==", true), orderBy("createdAt", "desc"))
-      : query(regionsRef, orderBy("createdAt", "desc"));
+    
+    // Tentar query com orderBy primeiro
+    let q;
+    try {
+      q = activeOnly
+        ? query(regionsRef, where("active", "==", true), orderBy("createdAt", "desc"))
+        : query(regionsRef, orderBy("createdAt", "desc"));
+    } catch (orderByError) {
+      // Se orderBy falhar (pode precisar de índice), tenta sem orderBy
+      console.warn("⚠️ Erro com orderBy, tentando sem ordenação:", orderByError);
+      q = activeOnly
+        ? query(regionsRef, where("active", "==", true))
+        : query(regionsRef);
+    }
 
     const unsubscribe = onSnapshot(
       q,
       (querySnapshot) => {
-        const regions = querySnapshot.docs.map((doc) =>
-          firestoreToRegion(doc.id, doc.data() as RegionData)
-        );
+        console.log("📥 Snapshot recebido:", querySnapshot.docs.length, "documentos");
+        const regions = querySnapshot.docs.map((doc) => {
+          const data = doc.data() as RegionData;
+          console.log("📄 Documento:", doc.id, data);
+          return firestoreToRegion(doc.id, data);
+        });
+        console.log("✅ Regiões processadas:", regions.length);
         callback(regions);
       },
       (error) => {
-        console.error("Erro ao escutar mudanças nas regiões:", error);
+        console.error("❌ Erro ao escutar mudanças nas regiões:", error);
+        console.error("Detalhes do erro:", {
+          code: (error as any)?.code,
+          message: (error as any)?.message,
+          stack: (error as any)?.stack,
+        });
+        // Tenta callback com array vazio para não travar a UI
+        callback([]);
       }
     );
 
+    console.log("✅ Listener configurado com sucesso");
     return unsubscribe;
   } catch (error) {
-    console.error("Erro ao configurar listener de regiões:", error);
+    console.error("❌ Erro ao configurar listener de regiões:", error);
+    callback([]); // Retorna array vazio em caso de erro
     return () => {};
   }
 }
