@@ -268,7 +268,7 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
 
         {/* Version */}
         <p className="text-center text-xs text-muted-foreground pb-4 animate-fade-in" style={{ animationDelay: '650ms' }}>
-          Versão 1.0.0 • Cartão Fidelidade
+          Versão 1.0.0 • Core+
         </p>
       </div>
     </div>

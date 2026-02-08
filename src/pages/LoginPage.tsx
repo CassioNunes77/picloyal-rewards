@@ -109,7 +109,7 @@ export default function LoginPage() {
       <div className="min-h-screen gradient-hero flex flex-col items-center justify-center px-8 animate-fade-in">
         <div className="w-20 h-20 rounded-2xl bg-white/20 mb-6 animate-scale-in" />
         <h1 className="text-3xl font-bold text-white tracking-tight text-center">
-          Cartão Fidelidade
+          Core+
         </h1>
         <p className="text-white/90 text-base mt-3 text-center">
           Seu cartão de benefícios e descontos
@@ -127,7 +127,7 @@ export default function LoginPage() {
           {/* Topo: gradiente + nome do app */}
           <div className="gradient-hero pb-8 pt-10 px-6">
             <h1 className="text-2xl font-bold text-white tracking-tight text-center">
-              Cartão Fidelidade
+              Core+
             </h1>
             <p className="text-white/90 text-sm mt-2 text-center">
               Seu cartão de benefícios e descontos

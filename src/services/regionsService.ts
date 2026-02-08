@@ -2,6 +2,7 @@ import {
   collection,
   doc,
   getDocs,
+  getDoc,
   addDoc,
   updateDoc,
   deleteDoc,
@@ -224,14 +225,39 @@ export async function addRegion(
       updatedAt: now,
     };
 
-    console.log("💾 [regionsService] Salvando no Firestore:", regionData);
+    console.log("💾 [regionsService] Salvando no Firestore:", JSON.stringify(regionData, null, 2));
     console.log("📁 [regionsService] Coleção:", COLLECTION_NAME);
+    console.log("🔐 [regionsService] Firestore instance:", !!firestore);
+    console.log("🔐 [regionsService] Firestore app:", firestore?.app?.name);
 
-    const regionsRef = collection(firestore, COLLECTION_NAME);
-    const docRef = await addDoc(regionsRef, regionData);
+    try {
+      const regionsRef = collection(firestore, COLLECTION_NAME);
+      console.log("📝 [regionsService] Collection reference criada:", !!regionsRef);
+      
+      console.log("⏳ [regionsService] Chamando addDoc...");
+      const docRef = await addDoc(regionsRef, regionData);
+      console.log("✅ [regionsService] addDoc retornou com ID:", docRef.id);
+      console.log("✅ [regionsService] Document path:", docRef.path);
 
-    console.log("✅ [regionsService] Região salva com sucesso! ID:", docRef.id);
-    return docRef.id;
+      // Verificar se o documento foi realmente salvo
+      console.log("🔍 [regionsService] Verificando se documento foi salvo...");
+      const verifyRef = doc(firestore, COLLECTION_NAME, docRef.id);
+      const verifyDoc = await getDoc(verifyRef);
+      if (verifyDoc.exists()) {
+        console.log("✅ [regionsService] Documento confirmado no Firestore:", verifyDoc.data());
+      } else {
+        console.error("❌ [regionsService] Documento NÃO encontrado após salvar!");
+      }
+
+      console.log("✅ [regionsService] Região salva com sucesso! ID:", docRef.id);
+      return docRef.id;
+    } catch (addDocError: any) {
+      console.error("❌ [regionsService] Erro DURANTE addDoc:", addDocError);
+      console.error("❌ [regionsService] Código do erro:", addDocError?.code);
+      console.error("❌ [regionsService] Mensagem do erro:", addDocError?.message);
+      console.error("❌ [regionsService] Stack do erro:", addDocError?.stack);
+      throw addDocError;
+    }
   } catch (error: any) {
     console.error("❌ [regionsService] Erro ao adicionar região:", error);
     console.error("Detalhes do erro:", {

@@ -47,7 +47,7 @@ const QRCodeCard = ({ isOpen, onClose, qrCodeData = "CARTEIRA:4589" }: QRCodeCar
 
           {/* Card Number */}
           <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-1">Cartão Fidelidade</p>
+            <p className="text-sm text-muted-foreground mb-1">Core+</p>
             <p className="text-lg font-semibold font-mono text-card-foreground">
               **** **** **** 4589
             </p>

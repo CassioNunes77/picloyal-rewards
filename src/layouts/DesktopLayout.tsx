@@ -21,7 +21,7 @@ export default function DesktopLayout() {
       <header className="sticky top-0 z-30 shrink-0 h-14 px-4 sm:px-6 border-b border-border bg-card/95 backdrop-blur flex items-center justify-between gap-4">
         <div className="flex items-center gap-6 min-w-0">
           <h2 className="font-bold text-lg text-card-foreground truncate shrink-0">
-            Cartão Fidelidade
+            Core+
           </h2>
           <nav className="hidden sm:flex items-center gap-1">
             {navItems.map((item) => {

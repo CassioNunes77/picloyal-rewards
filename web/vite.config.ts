@@ -20,8 +20,8 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "mask-icon.svg"],
       manifest: {
-        name: "Cartão Fidelidade",
-        short_name: "Fidelidade",
+        name: "Core+",
+        short_name: "Core+",
         description: "Seu cartão de fidelidade digital com descontos exclusivos",
         theme_color: "#7c3aed",
         background_color: "#7c3aed",

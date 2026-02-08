@@ -24,7 +24,7 @@ const LoyaltyCard = ({ currentPoints, totalPoints, userName, cardNumber }: Loyal
               <Gift className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-medium opacity-80">Cartão Fidelidade</p>
+              <p className="text-sm font-medium opacity-80">Core+</p>
               <p className="text-xs opacity-60">{cardNumber}</p>
             </div>
           </div>

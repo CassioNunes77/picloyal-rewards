@@ -401,7 +401,7 @@ const ProfilePage = () => {
 
             {/* Version */}
             <p className="text-center text-xs text-muted-foreground pb-2 animate-fade-in" style={{ animationDelay: '950ms' }}>
-              Versão 1.0.0 • Cartão Fidelidade
+              Versão 1.0.0 • Core+
             </p>
           </div>
         </div>
