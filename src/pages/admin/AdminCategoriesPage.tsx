@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Tag,
   Plus,
@@ -27,10 +27,30 @@ import {
   Gift,
   Sparkles,
   Award,
+  Loader2,
   type LucideIcon,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
+import {
+  getAllCategories,
+  addCategory,
+  deleteCategory,
+  toggleCategoryActive,
+  subscribeToCategories,
+  type Category,
+} from "@/services/categoriesService";
+import { firestore } from "@/lib/firebase";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Category {
   id: string;
@@ -92,25 +112,84 @@ const AdminCategoriesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [newCategory, setNewCategory] = useState({ name: "", icon: "" });
-
-  const [categories, setCategories] = useState<Category[]>([
-    { id: "1", name: "Bebidas", icon: "Coffee", active: true, productsCount: 45 },
-    { id: "2", name: "Comida", icon: "Pizza", active: true, productsCount: 78 },
-    { id: "3", name: "Brindes", icon: "Gift", active: true, productsCount: 23 },
-    { id: "4", name: "Saúde", icon: "Heart", active: false, productsCount: 12 },
-  ]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const [showIconPicker, setShowIconPicker] = useState(false);
+  const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+
+  // Carregar categorias do Firestore e escutar mudanças em tempo real
+  useEffect(() => {
+    // Verificar se Firestore está configurado
+    if (!firestore) {
+      console.error("❌ [AdminCategoriesPage] Firestore não está configurado!");
+      toast.error("Firebase não está configurado. Verifique as variáveis de ambiente.");
+      setLoadingCategories(false);
+      return;
+    }
+
+    setLoadingCategories(true);
+    console.log("🔍 [AdminCategoriesPage] Iniciando carregamento de categorias do Firebase...");
+    console.log("📁 [AdminCategoriesPage] Firestore configurado:", !!firestore);
+    
+    let hasReceivedData = false;
+    
+    // Escuta mudanças em tempo real (isso carrega e atualiza automaticamente)
+    const unsubscribe = subscribeToCategories(
+      (updatedCategories) => {
+        hasReceivedData = true;
+        console.log("✅ [AdminCategoriesPage] Categorias recebidas do Firebase:", updatedCategories.length);
+        if (updatedCategories.length > 0) {
+          console.log("📋 [AdminCategoriesPage] Primeira categoria:", updatedCategories[0]);
+        }
+        setCategories(updatedCategories);
+        setLoadingCategories(false);
+      },
+      false // false = carregar todas as categorias, não apenas ativas
+    );
+
+    // Fallback: se o subscribe não funcionar, tenta carregar manualmente após 3 segundos
+    const timeoutId = setTimeout(async () => {
+      if (!hasReceivedData) {
+        console.warn("⚠️ [AdminCategoriesPage] Timeout: Tentando carregar categorias manualmente...");
+        try {
+          const initialCategories = await getAllCategories();
+          console.log("🔄 [AdminCategoriesPage] Fallback: Categorias carregadas manualmente:", initialCategories.length);
+          setCategories(initialCategories);
+          setLoadingCategories(false);
+        } catch (error) {
+          console.error("❌ [AdminCategoriesPage] Erro ao carregar categorias:", error);
+          toast.error("Erro ao carregar categorias. Verifique sua conexão com o Firebase.");
+          setLoadingCategories(false);
+        }
+      }
+    }, 3000);
+
+    return () => {
+      clearTimeout(timeoutId);
+      unsubscribe();
+    };
+  }, []);
 
   const filteredCategories = categories.filter((cat) =>
     cat.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleToggleActive = (id: string) => {
-    setCategories(categories.map((c) => (c.id === id ? { ...c, active: !c.active } : c)));
-    toast.success("Status da categoria atualizado");
+  const handleToggleActive = async (id: string) => {
+    const category = categories.find((c) => c.id === id);
+    if (!category) return;
+
+    try {
+      await toggleCategoryActive(id, category.active);
+      toast.success("Status da categoria atualizado");
+    } catch (error) {
+      console.error("Erro ao atualizar status da categoria:", error);
+      toast.error("Erro ao atualizar status da categoria");
+    }
   };
 
-  const handleAddCategory = () => {
+  const handleAddCategory = async () => {
     if (!newCategory.name) {
       toast.error("Preencha o nome da categoria");
       return;
@@ -119,24 +198,69 @@ const AdminCategoriesPage = () => {
       toast.error("Selecione um ícone para a categoria");
       return;
     }
-    const category: Category = {
-      id: Date.now().toString(),
-      name: newCategory.name,
-      icon: newCategory.icon || "Tag",
+
+    // Verificar se a categoria já existe
+    const categoryExists = categories.some(
+      (c) => c.name.toLowerCase() === newCategory.name.toLowerCase()
+    );
+
+    if (categoryExists) {
+      toast.error("Esta categoria já está cadastrada");
+      return;
+    }
+
+    // Salvar dados antes de fechar o modal
+    const categoryData = {
+      name: newCategory.name.trim(),
+      icon: newCategory.icon,
       active: true,
-      productsCount: 0,
     };
-    setCategories([...categories, category]);
-    setNewCategory({ name: "", icon: "" });
-    setShowAddModal(false);
-    setShowIconPicker(false);
-    toast.success("Categoria adicionada com sucesso");
+
+    // Adicionar categoria no Firebase ANTES de fechar o modal
+    try {
+      console.log("🚀 [AdminCategoriesPage] Tentando salvar categoria:", categoryData);
+      const categoryId = await addCategory(categoryData);
+      console.log("✅ [AdminCategoriesPage] Categoria salva no Firebase com ID:", categoryId);
+      
+      // Aguardar um pouco para garantir que o Firestore processou
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Fechar modal e limpar campos apenas após sucesso
+      setShowAddModal(false);
+      setShowIconPicker(false);
+      setNewCategory({ name: "", icon: "" });
+      
+      // Toast de sucesso
+      toast.success("Categoria adicionada e salva com sucesso");
+      
+      // A lista será atualizada automaticamente pelo subscribeToCategories
+    } catch (error: any) {
+      console.error("❌ [AdminCategoriesPage] Erro ao adicionar categoria no Firebase:", error);
+      const errorMessage = error?.message || "Erro desconhecido ao salvar categoria";
+      toast.error(`Erro ao salvar categoria: ${errorMessage}`);
+      // NÃO fecha o modal em caso de erro para o usuário poder tentar novamente
+    }
   };
 
-  const handleDeleteCategory = (id: string) => {
-    if (window.confirm("Tem certeza que deseja remover esta categoria?")) {
-      setCategories(categories.filter((c) => c.id !== id));
-      toast.success("Categoria removida");
+  const handleDeleteClick = (category: Category) => {
+    setCategoryToDelete(category);
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!categoryToDelete) return;
+
+    setDeletingCategoryId(categoryToDelete.id);
+    try {
+      await deleteCategory(categoryToDelete.id);
+      toast.success("Categoria removida com sucesso");
+      setShowDeleteDialog(false);
+      setCategoryToDelete(null);
+    } catch (error) {
+      console.error("Erro ao excluir categoria:", error);
+      toast.error("Erro ao excluir categoria. Tente novamente.");
+    } finally {
+      setDeletingCategoryId(null);
     }
   };
 
@@ -145,7 +269,17 @@ const AdminCategoriesPage = () => {
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-card-foreground mb-2">Categorias</h1>
-          <p className="text-sm text-muted-foreground">Gerenciar categorias de produtos</p>
+          <p className="text-sm text-muted-foreground">
+            Gerenciar categorias de produtos
+            {categories.length > 0 && (
+              <span className="ml-2 text-xs">({categories.length} categoria{categories.length !== 1 ? "s" : ""} cadastrada{categories.length !== 1 ? "s" : ""})</span>
+            )}
+          </p>
+          {!firestore && (
+            <p className="text-xs text-destructive mt-1">
+              ⚠️ Firebase não está configurado. As categorias não serão salvas.
+            </p>
+          )}
         </div>
         <button
           onClick={() => setShowAddModal(true)}
@@ -169,8 +303,41 @@ const AdminCategoriesPage = () => {
         </div>
       </div>
 
-      <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3"} gap-4`}>
-        {filteredCategories.map((category) => (
+      {loadingCategories ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
+          <span className="ml-3 text-muted-foreground">Carregando categorias...</span>
+        </div>
+      ) : categories.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <Tag className="h-12 w-12 text-muted-foreground mb-4" />
+          <p className="text-muted-foreground mb-2">Nenhuma categoria cadastrada</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            Adicione uma categoria para começar
+          </p>
+          {!firestore && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md">
+              <p className="text-sm text-destructive font-medium mb-1">⚠️ Firebase não configurado</p>
+              <p className="text-xs text-destructive/80">
+                Verifique as variáveis de ambiente do Firebase no arquivo .env
+              </p>
+            </div>
+          )}
+        </div>
+      ) : filteredCategories.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <Tag className="h-12 w-12 text-muted-foreground mb-4" />
+          <p className="text-muted-foreground mb-2">Nenhuma categoria encontrada</p>
+          <p className="text-sm text-muted-foreground">
+            Tente buscar com outros termos
+          </p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Total de categorias: {categories.length} | Filtradas: {filteredCategories.length}
+          </p>
+        </div>
+      ) : (
+        <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3"} gap-4`}>
+          {filteredCategories.map((category) => (
           <div
             key={category.id}
             className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-all"
@@ -208,15 +375,21 @@ const AdminCategoriesPage = () => {
                 <Edit className="h-4 w-4" />
               </button>
               <button
-                onClick={() => handleDeleteCategory(category.id)}
-                className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-all"
+                onClick={() => handleDeleteClick(category)}
+                disabled={deletingCategoryId === category.id}
+                className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-all disabled:opacity-50"
               >
-                <Trash2 className="h-4 w-4" />
+                {deletingCategoryId === category.id ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
               </button>
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {showAddModal && (
         <div
@@ -341,6 +514,38 @@ const AdminCategoriesPage = () => {
           </div>
         </div>
       )}
+
+      {/* Dialog de confirmação de exclusão */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover a categoria "{categoryToDelete?.name}"?
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setCategoryToDelete(null)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deletingCategoryId !== null}
+            >
+              {deletingCategoryId ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Excluindo...
+                </>
+              ) : (
+                "Excluir"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
