@@ -204,37 +204,90 @@ const ProfilePage = () => {
                     setTempPhone(profilePhone);
                     setEditDialog("phone");
                   }} />
+                  <ProfileInfoItem icon={MapPin} label="Endereço" value="Rua Exemplo, 123 - São Paulo, SP" delay={0} />
+                  <ProfileInfoItem icon={Calendar} label="Data de Nascimento" value="15/03/1990" delay={0} />
                 </div>
               </div>
             </div>
 
-            {/* Coluna Direita: Preferências e Conta */}
+            {/* Coluna Direita: Configurações da Conta e Atividade */}
             <div className="space-y-6">
               <div>
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Preferências</h3>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Configurações da Conta</h3>
                 <div className="space-y-2">
-                  <ProfileInfoItem icon={Bell} label="Notificações" value={notifications ? "Ativadas" : "Desativadas"} delay={0} onEdit={() => setNotifications(!notifications)} />
+                  <ProfileActionItem
+                    icon={CreditCard}
+                    label="Formas de Pagamento"
+                    description="Gerenciar cartões salvos"
+                    delay={0}
+                    onClick={() => toast.info("Abrindo formas de pagamento...")}
+                  />
+                  <ProfileActionItem
+                    icon={Bell}
+                    label="Notificações"
+                    description="Gerenciar alertas e notificações"
+                    delay={0}
+                    rightElement={
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={notifications}
+                          onChange={(e) => {
+                            setNotifications(e.target.checked);
+                            toast.success(e.target.checked ? "Notificações ativadas" : "Notificações desativadas");
+                          }}
+                          className="w-5 h-5 rounded border-primary text-primary focus:ring-primary"
+                        />
+                      </div>
+                    }
+                  />
+                  <ProfileActionItem
+                    icon={Shield}
+                    label="Segurança"
+                    description="Senha e autenticação"
+                    delay={0}
+                    onClick={() => toast.info("Abrindo configurações de segurança...")}
+                  />
                 </div>
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Conta</h3>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Atividade</h3>
                 <div className="space-y-2">
-                  <button onClick={() => toast.info("Abrindo histórico...")} className="w-full flex items-center gap-3 p-3 rounded-xl bg-card border border-border text-left hover:bg-muted/50">
-                    <CreditCard className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-card-foreground">Histórico de Recompensas</span>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />
-                  </button>
-                  <button onClick={() => toast.info("Abrindo configurações de segurança...")} className="w-full flex items-center gap-3 p-3 rounded-xl bg-card border border-border text-left hover:bg-muted/50">
-                    <Shield className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-card-foreground">Segurança</span>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />
-                  </button>
-                  <button onClick={handleLogout} className="w-full flex items-center gap-3 p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive hover:bg-destructive/20">
-                    <LogOut className="h-5 w-5" />
-                    <span className="font-medium">Sair da conta</span>
-                  </button>
+                  <ProfileActionItem
+                    icon={Gift}
+                    label="Histórico de Recompensas"
+                    description="Ver todas as recompensas resgatadas"
+                    delay={0}
+                    onClick={() => toast.info("Abrindo histórico...")}
+                  />
+                  <ProfileActionItem
+                    icon={Star}
+                    label="Avaliações"
+                    description="Suas avaliações de estabelecimentos"
+                    delay={0}
+                    onClick={() => toast.info("Abrindo avaliações...")}
+                  />
                 </div>
               </div>
+              <div>
+                <button
+                  onClick={() => void handleLogout()}
+                  className="w-full flex items-center gap-4 p-4 rounded-xl bg-destructive/10 text-destructive
+                           transition-all duration-200 hover:bg-destructive/20"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive/20">
+                    <LogOut className="h-5 w-5 text-destructive" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-medium">Sair da Conta</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-destructive shrink-0" />
+                </button>
+              </div>
+              {/* Version */}
+              <p className="text-center text-xs text-muted-foreground pt-2">
+                Versão 1.0.0 • Core+
+              </p>
             </div>
           </div>
         </div>
