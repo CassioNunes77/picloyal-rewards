@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lock, User, AlertCircle } from "lucide-react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
@@ -11,6 +11,15 @@ const AdminLoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Atualizar título da página
+  useEffect(() => {
+    document.title = "Core+ Painel Administrativo";
+    return () => {
+      // Restaurar título padrão ao sair
+      document.title = "Core+";
+    };
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

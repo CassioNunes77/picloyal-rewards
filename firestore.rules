@@ -1,0 +1,94 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ============================================
+    // REGIÕES (LOCALIZAÇÃO)
+    // ============================================
+    match /regions/{regionId} {
+      // Qualquer usuário autenticado pode ler regiões
+      // Usuários não autenticados podem ler apenas regiões ativas
+      allow read: if request.auth != null || 
+                     (request.resource == null && resource.data.active == true);
+      
+      // Apenas usuários autenticados podem criar, atualizar ou deletar
+      // Em produção, adicione verificação de admin aqui
+      allow create: if request.auth != null &&
+                       request.resource.data.keys().hasAll(['name', 'state', 'city', 'country', 'active']) &&
+                       request.resource.data.name is string &&
+                       request.resource.data.state is string &&
+                       request.resource.data.city is string &&
+                       request.resource.data.country is string &&
+                       request.resource.data.active is bool &&
+                       request.resource.data.createdAt is timestamp &&
+                       request.resource.data.updatedAt is timestamp;
+      
+      allow update: if request.auth != null &&
+                       request.resource.data.updatedAt is timestamp &&
+                       // Garantir que campos obrigatórios não sejam removidos
+                       request.resource.data.keys().hasAll(['name', 'state', 'city', 'country', 'active']);
+      
+      allow delete: if request.auth != null;
+    }
+    
+    // ============================================
+    // CATEGORIAS
+    // ============================================
+    match /categories/{categoryId} {
+      // Qualquer usuário autenticado pode ler categorias
+      // Usuários não autenticados podem ler apenas categorias ativas
+      allow read: if request.auth != null || 
+                     (request.resource == null && resource.data.active == true);
+      
+      // Apenas usuários autenticados podem criar, atualizar ou deletar
+      // Em produção, adicione verificação de admin aqui
+      allow create: if request.auth != null &&
+                       request.resource.data.keys().hasAll(['name', 'icon', 'active', 'productsCount']) &&
+                       request.resource.data.name is string &&
+                       request.resource.data.icon is string &&
+                       request.resource.data.active is bool &&
+                       request.resource.data.productsCount is int &&
+                       request.resource.data.createdAt is timestamp &&
+                       request.resource.data.updatedAt is timestamp &&
+                       // Validações adicionais
+                       request.resource.data.name.size() > 0 &&
+                       request.resource.data.icon.size() > 0 &&
+                       request.resource.data.productsCount >= 0;
+      
+      allow update: if request.auth != null &&
+                       request.resource.data.updatedAt is timestamp &&
+                       // Garantir que campos obrigatórios não sejam removidos
+                       request.resource.data.keys().hasAll(['name', 'icon', 'active', 'productsCount']) &&
+                       // Validar tipos
+                       request.resource.data.name is string &&
+                       request.resource.data.icon is string &&
+                       request.resource.data.active is bool &&
+                       request.resource.data.productsCount is int &&
+                       request.resource.data.productsCount >= 0;
+      
+      allow delete: if request.auth != null;
+    }
+    
+    // ============================================
+    // USUÁRIOS
+    // ============================================
+    match /users/{userId} {
+      // Usuários podem ler apenas seus próprios dados
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      // Usuários podem criar/atualizar apenas seus próprios dados
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+      
+      // Usuários não podem deletar seus próprios dados (apenas admin)
+      allow delete: if false;
+    }
+    
+    // ============================================
+    // OUTRAS COLEÇÕES
+    // ============================================
+    // Por padrão, negar acesso a outras coleções não especificadas
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

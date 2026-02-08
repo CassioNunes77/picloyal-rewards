@@ -15,7 +15,7 @@ import {
   Settings,
   BarChart3,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const adminNavItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "dashboard" },
@@ -35,6 +35,15 @@ export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const activeId = adminNavItems.find((item) => pathname.includes(item.path))?.id || "dashboard";
+
+  // Atualizar título da página
+  useEffect(() => {
+    document.title = "Core+ Painel Administrativo";
+    return () => {
+      // Restaurar título padrão ao sair
+      document.title = "Core+";
+    };
+  }, []);
 
   const handleLogout = () => {
     logout();
