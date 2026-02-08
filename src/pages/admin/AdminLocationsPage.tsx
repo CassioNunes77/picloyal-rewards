@@ -414,36 +414,6 @@ const AdminLocationsPage = () => {
         </button>
       </div>
 
-      {/* Breadcrumb */}
-      {currentLevel !== "country" && (
-        <div className="mb-4 flex items-center gap-2">
-          <button
-            onClick={handleBack}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border hover:bg-muted transition-all text-sm text-card-foreground"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Voltar
-          </button>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            {getBreadcrumb().map((item, index) => (
-              <span key={index} className="flex items-center gap-2">
-                {index > 0 && <span>/</span>}
-                {item.onClick ? (
-                  <button
-                    onClick={item.onClick}
-                    className="hover:text-card-foreground transition-colors"
-                  >
-                    {item.label}
-                  </button>
-                ) : (
-                  <span className="text-card-foreground font-medium">{item.label}</span>
-                )}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Busca */}
       <div className="mb-6">
         <div className="relative">
