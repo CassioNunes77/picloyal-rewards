@@ -119,20 +119,21 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col animate-fade-in">
-      {/* Topo: gradiente + nome do app (estilo PINEE) */}
-      <div className="gradient-hero rounded-b-[2rem] pb-12 pt-14 px-6">
-        <h1 className="text-3xl font-bold text-white tracking-tight">
-          Cartão Fidelidade
-        </h1>
-        <p className="text-white/90 text-base mt-2">
-          Seu cartão de benefícios e descontos
-        </p>
-      </div>
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 animate-fade-in">
+      <div className="w-full max-w-md">
+        <div className="bg-card rounded-2xl border border-border shadow-lg overflow-hidden">
+          {/* Topo: gradiente + nome do app */}
+          <div className="gradient-hero pb-8 pt-10 px-6">
+            <h1 className="text-2xl font-bold text-white tracking-tight text-center">
+              Cartão Fidelidade
+            </h1>
+            <p className="text-white/90 text-sm mt-2 text-center">
+              Seu cartão de benefícios e descontos
+            </p>
+          </div>
 
-      {/* Card branco central com formulário */}
-      <div className="flex-1 px-6 -mt-6">
-        <div className="bg-card rounded-3xl shadow-xl shadow-black/5 p-6 animate-fade-in">
+          {/* Card branco central com formulário */}
+          <div className="p-8 animate-fade-in">
           <h2 className="text-xl font-semibold text-card-foreground mb-1">
             {mode === "signin" ? "Entrar" : "Criar conta"}
           </h2>
@@ -243,6 +244,7 @@ export default function LoginPage() {
               ? "Não tem conta? Cadastre-se"
               : "Já tem conta? Entrar"}
           </button>
+          </div>
         </div>
       </div>
     </div>
