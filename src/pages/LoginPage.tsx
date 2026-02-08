@@ -119,7 +119,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 animate-fade-in">
+    <div className="min-h-screen flex items-center justify-center p-4 animate-fade-in" style={{
+      background: 'linear-gradient(135deg, hsl(260 45% 20%) 0%, hsl(280 40% 25%) 50%, hsl(270 35% 30%) 100%)'
+    }}>
       <div className="w-full max-w-md">
         <div className="bg-card rounded-2xl border border-border shadow-lg overflow-hidden">
           {/* Topo: gradiente + nome do app */}
