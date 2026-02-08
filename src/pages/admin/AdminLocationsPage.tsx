@@ -210,11 +210,28 @@ const AdminLocationsPage = () => {
   useEffect(() => {
     setLoadingRegions(true);
     
-    // Escuta mudanças em tempo real
+    // Primeiro, carrega as regiões existentes
+    const loadInitialRegions = async () => {
+      try {
+        const initialRegions = await getAllRegions();
+        setRegions(initialRegions);
+        setLoadingRegions(false);
+        console.log("Regiões carregadas do Firebase:", initialRegions.length);
+      } catch (error) {
+        console.error("Erro ao carregar regiões iniciais:", error);
+        toast.error("Erro ao carregar regiões. Verifique sua conexão.");
+        setLoadingRegions(false);
+      }
+    };
+
+    loadInitialRegions();
+    
+    // Depois, escuta mudanças em tempo real (isso vai atualizar automaticamente quando houver mudanças)
     const unsubscribe = subscribeToRegions((updatedRegions) => {
+      console.log("Regiões atualizadas em tempo real:", updatedRegions.length);
       setRegions(updatedRegions);
       setLoadingRegions(false);
-    });
+    }, false); // false = carregar todas as regiões, não apenas ativas
 
     return () => {
       unsubscribe();
@@ -300,20 +317,22 @@ const AdminLocationsPage = () => {
       active: true,
     };
 
-    // FECHAR MODAL IMEDIATAMENTE após validação
-    setShowAddModal(false);
-    
-    // Limpar campos
-    setNewRegion({ state: "", stateName: "", stateCode: "", city: "", cityId: "" });
-    setCities([]);
-
-    // Adicionar região em background (sem bloquear UI)
+    // Adicionar região no Firebase ANTES de fechar o modal
     try {
-      await addRegion(regionData);
-      toast.success("Região adicionada com sucesso");
+      const regionId = await addRegion(regionData);
+      console.log("Região salva no Firebase com ID:", regionId);
+      
+      // Fechar modal e limpar campos apenas após sucesso
+      setShowAddModal(false);
+      setNewRegion({ state: "", stateName: "", stateCode: "", city: "", cityId: "" });
+      setCities([]);
+      
+      // Toast de sucesso
+      toast.success("Região adicionada e salva com sucesso");
     } catch (error) {
-      console.error("Erro ao adicionar região:", error);
-      toast.error("Erro ao adicionar região. Tente novamente.");
+      console.error("Erro ao adicionar região no Firebase:", error);
+      toast.error("Erro ao salvar região no Firebase. Tente novamente.");
+      // NÃO fecha o modal em caso de erro para o usuário poder tentar novamente
     }
   };
 
