@@ -6,10 +6,10 @@ service cloud.firestore {
     // REGIÕES (LOCALIZAÇÃO)
     // ============================================
     match /regions/{regionId} {
-      // Qualquer usuário autenticado pode ler regiões
+      // Qualquer usuário autenticado pode ler todas as regiões
       // Usuários não autenticados podem ler apenas regiões ativas
       allow read: if request.auth != null || 
-                     (request.resource == null && resource.data.active == true);
+                     resource.data.active == true;
       
       // Apenas usuários autenticados podem criar, atualizar ou deletar
       // Em produção, adicione verificação de admin aqui
