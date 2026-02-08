@@ -34,10 +34,9 @@ service cloud.firestore {
     // CATEGORIAS
     // ============================================
     match /categories/{categoryId} {
-      // Qualquer usuário autenticado pode ler categorias
-      // Usuários não autenticados podem ler apenas categorias ativas
-      allow read: if request.auth != null || 
-                     (request.resource == null && resource.data.active == true);
+      // Permitir leitura de todas as categorias (necessário para o painel administrativo)
+      // Em produção, considere adicionar verificação de admin ou autenticação Firebase
+      allow read: if true;
       
       // Apenas usuários autenticados podem criar, atualizar ou deletar
       // Em produção, adicione verificação de admin aqui
