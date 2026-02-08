@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { MapPin, Plus, Search, Trash2, Check, X, Loader2 } from "lucide-react";
+import { MapPin, Plus, Search, Trash2, Check, X, Loader2, ChevronLeft, Folder } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -163,10 +163,15 @@ function LocationAutocomplete({
   );
 }
 
+type ViewLevel = "country" | "state" | "city";
+
 const AdminLocationsPage = () => {
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [currentLevel, setCurrentLevel] = useState<ViewLevel>("country");
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [selectedState, setSelectedState] = useState<string | null>(null);
   const [newRegion, setNewRegion] = useState({
     state: "",
     stateName: "",
@@ -260,6 +265,26 @@ const AdminLocationsPage = () => {
     };
   }, []);
 
+  // Pré-selecionar estado quando abrir modal no nível de cidades
+  useEffect(() => {
+    if (showAddModal && currentLevel === "city" && selectedState && selectedCountry) {
+      const stateObj = states.find((s) => s.sigla === selectedState);
+      if (stateObj) {
+        setNewRegion({
+          state: stateObj.name,
+          stateName: stateObj.name,
+          stateCode: stateObj.sigla,
+          city: "",
+          cityId: "",
+        });
+      }
+    } else if (!showAddModal) {
+      // Limpar quando fechar o modal
+      setNewRegion({ state: "", stateName: "", stateCode: "", city: "", cityId: "" });
+      setCities([]);
+    }
+  }, [showAddModal, currentLevel, selectedState, selectedCountry, states]);
+
   // Carregar cidades quando um estado é selecionado
   useEffect(() => {
     const fetchCities = async () => {
@@ -290,11 +315,99 @@ const AdminLocationsPage = () => {
     fetchCities();
   }, [newRegion.stateCode]);
 
-  const filteredRegions = regions.filter((region) =>
-    region.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    region.state.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    region.city?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Agrupar regiões por país e estado
+  const groupedByCountry = regions.reduce((acc, region) => {
+    const country = region.country || "Brasil";
+    if (!acc[country]) {
+      acc[country] = {};
+    }
+    const stateCode = region.state || "";
+    if (!acc[country][stateCode]) {
+      acc[country][stateCode] = {
+        stateCode,
+        stateName: region.stateName || stateCode,
+        cities: [],
+      };
+    }
+    acc[country][stateCode].cities.push(region);
+    return acc;
+  }, {} as Record<string, Record<string, { stateCode: string; stateName: string; cities: Region[] }>>);
+
+  // Obter países únicos
+  const countries = Object.keys(groupedByCountry);
+
+  // Obter estados de um país
+  const getStatesForCountry = (country: string) => {
+    return Object.values(groupedByCountry[country] || {});
+  };
+
+  // Obter cidades de um estado
+  const getCitiesForState = (country: string, stateCode: string) => {
+    return groupedByCountry[country]?.[stateCode]?.cities || [];
+  };
+
+  // Filtrar baseado no nível atual
+  const getFilteredItems = () => {
+    if (currentLevel === "country") {
+      return countries.filter((country) =>
+        country.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    } else if (currentLevel === "state" && selectedCountry) {
+      const states = getStatesForCountry(selectedCountry);
+      return states.filter((state) =>
+        state.stateName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        state.stateCode.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    } else if (currentLevel === "city" && selectedCountry && selectedState) {
+      const cities = getCitiesForState(selectedCountry, selectedState);
+      return cities.filter((city) =>
+        city.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        city.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    return [];
+  };
+
+  const filteredItems = getFilteredItems();
+
+  // Handlers de navegação
+  const handleCountryClick = (country: string) => {
+    setSelectedCountry(country);
+    setCurrentLevel("state");
+    setSearchQuery("");
+  };
+
+  const handleStateClick = (stateCode: string) => {
+    setSelectedState(stateCode);
+    setCurrentLevel("city");
+    setSearchQuery("");
+  };
+
+  const handleBack = () => {
+    if (currentLevel === "city") {
+      setCurrentLevel("state");
+      setSelectedState(null);
+    } else if (currentLevel === "state") {
+      setCurrentLevel("country");
+      setSelectedCountry(null);
+    }
+    setSearchQuery("");
+  };
+
+  // Breadcrumb
+  const getBreadcrumb = () => {
+    const items = [
+      { label: "Países", onClick: () => { setCurrentLevel("country"); setSelectedCountry(null); setSelectedState(null); } },
+    ];
+    if (selectedCountry) {
+      items.push({ label: selectedCountry, onClick: () => { setCurrentLevel("state"); setSelectedState(null); } });
+    }
+    if (selectedState && selectedCountry) {
+      const state = groupedByCountry[selectedCountry]?.[selectedState];
+      items.push({ label: state?.stateName || selectedState, onClick: null });
+    }
+    return items;
+  };
 
   const handleToggleActive = async (id: string) => {
     const region = regions.find((r) => r.id === id);
@@ -350,11 +463,25 @@ const AdminLocationsPage = () => {
       
       // Fechar modal e limpar campos apenas após sucesso
       setShowAddModal(false);
-      setNewRegion({ state: "", stateName: "", stateCode: "", city: "", cityId: "" });
-      setCities([]);
+      // Manter estado pré-selecionado se estiver no nível de cidades
+      if (currentLevel === "city" && selectedState) {
+        const stateObj = states.find((s) => s.sigla === selectedState);
+        if (stateObj) {
+          setNewRegion({
+            state: stateObj.name,
+            stateName: stateObj.name,
+            stateCode: stateObj.sigla,
+            city: "",
+            cityId: "",
+          });
+        }
+      } else {
+        setNewRegion({ state: "", stateName: "", stateCode: "", city: "", cityId: "" });
+        setCities([]);
+      }
       
       // Toast de sucesso
-      toast.success("Região adicionada e salva com sucesso");
+      toast.success("Cidade adicionada com sucesso");
       
       // A lista será atualizada automaticamente pelo subscribeToRegions
     } catch (error: any) {
@@ -402,14 +529,46 @@ const AdminLocationsPage = () => {
             </p>
           )}
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl gradient-primary text-primary-foreground font-medium hover:opacity-90 transition-all"
-        >
-          <Plus className="h-5 w-5" />
-          Adicionar Região
-        </button>
+        {currentLevel === "city" && (
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl gradient-primary text-primary-foreground font-medium hover:opacity-90 transition-all"
+          >
+            <Plus className="h-5 w-5" />
+            Adicionar Cidade
+          </button>
+        )}
       </div>
+
+      {/* Breadcrumb */}
+      {currentLevel !== "country" && (
+        <div className="mb-4 flex items-center gap-2">
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border hover:bg-muted transition-all text-sm text-card-foreground"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Voltar
+          </button>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            {getBreadcrumb().map((item, index) => (
+              <span key={index} className="flex items-center gap-2">
+                {index > 0 && <span>/</span>}
+                {item.onClick ? (
+                  <button
+                    onClick={item.onClick}
+                    className="hover:text-card-foreground transition-colors"
+                  >
+                    {item.label}
+                  </button>
+                ) : (
+                  <span className="text-card-foreground font-medium">{item.label}</span>
+                )}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Busca */}
       <div className="mb-6">
@@ -417,7 +576,13 @@ const AdminLocationsPage = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Buscar região..."
+            placeholder={
+              currentLevel === "country"
+                ? "Buscar país..."
+                : currentLevel === "state"
+                ? "Buscar estado..."
+                : "Buscar cidade..."
+            }
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-3 rounded-xl bg-card text-card-foreground placeholder:text-muted-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -425,7 +590,7 @@ const AdminLocationsPage = () => {
         </div>
       </div>
 
-      {/* Lista de Regiões */}
+      {/* Lista Hierárquica */}
       {loadingRegions ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
@@ -446,96 +611,149 @@ const AdminLocationsPage = () => {
               </p>
             </div>
           )}
-          <p className="text-xs text-muted-foreground mt-4">
-            💡 Dica: Abra o console do navegador (F12) para ver logs de debug
-          </p>
         </div>
-      ) : filteredRegions.length === 0 ? (
+      ) : filteredItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12">
           <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-2">Nenhuma região encontrada</p>
+          <p className="text-muted-foreground mb-2">Nenhum item encontrado</p>
           <p className="text-sm text-muted-foreground">
             Tente buscar com outros termos
-          </p>
-          <p className="text-xs text-muted-foreground mt-2">
-            Total de regiões: {regions.length} | Filtradas: {filteredRegions.length}
           </p>
         </div>
       ) : (
         <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
-          {filteredRegions.map((region) => (
-          <div
-            key={region.id}
-            className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-all"
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-start gap-3 flex-1 min-w-0">
-                <div className="p-3 rounded-xl bg-primary/10 shrink-0">
-                  <MapPin className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-card-foreground truncate">{region.name}</h3>
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${
-                        region.active
-                          ? "bg-green-100 text-green-700"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {region.active ? "Ativa" : "Inativa"}
-                    </span>
+          {currentLevel === "country" &&
+            filteredItems.map((country) => {
+              const states = getStatesForCountry(country);
+              const totalCities = states.reduce((sum, state) => sum + state.cities.length, 0);
+              return (
+                <div
+                  key={country}
+                  onClick={() => handleCountryClick(country)}
+                  className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-all cursor-pointer"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="p-3 rounded-xl bg-primary/10 shrink-0">
+                      <Folder className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-card-foreground mb-1">{country}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {states.length} estado{states.length !== 1 ? "s" : ""} • {totalCities} cidade{totalCities !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {region.city && `${region.city}, `}
-                    {region.stateName || region.state}
-                    {region.country && ` - ${region.country}`}
-                  </p>
+                </div>
+              );
+            })}
+
+          {currentLevel === "state" &&
+            selectedCountry &&
+            filteredItems.map((state) => (
+              <div
+                key={state.stateCode}
+                onClick={() => handleStateClick(state.stateCode)}
+                className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-all cursor-pointer"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="p-3 rounded-xl bg-primary/10 shrink-0">
+                    <Folder className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-card-foreground mb-1">
+                      {state.stateName} ({state.stateCode})
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {state.cities.length} cidade{state.cities.length !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
                 </div>
               </div>
-            </div>
-            <div className="flex items-center justify-between pt-4 border-t border-border">
-              <span className="text-sm text-muted-foreground">
-                {region.storesCount} lojas
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleToggleActive(region.id)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                    region.active
-                      ? "bg-green-100 text-green-700 hover:bg-green-200"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
-                  }`}
-                  title={region.active ? "Desativar região" : "Ativar região"}
-                >
-                  {region.active ? (
-                    <span className="flex items-center gap-1">
-                      <Check className="h-4 w-4" />
-                      Ativa
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-1">
-                      <X className="h-4 w-4" />
-                      Inativa
-                    </span>
-                  )}
-                </button>
-                <button
-                  onClick={() => handleDeleteClick(region)}
-                  disabled={deletingRegionId === region.id}
-                  className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Excluir região"
-                >
-                  {deletingRegionId === region.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Trash2 className="h-4 w-4" />
-                  )}
-                </button>
+            ))}
+
+          {currentLevel === "city" &&
+            selectedCountry &&
+            selectedState &&
+            filteredItems.map((region) => (
+              <div
+                key={region.id}
+                className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-all"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <div className="p-3 rounded-xl bg-primary/10 shrink-0">
+                      <MapPin className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-card-foreground truncate">{region.city}</h3>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${
+                            region.active
+                              ? "bg-green-100 text-green-700"
+                              : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {region.active ? "Ativa" : "Inativa"}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {region.stateName || region.state}
+                        {region.country && ` - ${region.country}`}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-4 border-t border-border">
+                  <span className="text-sm text-muted-foreground">
+                    {region.storesCount} lojas
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleActive(region.id);
+                      }}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        region.active
+                          ? "bg-green-100 text-green-700 hover:bg-green-200"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      }`}
+                      title={region.active ? "Desativar região" : "Ativar região"}
+                    >
+                      {region.active ? (
+                        <span className="flex items-center gap-1">
+                          <Check className="h-4 w-4" />
+                          Ativa
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1">
+                          <X className="h-4 w-4" />
+                          Inativa
+                        </span>
+                      )}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteClick(region);
+                      }}
+                      disabled={deletingRegionId === region.id}
+                      className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Excluir região"
+                    >
+                      {deletingRegionId === region.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        ))}
+            ))}
         </div>
       )}
 
