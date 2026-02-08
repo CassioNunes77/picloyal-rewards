@@ -368,55 +368,54 @@ const AdminLocationsPage = () => {
     return groupedByCountry[country]?.[stateCode]?.cities || [];
   };
 
-  // Filtrar baseado no nível atual
+  // Filtrar baseado no nível atual - SIMPLIFICADO para garantir que sempre funcione
   const getFilteredItems = (): any[] => {
     try {
       if (currentLevel === "country") {
         // SEMPRE retornar pelo menos "Brasil" se há regiões
-        if (regions.length > 0) {
-          // Se não há países no array, retornar "Brasil"
-          if (countries.length === 0) {
-            console.log("⚠️ [AdminLocationsPage] Nenhum país encontrado, retornando 'Brasil'");
-            return ["Brasil"];
-          }
-          
-          // Filtrar países pela busca
+        if (regions.length === 0) {
+          return [];
+        }
+        
+        // Se não há países no array, retornar "Brasil"
+        if (countries.length === 0) {
+          console.log("⚠️ [AdminLocationsPage] Nenhum país encontrado, retornando 'Brasil'");
+          return ["Brasil"];
+        }
+        
+        // Filtrar países pela busca (se houver)
+        if (searchQuery.trim()) {
           const filtered = countries.filter((country) =>
             country.toLowerCase().includes(searchQuery.toLowerCase())
           );
-          
-          // Se o filtro não encontrou nada mas não há busca, mostrar todos os países
-          if (filtered.length === 0 && !searchQuery) {
-            console.log("✅ [AdminLocationsPage] Retornando todos os países:", countries);
-            return countries;
-          }
-          
-          // Se há busca e encontrou resultados, retornar filtrados
+          // Se encontrou algo na busca, retornar
           if (filtered.length > 0) {
             return filtered;
           }
-          
-          // Se há busca mas não encontrou nada, ainda retornar "Brasil" se não há busca específica ou se a busca inclui "brasil"
-          if (!searchQuery || searchQuery.toLowerCase().includes("brasil")) {
-            return countries.length > 0 ? countries : ["Brasil"];
-          }
-          
-          // Se há busca específica que não encontrou nada, retornar vazio (mostrar mensagem "não encontrado")
+          // Se não encontrou na busca, retornar vazio para mostrar mensagem "não encontrado"
           return [];
         }
-        return [];
+        
+        // Sem busca: retornar todos os países ou "Brasil" se não houver países
+        return countries.length > 0 ? countries : ["Brasil"];
       } else if (currentLevel === "state" && selectedCountry) {
         const states = getStatesForCountry(selectedCountry);
-        return states.filter((state) =>
-          state.stateName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          state.stateCode.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        if (searchQuery.trim()) {
+          return states.filter((state) =>
+            state.stateName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            state.stateCode.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+        }
+        return states;
       } else if (currentLevel === "city" && selectedCountry && selectedState) {
         const cities = getCitiesForState(selectedCountry, selectedState);
-        return cities.filter((city) =>
-          city.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          city.name.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        if (searchQuery.trim()) {
+          return cities.filter((city) =>
+            city.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            city.name.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+        }
+        return cities;
       }
       return [];
     } catch (error) {
@@ -699,17 +698,10 @@ const AdminLocationsPage = () => {
             </div>
           )}
         </div>
-      ) : (filteredItems.length > 0 || (regions.length > 0 && currentLevel === "country")) ? (
+      ) : filteredItems.length > 0 ? (
         <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
           {currentLevel === "country" &&
-            (() => {
-              // Garantir que sempre tenha algo para renderizar quando há regiões
-              const itemsToRender = filteredItems.length > 0 
-                ? filteredItems 
-                : (regions.length > 0 ? ["Brasil"] : []);
-              console.log("🎨 [AdminLocationsPage] Renderizando países:", itemsToRender, "| filteredItems:", filteredItems, "| regions:", regions.length);
-              return itemsToRender;
-            })().map((country) => {
+            filteredItems.map((country) => {
               try {
                 const states = getStatesForCountry(country);
                 const totalCities = states.reduce((sum, state) => sum + state.cities.length, 0);
@@ -845,6 +837,39 @@ const AdminLocationsPage = () => {
                 </div>
               </div>
             ))}
+        </div>
+      ) : regions.length > 0 && currentLevel === "country" && !searchQuery ? (
+        // Fallback: se há regiões mas filteredItems está vazio e não há busca, mostrar Brasil
+        <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
+          {["Brasil"].map((country) => {
+            try {
+              const states = getStatesForCountry(country);
+              const totalCities = states.reduce((sum, state) => sum + state.cities.length, 0);
+              return (
+                <div
+                  key={country}
+                  onClick={() => handleCountryClick(country)}
+                  className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-all cursor-pointer"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="p-3 rounded-xl bg-primary/10 shrink-0">
+                      <Folder className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-card-foreground mb-1">{country}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {states.length} estado{states.length !== 1 ? "s" : ""} • {totalCities} cidade{totalCities !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                  </div>
+                </div>
+              );
+            } catch (error) {
+              console.error("Erro ao renderizar país:", country, error);
+              return null;
+            }
+          })}
         </div>
       ) : regions.length > 0 ? (
         <div className="flex flex-col items-center justify-center py-12">
