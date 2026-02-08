@@ -47,6 +47,7 @@ const RewardCard = ({
       className={`
         flex items-center gap-4 rounded-2xl bg-card p-4 shadow-md 
         transition-all duration-300 cursor-pointer w-full max-w-full box-border
+        border border-border
         ${available ? 'ring-2 ring-primary ring-inset' : 'opacity-75'}
         ${isPressed ? 'scale-[0.98] shadow-sm' : 'hover:shadow-lg'}
       `}
