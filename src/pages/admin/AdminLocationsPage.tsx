@@ -289,27 +289,27 @@ const AdminLocationsPage = () => {
       return;
     }
 
-    try {
-      const regionName = `${newRegion.city} - ${newRegion.stateName || newRegion.state}`;
-      
-      await addRegion({
-        name: regionName,
-        state: stateCode,
-        stateName: newRegion.stateName,
-        city: newRegion.city,
-        cityId: newRegion.cityId,
-        country: "Brasil",
-        active: true,
-      });
+    // Salvar dados antes de fechar o modal
+    const regionData = {
+      name: `${newRegion.city} - ${newRegion.stateName || newRegion.state}`,
+      state: stateCode,
+      stateName: newRegion.stateName,
+      city: newRegion.city,
+      cityId: newRegion.cityId,
+      country: "Brasil",
+      active: true,
+    };
 
-      // Limpar campos
-      setNewRegion({ state: "", stateName: "", stateCode: "", city: "", cityId: "" });
-      setCities([]);
-      
-      // Fechar modal imediatamente
-      setShowAddModal(false);
-      
-      // Toast de sucesso
+    // FECHAR MODAL IMEDIATAMENTE após validação
+    setShowAddModal(false);
+    
+    // Limpar campos
+    setNewRegion({ state: "", stateName: "", stateCode: "", city: "", cityId: "" });
+    setCities([]);
+
+    // Adicionar região em background (sem bloquear UI)
+    try {
+      await addRegion(regionData);
       toast.success("Região adicionada com sucesso");
     } catch (error) {
       console.error("Erro ao adicionar região:", error);
