@@ -292,14 +292,17 @@ const AdminLocationsPage = () => {
   }, [newRegion.stateCode]);
 
   // Filtrar regiões pela busca
-  const filteredRegions = regions.filter((region) => {
-    const matches = 
-      region.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      region.state?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      region.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      region.stateName?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matches;
-  });
+  const filteredRegions = searchQuery.trim()
+    ? regions.filter((region) => {
+        const query = searchQuery.toLowerCase();
+        return (
+          region.name?.toLowerCase().includes(query) ||
+          region.state?.toLowerCase().includes(query) ||
+          region.city?.toLowerCase().includes(query) ||
+          region.stateName?.toLowerCase().includes(query)
+        );
+      })
+    : regions; // Sem busca, mostrar todas as regiões
 
   // Debug: log para verificar o estado
   useEffect(() => {
@@ -474,18 +477,22 @@ const AdminLocationsPage = () => {
             </div>
           )}
         </div>
-      ) : filteredRegions.length === 0 && searchQuery ? (
+      ) : filteredRegions.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12">
           <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-2">Nenhuma região encontrada</p>
+          <p className="text-muted-foreground mb-2">
+            {searchQuery ? "Nenhuma região encontrada" : "Nenhuma região cadastrada"}
+          </p>
           <p className="text-sm text-muted-foreground">
-            Tente buscar com outros termos
+            {searchQuery ? "Tente buscar com outros termos" : "Adicione uma região para começar"}
           </p>
-          <p className="text-xs text-muted-foreground mt-2">
-            Total de regiões: {regions.length} | Busca: "{searchQuery}"
-          </p>
+          {searchQuery && (
+            <p className="text-xs text-muted-foreground mt-2">
+              Total de regiões: {regions.length} | Busca: "{searchQuery}"
+            </p>
+          )}
         </div>
-      ) : filteredRegions.length > 0 ? (
+      ) : (
         <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
           {filteredRegions.map((region) => (
             <div
