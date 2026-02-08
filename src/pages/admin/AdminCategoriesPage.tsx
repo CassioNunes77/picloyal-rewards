@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import {
   getAllCategories,
   addCategory,
+  updateCategory,
   deleteCategory,
   toggleCategoryActive,
   subscribeToCategories,
@@ -111,13 +112,18 @@ const AdminCategoriesPage = () => {
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [newCategory, setNewCategory] = useState({ name: "", icon: "" });
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editCategory, setEditCategory] = useState({ name: "", icon: "" });
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [showIconPicker, setShowIconPicker] = useState(false);
+  const [showEditIconPicker, setShowEditIconPicker] = useState(false);
   const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const [updatingCategoryId, setUpdatingCategoryId] = useState<string | null>(null);
 
   // Carregar categorias do Firestore e escutar mudanças em tempo real
   useEffect(() => {
@@ -180,12 +186,66 @@ const AdminCategoriesPage = () => {
     const category = categories.find((c) => c.id === id);
     if (!category) return;
 
+    setUpdatingCategoryId(id);
     try {
       await toggleCategoryActive(id, category.active);
-      toast.success("Status da categoria atualizado");
+      toast.success(`Categoria ${!category.active ? "ativada" : "desativada"} com sucesso`);
     } catch (error) {
       console.error("Erro ao atualizar status da categoria:", error);
       toast.error("Erro ao atualizar status da categoria");
+    } finally {
+      setUpdatingCategoryId(null);
+    }
+  };
+
+  const handleEditClick = (category: Category) => {
+    setEditingCategory(category);
+    setEditCategory({ name: category.name, icon: category.icon });
+    setShowEditIconPicker(false);
+    setShowEditModal(true);
+  };
+
+  const handleUpdateCategory = async () => {
+    if (!editingCategory) return;
+
+    if (!editCategory.name.trim()) {
+      toast.error("Preencha o nome da categoria");
+      return;
+    }
+    if (!editCategory.icon) {
+      toast.error("Selecione um ícone para a categoria");
+      return;
+    }
+
+    // Verificar se o nome foi alterado e se já existe outra categoria com esse nome
+    if (editCategory.name.toLowerCase() !== editingCategory.name.toLowerCase()) {
+      const categoryExists = categories.some(
+        (c) => c.id !== editingCategory.id && c.name.toLowerCase() === editCategory.name.toLowerCase()
+      );
+
+      if (categoryExists) {
+        toast.error("Esta categoria já está cadastrada");
+        return;
+      }
+    }
+
+    setUpdatingCategoryId(editingCategory.id);
+    try {
+      await updateCategory(editingCategory.id, {
+        name: editCategory.name.trim(),
+        icon: editCategory.icon,
+      });
+      toast.success("Categoria atualizada com sucesso");
+      setShowEditModal(false);
+      setEditingCategory(null);
+      setEditCategory({ name: "", icon: "" });
+      setShowEditIconPicker(false);
+    } catch (error: any) {
+      console.error("Erro ao atualizar categoria:", error);
+      const errorMessage = error?.message || "Erro desconhecido ao atualizar categoria";
+      toast.error(`Erro ao atualizar categoria: ${errorMessage}`);
+    } finally {
+      setUpdatingCategoryId(null);
     }
   };
 
@@ -343,8 +403,8 @@ const AdminCategoriesPage = () => {
             className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-all"
           >
             <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
                   {(() => {
                     const IconComponent = getIconComponent(category.icon);
                     return IconComponent ? (
@@ -354,30 +414,55 @@ const AdminCategoriesPage = () => {
                     );
                   })()}
                 </div>
-                <div>
-                  <h3 className="font-semibold text-card-foreground">{category.name}</h3>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-card-foreground truncate">{category.name}</h3>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${
+                        category.active
+                          ? "bg-green-100 text-green-700"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {category.active ? "Ativa" : "Inativa"}
+                    </span>
+                  </div>
                   <p className="text-sm text-muted-foreground">{category.productsCount} produtos</p>
                 </div>
               </div>
               <button
                 onClick={() => handleToggleActive(category.id)}
-                className={`p-2 rounded-lg transition-all ${
+                disabled={updatingCategoryId === category.id}
+                className={`p-2 rounded-lg transition-all shrink-0 ${
                   category.active
                     ? "bg-green-100 text-green-700 hover:bg-green-200"
                     : "bg-muted text-muted-foreground hover:bg-muted/80"
-                }`}
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                title={category.active ? "Desativar categoria" : "Ativar categoria"}
               >
-                {category.active ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                {updatingCategoryId === category.id ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : category.active ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  <X className="h-4 w-4" />
+                )}
               </button>
             </div>
             <div className="flex items-center justify-end gap-2 pt-4 border-t border-border">
-              <button className="p-2 rounded-lg text-muted-foreground hover:bg-muted transition-all">
+              <button
+                onClick={() => handleEditClick(category)}
+                disabled={updatingCategoryId === category.id || deletingCategoryId === category.id}
+                className="p-2 rounded-lg text-muted-foreground hover:bg-muted transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Editar categoria"
+              >
                 <Edit className="h-4 w-4" />
               </button>
               <button
                 onClick={() => handleDeleteClick(category)}
-                disabled={deletingCategoryId === category.id}
-                className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-all disabled:opacity-50"
+                disabled={deletingCategoryId === category.id || updatingCategoryId === category.id}
+                className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Excluir categoria"
               >
                 {deletingCategoryId === category.id ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -509,6 +594,144 @@ const AdminCategoriesPage = () => {
                 className="flex-1 px-4 py-3 rounded-xl gradient-primary text-primary-foreground font-medium hover:opacity-90 transition-all"
               >
                 Adicionar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Edição */}
+      {showEditModal && editingCategory && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowEditModal(false);
+              setShowEditIconPicker(false);
+              setEditingCategory(null);
+              setEditCategory({ name: "", icon: "" });
+            }
+          }}
+        >
+          <div className="bg-card rounded-2xl border border-border shadow-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-xl font-bold text-card-foreground mb-4">Editar Categoria</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-card-foreground mb-2">
+                  Nome da Categoria
+                </label>
+                <input
+                  type="text"
+                  value={editCategory.name}
+                  onChange={(e) => setEditCategory({ ...editCategory, name: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl bg-background text-card-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  placeholder="Ex: Eletrônicos"
+                  disabled={updatingCategoryId === editingCategory.id}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-card-foreground mb-2">
+                  Ícone
+                </label>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowEditIconPicker(!showEditIconPicker)}
+                    disabled={updatingCategoryId === editingCategory.id}
+                    className="w-full px-4 py-3 rounded-xl bg-background text-card-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 flex items-center justify-between hover:bg-muted/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <div className="flex items-center gap-3">
+                      {editCategory.icon ? (
+                        <>
+                          {(() => {
+                            const IconComponent = getIconComponent(editCategory.icon);
+                            return IconComponent ? (
+                              <IconComponent className="h-5 w-5 text-primary" />
+                            ) : null;
+                          })()}
+                          <span className="text-sm">{allIcons.find((i) => i.name === editCategory.icon)?.label || editCategory.icon}</span>
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground">Selecione um ícone</span>
+                      )}
+                    </div>
+                    <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${showEditIconPicker ? "rotate-90" : ""}`} />
+                  </button>
+
+                  {showEditIconPicker && (
+                    <div className="absolute z-10 mt-2 w-full bg-card border border-border rounded-xl shadow-lg p-4 max-h-96 overflow-y-auto">
+                      <div className="space-y-4">
+                        {Object.entries(iconCategories).map(([categoryName, icons]) => (
+                          <div key={categoryName}>
+                            <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-2 px-2">
+                              {categoryName === "compras" && "Compras"}
+                              {categoryName === "comida" && "Comida"}
+                              {categoryName === "saude" && "Saúde"}
+                              {categoryName === "servico" && "Serviço"}
+                              {categoryName === "geral" && "Geral"}
+                              {categoryName === "brindes" && "Brindes"}
+                            </h4>
+                            <div className="grid grid-cols-4 gap-2">
+                              {icons.map((iconData) => {
+                                const IconComponent = iconData.icon;
+                                const isSelected = editCategory.icon === iconData.name;
+                                return (
+                                  <button
+                                    key={iconData.name}
+                                    type="button"
+                                    onClick={() => {
+                                      setEditCategory({ ...editCategory, icon: iconData.name });
+                                      setShowEditIconPicker(false);
+                                    }}
+                                    className={`
+                                      flex flex-col items-center justify-center gap-1 p-3 rounded-lg
+                                      border-2 transition-all
+                                      ${isSelected
+                                        ? "border-primary bg-primary/10 text-primary"
+                                        : "border-border bg-background text-card-foreground hover:border-primary/50 hover:bg-muted/50"
+                                      }
+                                    `}
+                                  >
+                                    <IconComponent className="h-5 w-5" />
+                                    <span className="text-xs">{iconData.label}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setShowEditIconPicker(false);
+                  setEditingCategory(null);
+                  setEditCategory({ name: "", icon: "" });
+                }}
+                disabled={updatingCategoryId === editingCategory.id}
+                className="flex-1 px-4 py-3 rounded-xl bg-muted text-card-foreground font-medium hover:bg-muted/80 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleUpdateCategory}
+                disabled={updatingCategoryId === editingCategory.id}
+                className="flex-1 px-4 py-3 rounded-xl gradient-primary text-primary-foreground font-medium hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {updatingCategoryId === editingCategory.id ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  "Salvar Alterações"
+                )}
               </button>
             </div>
           </div>
