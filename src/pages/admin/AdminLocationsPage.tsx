@@ -276,12 +276,25 @@ const AdminLocationsPage = () => {
       return;
     }
 
+    // Verificar se a cidade já existe no mesmo estado
+    const stateCode = newRegion.stateCode || newRegion.state;
+    const cityExists = regions.some(
+      (r) =>
+        r.city?.toLowerCase() === newRegion.city.toLowerCase() &&
+        r.state.toLowerCase() === stateCode.toLowerCase()
+    );
+
+    if (cityExists) {
+      toast.error("Esta cidade já está cadastrada neste estado");
+      return;
+    }
+
     try {
       const regionName = `${newRegion.city} - ${newRegion.stateName || newRegion.state}`;
       
       await addRegion({
         name: regionName,
-        state: newRegion.stateCode || newRegion.state,
+        state: stateCode,
         stateName: newRegion.stateName,
         city: newRegion.city,
         cityId: newRegion.cityId,
@@ -289,9 +302,15 @@ const AdminLocationsPage = () => {
         active: true,
       });
 
+      // Fechar modal e limpar campos antes de mostrar toast
       setNewRegion({ state: "", stateName: "", stateCode: "", city: "", cityId: "" });
       setShowAddModal(false);
-      toast.success("Região adicionada com sucesso");
+      setCities([]);
+      
+      // Toast após fechar o modal
+      setTimeout(() => {
+        toast.success("Região adicionada com sucesso");
+      }, 100);
     } catch (error) {
       console.error("Erro ao adicionar região:", error);
       toast.error("Erro ao adicionar região. Tente novamente.");
