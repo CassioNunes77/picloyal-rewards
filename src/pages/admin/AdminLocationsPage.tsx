@@ -615,15 +615,13 @@ const AdminLocationsPage = () => {
             </p>
           )}
         </div>
-        {currentLevel === "city" && (
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl gradient-primary text-primary-foreground font-medium hover:opacity-90 transition-all"
-          >
-            <Plus className="h-5 w-5" />
-            Adicionar Cidade
-          </button>
-        )}
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl gradient-primary text-primary-foreground font-medium hover:opacity-90 transition-all"
+        >
+          <Plus className="h-5 w-5" />
+          Adicionar Região
+        </button>
       </div>
 
       {/* Breadcrumb */}
