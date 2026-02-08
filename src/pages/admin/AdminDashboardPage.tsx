@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Users,
   UserCheck,
@@ -10,22 +10,67 @@ import {
   Activity,
   ArrowUp,
   ArrowDown,
+  Loader2,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { getActiveUsersCount, getTotalUsersCount } from "@/services/usersService";
+import { getActiveRegionsCount } from "@/services/regionsService";
+import { firestore } from "@/lib/firebase";
 
 const AdminDashboardPage = () => {
   const isMobile = useIsMobile();
   const [selectedRegion, setSelectedRegion] = useState("all");
-
-  // Dados mockados - serão substituídos por dados reais depois
-  const stats = {
-    activeUsers: 12450,
-    onlineUsers: 3421,
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    activeUsers: 0,
+    onlineUsers: 0,
     totalStores: 856,
     totalSavings: 2450000,
     totalRedemptions: 18934,
-    activeRegions: 12,
-  };
+    activeRegions: 0,
+  });
+
+  // Carregar dados reais do Firebase
+  useEffect(() => {
+    const loadStats = async () => {
+      if (!firestore) {
+        console.error("❌ [AdminDashboardPage] Firestore não está configurado!");
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        console.log("🔍 [AdminDashboardPage] Carregando estatísticas do Firebase...");
+        
+        // Buscar usuários ativos e total de usuários em paralelo
+        const [activeUsersCount, totalUsersCount, activeRegionsCount] = await Promise.all([
+          getActiveUsersCount(),
+          getTotalUsersCount(),
+          getActiveRegionsCount(),
+        ]);
+
+        console.log("✅ [AdminDashboardPage] Estatísticas carregadas:", {
+          activeUsers: activeUsersCount,
+          totalUsers: totalUsersCount,
+          activeRegions: activeRegionsCount,
+        });
+
+        setStats((prev) => ({
+          ...prev,
+          activeUsers: activeUsersCount,
+          onlineUsers: totalUsersCount, // Por enquanto, usando total como online
+          activeRegions: activeRegionsCount,
+        }));
+      } catch (error) {
+        console.error("❌ [AdminDashboardPage] Erro ao carregar estatísticas:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStats();
+  }, []);
 
   const regions = [
     { id: "all", label: "Todas as Regiões" },
@@ -106,34 +151,41 @@ const AdminDashboardPage = () => {
       </div>
 
       {/* Estatísticas Principais */}
-      <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-4"} gap-4 mb-6`}>
-        <StatCard
-          title="Usuários Ativos"
-          value={stats.activeUsers.toLocaleString("pt-BR")}
-          icon={Users}
-          change="+12.5%"
-          trend="up"
-        />
-        <StatCard
-          title="Usuários Online"
-          value={stats.onlineUsers.toLocaleString("pt-BR")}
-          icon={UserCheck}
-          change="+8.2%"
-          trend="up"
-        />
-        <StatCard
-          title="Lojistas"
-          value={stats.totalStores.toLocaleString("pt-BR")}
-          icon={Store}
-          change="+3.1%"
-          trend="up"
-        />
-        <StatCard
-          title="Regiões Ativas"
-          value={stats.activeRegions}
-          icon={MapPin}
-        />
-      </div>
+      {loading ? (
+        <div className="flex items-center justify-center py-12 mb-6">
+          <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
+          <span className="ml-3 text-muted-foreground">Carregando estatísticas...</span>
+        </div>
+      ) : (
+        <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-4"} gap-4 mb-6`}>
+          <StatCard
+            title="Usuários Ativos"
+            value={stats.activeUsers.toLocaleString("pt-BR")}
+            icon={Users}
+            change="+12.5%"
+            trend="up"
+          />
+          <StatCard
+            title="Total de Usuários"
+            value={stats.onlineUsers.toLocaleString("pt-BR")}
+            icon={UserCheck}
+            change="+8.2%"
+            trend="up"
+          />
+          <StatCard
+            title="Lojistas"
+            value={stats.totalStores.toLocaleString("pt-BR")}
+            icon={Store}
+            change="+3.1%"
+            trend="up"
+          />
+          <StatCard
+            title="Regiões Ativas"
+            value={stats.activeRegions}
+            icon={MapPin}
+          />
+        </div>
+      )}
 
       {/* Estatísticas Secundárias */}
       <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4 mb-6`}>

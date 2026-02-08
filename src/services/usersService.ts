@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc, Timestamp, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, Timestamp, updateDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import type { User } from "firebase/auth";
 
@@ -275,5 +275,68 @@ export async function updateUserData(
     } else {
       throw new Error(`Erro ao atualizar usuário: ${error?.message || "Erro desconhecido"}`);
     }
+  }
+}
+
+/**
+ * Conta o total de usuários ativos no Firestore
+ * Um usuário é considerado ativo se fez login nos últimos 30 dias
+ */
+export async function getActiveUsersCount(): Promise<number> {
+  console.log("🔍 [usersService] getActiveUsersCount chamado");
+  
+  if (!firestore) {
+    console.error("❌ [usersService] Firestore não está configurado!");
+    return 0;
+  }
+  
+  try {
+    const usersRef = collection(firestore, COLLECTION_NAME);
+    const thirtyDaysAgo = Timestamp.fromDate(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
+    
+    // Buscar usuários que fizeram login nos últimos 30 dias
+    const q = query(usersRef, where("lastLoginAt", ">=", thirtyDaysAgo));
+    const querySnapshot = await getDocs(q);
+    
+    const count = querySnapshot.size;
+    console.log("✅ [usersService] Total de usuários ativos:", count);
+    return count;
+  } catch (error: any) {
+    console.error("❌ [usersService] Erro ao contar usuários ativos:", error);
+    
+    // Se a query falhar (por exemplo, índice não criado), retorna o total de usuários
+    try {
+      const usersRef = collection(firestore, COLLECTION_NAME);
+      const allUsersSnapshot = await getDocs(usersRef);
+      console.log("⚠️ [usersService] Retornando total de usuários (sem filtro de data):", allUsersSnapshot.size);
+      return allUsersSnapshot.size;
+    } catch (fallbackError) {
+      console.error("❌ [usersService] Erro ao contar todos os usuários:", fallbackError);
+      return 0;
+    }
+  }
+}
+
+/**
+ * Conta o total de usuários no Firestore
+ */
+export async function getTotalUsersCount(): Promise<number> {
+  console.log("🔍 [usersService] getTotalUsersCount chamado");
+  
+  if (!firestore) {
+    console.error("❌ [usersService] Firestore não está configurado!");
+    return 0;
+  }
+  
+  try {
+    const usersRef = collection(firestore, COLLECTION_NAME);
+    const querySnapshot = await getDocs(usersRef);
+    
+    const count = querySnapshot.size;
+    console.log("✅ [usersService] Total de usuários:", count);
+    return count;
+  } catch (error: any) {
+    console.error("❌ [usersService] Erro ao contar usuários:", error);
+    return 0;
   }
 }

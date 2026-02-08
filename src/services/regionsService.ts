@@ -171,11 +171,17 @@ export async function getActiveRegions(): Promise<Region[]> {
 
   try {
     const regionsRef = collection(firestore, COLLECTION_NAME);
-    const q = query(
-      regionsRef,
-      where("active", "==", true),
-      orderBy("createdAt", "desc")
-    );
+    let q;
+    try {
+      q = query(
+        regionsRef,
+        where("active", "==", true),
+        orderBy("createdAt", "desc")
+      );
+    } catch (orderByError: any) {
+      console.warn("⚠️ [regionsService] Erro com orderBy, tentando sem ordenação:", orderByError.message);
+      q = query(regionsRef, where("active", "==", true));
+    }
     const querySnapshot = await getDocs(q);
 
     return querySnapshot.docs.map((doc) =>
@@ -184,6 +190,50 @@ export async function getActiveRegions(): Promise<Region[]> {
   } catch (error) {
     console.error("Erro ao buscar regiões ativas:", error);
     throw error;
+  }
+}
+
+/**
+ * Conta o total de regiões ativas
+ */
+export async function getActiveRegionsCount(): Promise<number> {
+  console.log("🔍 [regionsService] getActiveRegionsCount chamado");
+  
+  if (!firestore) {
+    console.error("❌ [regionsService] Firestore não está configurado!");
+    return 0;
+  }
+
+  try {
+    const regionsRef = collection(firestore, COLLECTION_NAME);
+    let q;
+    try {
+      q = query(regionsRef, where("active", "==", true));
+    } catch (error: any) {
+      console.warn("⚠️ [regionsService] Erro ao criar query, tentando buscar todas e filtrar:", error.message);
+      // Fallback: buscar todas e filtrar manualmente
+      const allRegions = await getAllRegions();
+      const activeCount = allRegions.filter(r => r.active).length;
+      console.log("✅ [regionsService] Total de regiões ativas (fallback):", activeCount);
+      return activeCount;
+    }
+    
+    const querySnapshot = await getDocs(q);
+    const count = querySnapshot.size;
+    console.log("✅ [regionsService] Total de regiões ativas:", count);
+    return count;
+  } catch (error: any) {
+    console.error("❌ [regionsService] Erro ao contar regiões ativas:", error);
+    // Fallback: buscar todas e filtrar manualmente
+    try {
+      const allRegions = await getAllRegions();
+      const activeCount = allRegions.filter(r => r.active).length;
+      console.log("✅ [regionsService] Total de regiões ativas (fallback):", activeCount);
+      return activeCount;
+    } catch (fallbackError) {
+      console.error("❌ [regionsService] Erro no fallback:", fallbackError);
+      return 0;
+    }
   }
 }
 
