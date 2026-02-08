@@ -38,10 +38,13 @@ const AdminLoginPage = () => {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
               <Lock className="h-8 w-8 text-primary" />
             </div>
-            <h1 className="text-2xl font-bold text-card-foreground mb-2">
-              Painel Administrativo
+            <h1 className="text-2xl font-bold text-card-foreground mb-1">
+              Core+
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm font-medium text-card-foreground mb-2">
+              Painel Administrativo
+            </p>
+            <p className="text-xs text-muted-foreground">
               Acesso restrito ao administrador
             </p>
           </div>

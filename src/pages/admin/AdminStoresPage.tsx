@@ -76,7 +76,7 @@ const AdminStoresPage = () => {
         </div>
       </div>
 
-      <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
+      <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-3"} gap-4`}>
         {filteredStores.map((store) => (
           <div
             key={store.id}

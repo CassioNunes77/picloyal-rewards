@@ -336,7 +336,7 @@ const AdminCategoriesPage = () => {
           </p>
         </div>
       ) : (
-        <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3"} gap-4`}>
+        <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-4"} gap-4`}>
           {filteredCategories.map((category) => (
           <div
             key={category.id}

@@ -52,7 +52,10 @@ export default function AdminLayout() {
           >
             {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
-          <h2 className="font-bold text-lg text-card-foreground">Admin Panel</h2>
+          <div className="flex flex-col items-center">
+            <h2 className="font-bold text-lg text-card-foreground">Core+</h2>
+            <p className="text-xs text-muted-foreground">Painel Administrativo</p>
+          </div>
           <div className="w-9" />
         </header>
 
@@ -124,7 +127,7 @@ export default function AdminLayout() {
       {/* Sidebar */}
       <aside className="w-64 shrink-0 border-r border-border bg-card flex flex-col">
         <div className="p-6 border-b border-border">
-          <h2 className="font-bold text-xl text-card-foreground mb-1">Admin Panel</h2>
+          <h2 className="font-bold text-xl text-card-foreground mb-1">Core+</h2>
           <p className="text-xs text-muted-foreground">Painel Administrativo</p>
         </div>
 
