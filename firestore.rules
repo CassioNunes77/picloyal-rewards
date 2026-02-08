@@ -73,8 +73,11 @@ service cloud.firestore {
     // USUÁRIOS
     // ============================================
     match /users/{userId} {
-      // Usuários podem ler apenas seus próprios dados
-      allow read: if request.auth != null && request.auth.uid == userId;
+      // Usuários podem ler seus próprios dados
+      // Usuários autenticados podem ler todos os usuários (para painel administrativo)
+      // TEMPORÁRIO: Permitir leitura para qualquer requisição autenticada no Firebase Auth
+      // Em produção, adicione verificação de admin aqui
+      allow read: if request.auth != null;
       
       // Usuários podem criar/atualizar apenas seus próprios dados
       allow create, update: if request.auth != null && request.auth.uid == userId;

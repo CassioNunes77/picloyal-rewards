@@ -291,6 +291,16 @@ export async function getActiveUsersCount(): Promise<number> {
     return 0;
   }
   
+  // Verificar autenticação do Firebase Auth
+  const { auth } = await import("@/lib/firebase");
+  const currentUser = auth?.currentUser;
+  console.log("🔐 [usersService] Usuário Firebase Auth atual:", currentUser?.uid || "Nenhum");
+  
+  if (!currentUser) {
+    console.warn("⚠️ [usersService] Nenhum usuário autenticado no Firebase Auth. As regras do Firestore podem bloquear a leitura.");
+    console.warn("⚠️ [usersService] Tentando buscar mesmo assim...");
+  }
+  
   try {
     console.log("📁 [usersService] Coleção:", COLLECTION_NAME);
     console.log("🔐 [usersService] Firestore instance:", !!firestore);
@@ -307,6 +317,10 @@ export async function getActiveUsersCount(): Promise<number> {
     
     if (allUsersSnapshot.empty) {
       console.log("ℹ️ [usersService] Nenhum usuário encontrado no Firestore");
+      console.log("💡 [usersService] Possíveis causas:");
+      console.log("   1. Não há usuários cadastrados");
+      console.log("   2. Regras do Firestore estão bloqueando a leitura");
+      console.log("   3. Não há usuário autenticado no Firebase Auth");
       return 0;
     }
     

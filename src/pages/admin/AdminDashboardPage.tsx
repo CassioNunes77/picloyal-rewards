@@ -16,9 +16,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { getActiveUsersCount, getTotalUsersCount } from "@/services/usersService";
 import { getActiveRegionsCount } from "@/services/regionsService";
 import { firestore } from "@/lib/firebase";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AdminDashboardPage = () => {
   const isMobile = useIsMobile();
+  const { user: firebaseUser } = useAuth(); // Usar Firebase Auth para acessar Firestore
   const [selectedRegion, setSelectedRegion] = useState("all");
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -39,9 +41,16 @@ const AdminDashboardPage = () => {
         return;
       }
 
+      // Verificar se há usuário autenticado no Firebase Auth
+      if (!firebaseUser) {
+        console.warn("⚠️ [AdminDashboardPage] Nenhum usuário autenticado no Firebase Auth. As regras do Firestore podem bloquear a leitura.");
+        console.warn("⚠️ [AdminDashboardPage] Para o painel admin funcionar, é necessário estar autenticado no Firebase Auth também.");
+      }
+
       setLoading(true);
       try {
         console.log("🔍 [AdminDashboardPage] Carregando estatísticas do Firebase...");
+        console.log("🔐 [AdminDashboardPage] Usuário Firebase Auth:", firebaseUser?.uid || "Nenhum");
         
         // Buscar usuários ativos e total de usuários em paralelo
         const [activeUsersCount, totalUsersCount, activeRegionsCount] = await Promise.all([
@@ -64,13 +73,14 @@ const AdminDashboardPage = () => {
         }));
       } catch (error) {
         console.error("❌ [AdminDashboardPage] Erro ao carregar estatísticas:", error);
+        console.error("❌ [AdminDashboardPage] Detalhes do erro:", error);
       } finally {
         setLoading(false);
       }
     };
 
     loadStats();
-  }, []);
+  }, [firebaseUser]);
 
   const regions = [
     { id: "all", label: "Todas as Regiões" },
