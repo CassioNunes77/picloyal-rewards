@@ -292,16 +292,34 @@ export async function getActiveUsersCount(): Promise<number> {
   }
   
   try {
+    console.log("📁 [usersService] Coleção:", COLLECTION_NAME);
+    console.log("🔐 [usersService] Firestore instance:", !!firestore);
+    
     // Primeiro, tentar buscar todos os usuários para verificar se há dados
     const usersRef = collection(firestore, COLLECTION_NAME);
+    console.log("📝 [usersService] Collection reference criada:", !!usersRef);
+    
+    console.log("⏳ [usersService] Buscando todos os usuários...");
     const allUsersSnapshot = await getDocs(usersRef);
+    
+    console.log("📊 [usersService] Query executada. Empty?", allUsersSnapshot.empty);
+    console.log("📊 [usersService] Total de documentos retornados:", allUsersSnapshot.size);
     
     if (allUsersSnapshot.empty) {
       console.log("ℹ️ [usersService] Nenhum usuário encontrado no Firestore");
       return 0;
     }
     
-    console.log("📊 [usersService] Total de usuários no Firestore:", allUsersSnapshot.size);
+    // Log detalhado de cada documento
+    console.log("📋 [usersService] Detalhes dos documentos encontrados:");
+    allUsersSnapshot.docs.forEach((doc, index) => {
+      const data = doc.data();
+      console.log(`  ${index + 1}. ID: ${doc.id}`);
+      console.log(`     Email: ${data.email || "N/A"}`);
+      console.log(`     DisplayName: ${data.displayName || "N/A"}`);
+      console.log(`     lastLoginAt: ${data.lastLoginAt ? (data.lastLoginAt.toDate ? data.lastLoginAt.toDate().toISOString() : data.lastLoginAt) : "N/A"}`);
+      console.log(`     createdAt: ${data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate().toISOString() : data.createdAt) : "N/A"}`);
+    });
     
     // Verificar se os usuários têm lastLoginAt
     let usersWithLastLogin = 0;
@@ -321,13 +339,15 @@ export async function getActiveUsersCount(): Promise<number> {
     
     // Se nenhum usuário tem lastLoginAt, retornar o total (todos são considerados ativos)
     if (usersWithLastLogin === 0) {
-      console.log("⚠️ [usersService] Nenhum usuário tem lastLoginAt, retornando total como ativos");
+      console.log("⚠️ [usersService] Nenhum usuário tem lastLoginAt, retornando total como ativos:", allUsersSnapshot.size);
       return allUsersSnapshot.size;
     }
     
     // Tentar filtrar por data de login
     try {
       const thirtyDaysAgo = Timestamp.fromDate(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
+      console.log("📅 [usersService] Buscando usuários com lastLoginAt >= ", thirtyDaysAgo.toDate().toISOString());
+      
       const q = query(usersRef, where("lastLoginAt", ">=", thirtyDaysAgo));
       const activeUsersSnapshot = await getDocs(q);
       
@@ -344,27 +364,36 @@ export async function getActiveUsersCount(): Promise<number> {
       // Se não encontrou nenhum usuário ativo nos últimos 30 dias, mas há usuários cadastrados,
       // retornar o total (considerar todos como ativos se não há filtro válido)
       if (activeCount === 0 && allUsersSnapshot.size > 0) {
-        console.log("⚠️ [usersService] Nenhum usuário ativo nos últimos 30 dias, mas há usuários cadastrados. Retornando total.");
+        console.log("⚠️ [usersService] Nenhum usuário ativo nos últimos 30 dias, mas há usuários cadastrados. Retornando total:", allUsersSnapshot.size);
         return allUsersSnapshot.size;
       }
       
+      console.log("✅ [usersService] Retornando contagem de usuários ativos:", activeCount);
       return activeCount;
     } catch (queryError: any) {
       console.warn("⚠️ [usersService] Erro ao filtrar por data (índice pode não existir):", queryError.message);
-      console.log("⚠️ [usersService] Retornando total de usuários como ativos");
+      console.warn("⚠️ [usersService] Código do erro:", queryError.code);
+      console.log("⚠️ [usersService] Retornando total de usuários como ativos:", allUsersSnapshot.size);
       // Se a query falhar (índice não criado), retornar todos os usuários como ativos
       return allUsersSnapshot.size;
     }
   } catch (error: any) {
     console.error("❌ [usersService] Erro ao contar usuários ativos:", error);
+    console.error("❌ [usersService] Código do erro:", error?.code);
+    console.error("❌ [usersService] Mensagem do erro:", error?.message);
+    console.error("❌ [usersService] Stack do erro:", error?.stack);
+    
     // Em caso de erro geral, tentar pelo menos contar todos os usuários
     try {
+      console.log("🔄 [usersService] Tentando fallback: buscar todos os usuários...");
       const usersRef = collection(firestore, COLLECTION_NAME);
       const allUsersSnapshot = await getDocs(usersRef);
       console.log("⚠️ [usersService] Retornando total de usuários (fallback após erro):", allUsersSnapshot.size);
       return allUsersSnapshot.size;
-    } catch (fallbackError) {
+    } catch (fallbackError: any) {
       console.error("❌ [usersService] Erro no fallback:", fallbackError);
+      console.error("❌ [usersService] Código do erro (fallback):", fallbackError?.code);
+      console.error("❌ [usersService] Mensagem do erro (fallback):", fallbackError?.message);
       return 0;
     }
   }
