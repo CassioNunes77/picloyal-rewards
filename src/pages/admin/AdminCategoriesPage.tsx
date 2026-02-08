@@ -21,7 +21,6 @@ import {
   Stethoscope,
   Wrench,
   Settings,
-  Tool,
   Briefcase,
   Package,
   Grid,
@@ -64,13 +63,13 @@ const iconCategories = {
   servico: [
     { name: "Wrench", icon: Wrench, label: "Chave" },
     { name: "Settings", icon: Settings, label: "Configurações" },
-    { name: "Tool", icon: Tool, label: "Ferramenta" },
     { name: "Briefcase", icon: Briefcase, label: "Maleta" },
+    { name: "Grid", icon: Grid, label: "Serviços" },
   ],
   geral: [
     { name: "Tag", icon: Tag, label: "Tag" },
-    { name: "Grid", icon: Grid, label: "Grade" },
     { name: "Package", icon: Package, label: "Pacote" },
+    { name: "Award", icon: Award, label: "Geral" },
   ],
   brindes: [
     { name: "Gift", icon: Gift, label: "Presente" },
