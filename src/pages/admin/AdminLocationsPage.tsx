@@ -606,7 +606,7 @@ const AdminLocationsPage = () => {
           <p className="text-sm text-muted-foreground">
             Gerenciar regiões e localizações
             {regions.length > 0 && (
-              <span className="ml-2 text-xs">({regions.length} região{regions.length !== 1 ? "ões" : ""} cadastrada{regions.length !== 1 ? "s" : ""})</span>
+              <span className="ml-2 text-xs">({regions.length} {regions.length !== 1 ? "regiões" : "região"} cadastrada{regions.length !== 1 ? "s" : ""})</span>
             )}
           </p>
           {!firestore && (
