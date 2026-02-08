@@ -152,9 +152,9 @@ const RewardsPage = () => {
             <p className="text-sm text-muted-foreground">Tente buscar com outros termos</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4 w-full max-w-full">
+          <div className="grid grid-cols-2 gap-4 w-full overflow-hidden">
             {filteredRewards.map((reward, index) => (
-              <div key={index} className="min-w-0">
+              <div key={index} className="min-w-0 overflow-hidden">
                 <RewardCard
                   {...reward}
                   onClaim={() => handleClaimReward(reward.title)}

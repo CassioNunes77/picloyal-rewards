@@ -46,8 +46,8 @@ const RewardCard = ({
       onClick={onClick}
       className={`
         flex items-center gap-4 rounded-2xl bg-card p-4 shadow-md 
-        transition-all duration-300 cursor-pointer w-full max-w-full
-        ${available ? 'ring-2 ring-primary ring-offset-0' : 'opacity-75'}
+        transition-all duration-300 cursor-pointer w-full max-w-full box-border
+        ${available ? 'ring-2 ring-primary ring-inset' : 'opacity-75'}
         ${isPressed ? 'scale-[0.98] shadow-sm' : 'hover:shadow-lg'}
       `}
       onMouseDown={() => setIsPressed(true)}
