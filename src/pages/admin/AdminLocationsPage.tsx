@@ -219,16 +219,12 @@ const AdminLocationsPage = () => {
       return;
     }
 
-    // Verificar se há usuário autenticado no Firebase Auth
-    if (!firebaseUser) {
-      console.warn("⚠️ [AdminLocationsPage] Nenhum usuário autenticado no Firebase Auth. As regras do Firestore podem bloquear a leitura.");
-      console.warn("⚠️ [AdminLocationsPage] Para o painel admin funcionar, é necessário estar autenticado no Firebase Auth também.");
-      toast.warning("É necessário estar autenticado no Firebase para acessar as regiões.");
-      setLoadingRegions(false);
-      return;
+    // Log de autenticação Firebase (opcional, mas útil para debug)
+    if (firebaseUser) {
+      console.log("🔐 [AdminLocationsPage] Usuário Firebase Auth:", firebaseUser.uid);
+    } else {
+      console.log("ℹ️ [AdminLocationsPage] Nenhum usuário Firebase Auth (leitura pública permitida pelas regras)");
     }
-
-    console.log("🔐 [AdminLocationsPage] Usuário Firebase Auth:", firebaseUser?.uid || "Nenhum");
 
     setLoadingRegions(true);
     console.log("🔍 [AdminLocationsPage] Iniciando carregamento de regiões do Firebase...");
