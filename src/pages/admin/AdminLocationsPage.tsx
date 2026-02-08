@@ -396,7 +396,12 @@ const AdminLocationsPage = () => {
             return filtered;
           }
           
-          // Se há busca mas não encontrou nada, retornar vazio (mostrar mensagem "não encontrado")
+          // Se há busca mas não encontrou nada, ainda retornar "Brasil" se não há busca específica ou se a busca inclui "brasil"
+          if (!searchQuery || searchQuery.toLowerCase().includes("brasil")) {
+            return countries.length > 0 ? countries : ["Brasil"];
+          }
+          
+          // Se há busca específica que não encontrou nada, retornar vazio (mostrar mensagem "não encontrado")
           return [];
         }
         return [];
@@ -694,10 +699,10 @@ const AdminLocationsPage = () => {
             </div>
           )}
         </div>
-      ) : filteredItems.length > 0 ? (
+      ) : (filteredItems.length > 0 || (regions.length > 0 && currentLevel === "country")) ? (
         <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
           {currentLevel === "country" &&
-            filteredItems.map((country) => {
+            (filteredItems.length > 0 ? filteredItems : (regions.length > 0 ? ["Brasil"] : [])).map((country) => {
               try {
                 const states = getStatesForCountry(country);
                 const totalCities = states.reduce((sum, state) => sum + state.cities.length, 0);
