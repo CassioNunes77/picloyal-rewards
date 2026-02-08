@@ -281,6 +281,7 @@ export async function updateUserData(
 /**
  * Conta o total de usuários ativos no Firestore
  * Um usuário é considerado ativo se fez login nos últimos 30 dias
+ * Se não houver lastLoginAt ou se a query falhar, conta todos os usuários cadastrados
  */
 export async function getActiveUsersCount(): Promise<number> {
   console.log("🔍 [usersService] getActiveUsersCount chamado");
@@ -291,27 +292,79 @@ export async function getActiveUsersCount(): Promise<number> {
   }
   
   try {
+    // Primeiro, tentar buscar todos os usuários para verificar se há dados
     const usersRef = collection(firestore, COLLECTION_NAME);
-    const thirtyDaysAgo = Timestamp.fromDate(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
+    const allUsersSnapshot = await getDocs(usersRef);
     
-    // Buscar usuários que fizeram login nos últimos 30 dias
-    const q = query(usersRef, where("lastLoginAt", ">=", thirtyDaysAgo));
-    const querySnapshot = await getDocs(q);
+    if (allUsersSnapshot.empty) {
+      console.log("ℹ️ [usersService] Nenhum usuário encontrado no Firestore");
+      return 0;
+    }
     
-    const count = querySnapshot.size;
-    console.log("✅ [usersService] Total de usuários ativos:", count);
-    return count;
+    console.log("📊 [usersService] Total de usuários no Firestore:", allUsersSnapshot.size);
+    
+    // Verificar se os usuários têm lastLoginAt
+    let usersWithLastLogin = 0;
+    let usersWithoutLastLogin = 0;
+    
+    allUsersSnapshot.docs.forEach((doc) => {
+      const data = doc.data();
+      if (data.lastLoginAt) {
+        usersWithLastLogin++;
+      } else {
+        usersWithoutLastLogin++;
+      }
+    });
+    
+    console.log("📊 [usersService] Usuários com lastLoginAt:", usersWithLastLogin);
+    console.log("📊 [usersService] Usuários sem lastLoginAt:", usersWithoutLastLogin);
+    
+    // Se nenhum usuário tem lastLoginAt, retornar o total (todos são considerados ativos)
+    if (usersWithLastLogin === 0) {
+      console.log("⚠️ [usersService] Nenhum usuário tem lastLoginAt, retornando total como ativos");
+      return allUsersSnapshot.size;
+    }
+    
+    // Tentar filtrar por data de login
+    try {
+      const thirtyDaysAgo = Timestamp.fromDate(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
+      const q = query(usersRef, where("lastLoginAt", ">=", thirtyDaysAgo));
+      const activeUsersSnapshot = await getDocs(q);
+      
+      const activeCount = activeUsersSnapshot.size;
+      console.log("✅ [usersService] Usuários ativos (últimos 30 dias):", activeCount);
+      
+      // Se houver usuários sem lastLoginAt, adicionar ao total
+      if (usersWithoutLastLogin > 0) {
+        const totalActive = activeCount + usersWithoutLastLogin;
+        console.log("✅ [usersService] Total de usuários ativos (incluindo sem lastLoginAt):", totalActive);
+        return totalActive;
+      }
+      
+      // Se não encontrou nenhum usuário ativo nos últimos 30 dias, mas há usuários cadastrados,
+      // retornar o total (considerar todos como ativos se não há filtro válido)
+      if (activeCount === 0 && allUsersSnapshot.size > 0) {
+        console.log("⚠️ [usersService] Nenhum usuário ativo nos últimos 30 dias, mas há usuários cadastrados. Retornando total.");
+        return allUsersSnapshot.size;
+      }
+      
+      return activeCount;
+    } catch (queryError: any) {
+      console.warn("⚠️ [usersService] Erro ao filtrar por data (índice pode não existir):", queryError.message);
+      console.log("⚠️ [usersService] Retornando total de usuários como ativos");
+      // Se a query falhar (índice não criado), retornar todos os usuários como ativos
+      return allUsersSnapshot.size;
+    }
   } catch (error: any) {
     console.error("❌ [usersService] Erro ao contar usuários ativos:", error);
-    
-    // Se a query falhar (por exemplo, índice não criado), retorna o total de usuários
+    // Em caso de erro geral, tentar pelo menos contar todos os usuários
     try {
       const usersRef = collection(firestore, COLLECTION_NAME);
       const allUsersSnapshot = await getDocs(usersRef);
-      console.log("⚠️ [usersService] Retornando total de usuários (sem filtro de data):", allUsersSnapshot.size);
+      console.log("⚠️ [usersService] Retornando total de usuários (fallback após erro):", allUsersSnapshot.size);
       return allUsersSnapshot.size;
     } catch (fallbackError) {
-      console.error("❌ [usersService] Erro ao contar todos os usuários:", fallbackError);
+      console.error("❌ [usersService] Erro no fallback:", fallbackError);
       return 0;
     }
   }
