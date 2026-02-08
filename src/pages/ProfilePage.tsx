@@ -175,56 +175,66 @@ const ProfilePage = () => {
             </div>
             <button onClick={handleEditProfile} className="text-sm font-medium text-primary hover:underline">Editar</button>
           </div>
-          <div className="bg-card rounded-2xl border border-border p-5 shadow-sm mb-6">{profileHeader}</div>
-          <div className="mb-6 grid grid-cols-3 gap-4">
-            {userStats.map((stat, index) => {
-              const Icon = stat.icon;
-              return (
-                <div key={index} className="bg-card rounded-xl p-4 text-center shadow-md border border-border">
-                  <Icon className={`h-6 w-6 mx-auto mb-2 ${stat.color}`} />
-                  <p className="text-xl font-bold text-card-foreground">{stat.value}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
+          
+          <div className="grid grid-cols-2 gap-6">
+            {/* Coluna Esquerda: Informações Iniciais e Pessoais */}
+            <div className="space-y-6">
+              <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">{profileHeader}</div>
+              <div className="grid grid-cols-3 gap-4">
+                {userStats.map((stat, index) => {
+                  const Icon = stat.icon;
+                  return (
+                    <div key={index} className="bg-card rounded-xl p-4 text-center shadow-md border border-border">
+                      <Icon className={`h-6 w-6 mx-auto mb-2 ${stat.color}`} />
+                      <p className="text-xl font-bold text-card-foreground">{stat.value}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
+                    </div>
+                  );
+                })}
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Informações Pessoais</h3>
+                <div className="space-y-2">
+                  <ProfileInfoItem icon={Mail} label="E-mail" value={user.email ?? ""} delay={0} onEdit={() => {
+                    setTempEmail(user?.email ?? "");
+                    setTempPassword("");
+                    setEditDialog("email");
+                  }} />
+                  <ProfileInfoItem icon={Phone} label="Telefone" value={profilePhone || "—"} delay={0} onEdit={() => {
+                    setTempPhone(profilePhone);
+                    setEditDialog("phone");
+                  }} />
                 </div>
-              );
-            })}
-          </div>
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Informações Pessoais</h3>
-            <div className="space-y-2">
-              <ProfileInfoItem icon={Mail} label="E-mail" value={user.email ?? ""} delay={0} onEdit={() => {
-                setTempEmail(user?.email ?? "");
-                setTempPassword("");
-                setEditDialog("email");
-              }} />
-              <ProfileInfoItem icon={Phone} label="Telefone" value={profilePhone || "—"} delay={0} onEdit={() => {
-                setTempPhone(profilePhone);
-                setEditDialog("phone");
-              }} />
+              </div>
             </div>
-          </div>
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Preferências</h3>
-            <div className="space-y-2">
-              <ProfileInfoItem icon={Bell} label="Notificações" value={notifications ? "Ativadas" : "Desativadas"} delay={0} onEdit={() => setNotifications(!notifications)} />
-            </div>
-          </div>
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Conta</h3>
-            <div className="space-y-2">
-              <button onClick={() => toast.info("Abrindo histórico...")} className="w-full flex items-center gap-3 p-3 rounded-xl bg-card border border-border text-left hover:bg-muted/50">
-                <CreditCard className="h-5 w-5 text-muted-foreground" />
-                <span className="text-card-foreground">Histórico de Recompensas</span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />
-              </button>
-              <button onClick={() => toast.info("Abrindo configurações de segurança...")} className="w-full flex items-center gap-3 p-3 rounded-xl bg-card border border-border text-left hover:bg-muted/50">
-                <Shield className="h-5 w-5 text-muted-foreground" />
-                <span className="text-card-foreground">Segurança</span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />
-              </button>
-              <button onClick={handleLogout} className="w-full flex items-center gap-3 p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive hover:bg-destructive/20">
-                <LogOut className="h-5 w-5" />
-                <span className="font-medium">Sair da conta</span>
-              </button>
+
+            {/* Coluna Direita: Preferências e Conta */}
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Preferências</h3>
+                <div className="space-y-2">
+                  <ProfileInfoItem icon={Bell} label="Notificações" value={notifications ? "Ativadas" : "Desativadas"} delay={0} onEdit={() => setNotifications(!notifications)} />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Conta</h3>
+                <div className="space-y-2">
+                  <button onClick={() => toast.info("Abrindo histórico...")} className="w-full flex items-center gap-3 p-3 rounded-xl bg-card border border-border text-left hover:bg-muted/50">
+                    <CreditCard className="h-5 w-5 text-muted-foreground" />
+                    <span className="text-card-foreground">Histórico de Recompensas</span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />
+                  </button>
+                  <button onClick={() => toast.info("Abrindo configurações de segurança...")} className="w-full flex items-center gap-3 p-3 rounded-xl bg-card border border-border text-left hover:bg-muted/50">
+                    <Shield className="h-5 w-5 text-muted-foreground" />
+                    <span className="text-card-foreground">Segurança</span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />
+                  </button>
+                  <button onClick={handleLogout} className="w-full flex items-center gap-3 p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive hover:bg-destructive/20">
+                    <LogOut className="h-5 w-5" />
+                    <span className="font-medium">Sair da conta</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
