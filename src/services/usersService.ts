@@ -18,6 +18,12 @@ export interface UserData {
   // Dados adicionais do perfil
   phone?: string;
   
+  // Preferências do usuário
+  preferences?: {
+    darkMode?: boolean;
+    notifications?: boolean;
+  };
+  
   // Metadados
   createdAt: Date;
   updatedAt: Date;
@@ -28,10 +34,6 @@ export interface UserData {
   // points?: number;
   // stamps?: number;
   // rewards?: string[];
-  // preferences?: {
-  //   notifications?: boolean;
-  //   darkMode?: boolean;
-  // };
 }
 
 /**
@@ -44,6 +46,10 @@ interface UserDataFirestore {
   photoURL: string | null;
   phoneNumber: string | null;
   phone?: string;
+  preferences?: {
+    darkMode?: boolean;
+    notifications?: boolean;
+  };
   createdAt: Timestamp;
   updatedAt: Timestamp;
   lastLoginAt: Timestamp;
@@ -95,6 +101,7 @@ function firestoreToUserData(docId: string, data: any): UserData {
       photoURL: data.photoURL || null,
       phoneNumber: data.phoneNumber || null,
       phone: data.phone || undefined,
+      preferences: data.preferences || undefined,
       createdAt,
       updatedAt,
       lastLoginAt,
@@ -120,6 +127,7 @@ function userDataToFirestore(userData: Partial<UserData>): Partial<UserDataFires
   if (userData.photoURL !== undefined) result.photoURL = userData.photoURL;
   if (userData.phoneNumber !== undefined) result.phoneNumber = userData.phoneNumber;
   if (userData.phone !== undefined) result.phone = userData.phone;
+  if (userData.preferences !== undefined) result.preferences = userData.preferences;
   if (userData.createdAt) {
     result.createdAt = userData.createdAt instanceof Timestamp 
       ? userData.createdAt 
@@ -261,6 +269,19 @@ export async function updateUserData(
   
   try {
     const userRef = doc(firestore, COLLECTION_NAME, userId);
+    
+    // Se estamos atualizando preferências, mesclar com as existentes
+    if (updates.preferences) {
+      const userSnap = await getDoc(userRef);
+      const existingData = userSnap.exists() ? userSnap.data() : null;
+      const existingPreferences = existingData?.preferences || {};
+      
+      updates.preferences = {
+        ...existingPreferences,
+        ...updates.preferences,
+      };
+    }
+    
     const updateData = userDataToFirestore(updates);
     
     await updateDoc(userRef, updateData);
