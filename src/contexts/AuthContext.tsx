@@ -24,6 +24,7 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, firestore } from "@/lib/firebase";
+import { createOrUpdateUser } from "@/services/usersService";
 
 export const AUTH_REQUIRES_RECENT_LOGIN = "auth/requires-recent-login";
 
@@ -87,8 +88,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     getRedirectResult(auth)
       .catch(() => {})
       .finally(() => {});
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
+      
+      // Persistir usuário no Firestore quando fizer login
+      if (firebaseUser) {
+        try {
+          console.log("🔍 [AuthContext] Usuário autenticado, persistindo no Firestore...");
+          await createOrUpdateUser(firebaseUser);
+          console.log("✅ [AuthContext] Usuário persistido no Firestore com sucesso");
+        } catch (error) {
+          console.error("❌ [AuthContext] Erro ao persistir usuário no Firestore:", error);
+          // Não bloqueia o login se houver erro ao persistir no Firestore
+          // O usuário ainda pode usar o app, mas os dados não serão salvos
+        }
+      }
+      
       setLoading(false);
     });
     return () => unsubscribe();

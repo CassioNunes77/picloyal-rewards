@@ -19,12 +19,12 @@ import { useState, useEffect } from "react";
 
 const adminNavItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "dashboard" },
+  { id: "analytics", label: "Analytics", icon: BarChart3, path: "analytics" },
   { id: "locations", label: "Localização", icon: MapPin, path: "locations" },
   { id: "categories", label: "Categorias", icon: Tag, path: "categories" },
   { id: "stores", label: "Lojas", icon: Store, path: "stores" },
   { id: "products", label: "Produtos", icon: Package, path: "products" },
   { id: "feedback", label: "Feedback", icon: MessageSquare, path: "feedback" },
-  { id: "analytics", label: "Analytics", icon: BarChart3, path: "analytics" },
 ];
 
 export default function AdminLayout() {
