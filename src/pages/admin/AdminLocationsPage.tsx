@@ -1,19 +1,27 @@
 import { useState, useEffect, useRef } from "react";
-import { MapPin, Plus, Search, Edit, Trash2, Check, X, Loader2 } from "lucide-react";
+import { MapPin, Plus, Search, Trash2, Check, X, Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
-interface Region {
-  id: string;
-  name: string;
-  state: string;
-  stateName?: string;
-  city?: string;
-  country: string;
-  active: boolean;
-  storesCount: number;
-}
+import {
+  getAllRegions,
+  addRegion,
+  updateRegion,
+  deleteRegion,
+  toggleRegionActive,
+  subscribeToRegions,
+  type Region,
+} from "@/services/regionsService";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface LocationOption {
   id: string;
@@ -169,14 +177,10 @@ const AdminLocationsPage = () => {
   const [cities, setCities] = useState<LocationOption[]>([]);
   const [loadingStates, setLoadingStates] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
-
-  // Dados mockados
-  const [regions, setRegions] = useState<Region[]>([
-    { id: "1", name: "São Paulo - Centro", state: "SP", stateName: "São Paulo", city: "São Paulo", country: "Brasil", active: true, storesCount: 245 },
-    { id: "2", name: "Rio de Janeiro - Zona Sul", state: "RJ", stateName: "Rio de Janeiro", city: "Rio de Janeiro", country: "Brasil", active: true, storesCount: 189 },
-    { id: "3", name: "Belo Horizonte - Centro", state: "MG", stateName: "Minas Gerais", city: "Belo Horizonte", country: "Brasil", active: true, storesCount: 156 },
-    { id: "4", name: "Porto Alegre - Centro", state: "RS", stateName: "Rio Grande do Sul", city: "Porto Alegre", country: "Brasil", active: false, storesCount: 98 },
-  ]);
+  const [regions, setRegions] = useState<Region[]>([]);
+  const [loadingRegions, setLoadingRegions] = useState(true);
+  const [deletingRegionId, setDeletingRegionId] = useState<string | null>(null);
+  const [regionToDelete, setRegionToDelete] = useState<Region | null>(null);
 
   // Carregar estados do IBGE ao montar o componente
   useEffect(() => {
@@ -200,6 +204,21 @@ const AdminLocationsPage = () => {
     };
 
     fetchStates();
+  }, []);
+
+  // Carregar regiões do Firestore e escutar mudanças em tempo real
+  useEffect(() => {
+    setLoadingRegions(true);
+    
+    // Escuta mudanças em tempo real
+    const unsubscribe = subscribeToRegions((updatedRegions) => {
+      setRegions(updatedRegions);
+      setLoadingRegions(false);
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   // Carregar cidades quando um estado é selecionado
@@ -238,31 +257,65 @@ const AdminLocationsPage = () => {
     region.city?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleToggleActive = (id: string) => {
-    setRegions(regions.map((r) => (r.id === id ? { ...r, active: !r.active } : r)));
-    toast.success("Status da região atualizado");
+  const handleToggleActive = async (id: string) => {
+    const region = regions.find((r) => r.id === id);
+    if (!region) return;
+
+    try {
+      await toggleRegionActive(id, region.active);
+      toast.success("Status da região atualizado");
+    } catch (error) {
+      console.error("Erro ao atualizar status da região:", error);
+      toast.error("Erro ao atualizar status da região");
+    }
   };
 
-  const handleAddRegion = () => {
+  const handleAddRegion = async () => {
     if (!newRegion.state || !newRegion.city) {
       toast.error("Preencha todos os campos obrigatórios");
       return;
     }
-    const regionName = `${newRegion.city} - ${newRegion.stateName || newRegion.state}`;
-    const region: Region = {
-      id: Date.now().toString(),
-      name: regionName,
-      state: newRegion.stateCode || newRegion.state,
-      stateName: newRegion.stateName,
-      city: newRegion.city,
-      country: "Brasil",
-      active: true,
-      storesCount: 0,
-    };
-    setRegions([...regions, region]);
-    setNewRegion({ state: "", stateName: "", stateCode: "", city: "", cityId: "" });
-    setShowAddModal(false);
-    toast.success("Região adicionada com sucesso");
+
+    try {
+      const regionName = `${newRegion.city} - ${newRegion.stateName || newRegion.state}`;
+      
+      await addRegion({
+        name: regionName,
+        state: newRegion.stateCode || newRegion.state,
+        stateName: newRegion.stateName,
+        city: newRegion.city,
+        cityId: newRegion.cityId,
+        country: "Brasil",
+        active: true,
+      });
+
+      setNewRegion({ state: "", stateName: "", stateCode: "", city: "", cityId: "" });
+      setShowAddModal(false);
+      toast.success("Região adicionada com sucesso");
+    } catch (error) {
+      console.error("Erro ao adicionar região:", error);
+      toast.error("Erro ao adicionar região. Tente novamente.");
+    }
+  };
+
+  const handleDeleteClick = (region: Region) => {
+    setRegionToDelete(region);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!regionToDelete) return;
+
+    setDeletingRegionId(regionToDelete.id);
+    try {
+      await deleteRegion(regionToDelete.id);
+      toast.success("Região excluída com sucesso");
+      setRegionToDelete(null);
+    } catch (error) {
+      console.error("Erro ao excluir região:", error);
+      toast.error("Erro ao excluir região. Tente novamente.");
+    } finally {
+      setDeletingRegionId(null);
+    }
   };
 
   return (
@@ -296,19 +349,44 @@ const AdminLocationsPage = () => {
       </div>
 
       {/* Lista de Regiões */}
-      <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
-        {filteredRegions.map((region) => (
+      {loadingRegions ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
+          <span className="ml-3 text-muted-foreground">Carregando regiões...</span>
+        </div>
+      ) : filteredRegions.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
+          <p className="text-muted-foreground mb-2">Nenhuma região encontrada</p>
+          <p className="text-sm text-muted-foreground">
+            {searchQuery ? "Tente buscar com outros termos" : "Adicione uma região para começar"}
+          </p>
+        </div>
+      ) : (
+        <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
+          {filteredRegions.map((region) => (
           <div
             key={region.id}
             className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-all"
           >
             <div className="flex items-start justify-between mb-4">
-              <div className="flex items-start gap-3">
-                <div className="p-3 rounded-xl bg-primary/10">
+              <div className="flex items-start gap-3 flex-1 min-w-0">
+                <div className="p-3 rounded-xl bg-primary/10 shrink-0">
                   <MapPin className="h-5 w-5 text-primary" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-card-foreground mb-1">{region.name}</h3>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-card-foreground truncate">{region.name}</h3>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${
+                        region.active
+                          ? "bg-green-100 text-green-700"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {region.active ? "Ativa" : "Inativa"}
+                    </span>
+                  </div>
                   <p className="text-sm text-muted-foreground">
                     {region.city && `${region.city}, `}
                     {region.stateName || region.state}
@@ -316,33 +394,51 @@ const AdminLocationsPage = () => {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => handleToggleActive(region.id)}
-                className={`p-2 rounded-lg transition-all ${
-                  region.active
-                    ? "bg-green-100 text-green-700 hover:bg-green-200"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80"
-                }`}
-              >
-                {region.active ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
-              </button>
             </div>
             <div className="flex items-center justify-between pt-4 border-t border-border">
               <span className="text-sm text-muted-foreground">
                 {region.storesCount} lojas
               </span>
               <div className="flex items-center gap-2">
-                <button className="p-2 rounded-lg text-muted-foreground hover:bg-muted transition-all">
-                  <Edit className="h-4 w-4" />
+                <button
+                  onClick={() => handleToggleActive(region.id)}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    region.active
+                      ? "bg-green-100 text-green-700 hover:bg-green-200"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
+                  title={region.active ? "Desativar região" : "Ativar região"}
+                >
+                  {region.active ? (
+                    <span className="flex items-center gap-1">
+                      <Check className="h-4 w-4" />
+                      Ativa
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1">
+                      <X className="h-4 w-4" />
+                      Inativa
+                    </span>
+                  )}
                 </button>
-                <button className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-all">
-                  <Trash2 className="h-4 w-4" />
+                <button
+                  onClick={() => handleDeleteClick(region)}
+                  disabled={deletingRegionId === region.id}
+                  className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Excluir região"
+                >
+                  {deletingRegionId === region.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {/* Modal Adicionar Região */}
       {showAddModal && (
@@ -445,6 +541,45 @@ const AdminLocationsPage = () => {
           </div>
         </div>
       )}
+
+      {/* Dialog de Confirmação de Exclusão */}
+      <AlertDialog open={regionToDelete !== null} onOpenChange={(open) => !open && setRegionToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Região</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir a região{" "}
+              <span className="font-semibold text-card-foreground">
+                {regionToDelete?.name}
+              </span>
+              ?
+              <br />
+              <span className="text-xs text-muted-foreground mt-2 block">
+                Esta ação não pode ser desfeita.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingRegionId !== null}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={deletingRegionId !== null}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletingRegionId ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Excluindo...
+                </span>
+              ) : (
+                "Excluir"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
