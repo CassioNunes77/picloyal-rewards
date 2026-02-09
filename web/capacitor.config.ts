@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'corevo.CartaoFidelidade',
+  appId: 'corevo.CorePlus',
   appName: 'Core+',
   webDir: 'dist',
   ios: {

@@ -216,7 +216,7 @@ struct SettingsScreen: View {
                     }
                     
                     // Version
-                    Text("Versão 1.0.0 • Cartão Fidelidade")
+                    Text("Versão 1.0.0 • Core+")
                         .font(.system(size: 12))
                         .foregroundColor(.mutedForeground)
                         .padding(.top, AppSpacing.md)

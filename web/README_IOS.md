@@ -1,4 +1,4 @@
-# App iOS - Cartão Fidelidade
+# App iOS - Core+
 
 Este app iOS é gerado e gerenciado pelo Capacitor, garantindo que toda a lógica seja compartilhada com o site web React + Vite.
 
@@ -61,7 +61,7 @@ O `Info.plist` já está configurado com:
 - ✅ Permissões para câmera, fotos e localização (quando necessário)
 
 ### Bundle Identifier
-- **Atual**: `corevo.CartaoFidelidade`
+- **Atual**: `corevo.CorePlus`
 - Configurado em `capacitor.config.ts` e no projeto Xcode
 
 ### Orientação
