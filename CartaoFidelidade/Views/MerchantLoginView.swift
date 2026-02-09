@@ -125,13 +125,6 @@ struct MerchantLoginView: View {
                                     .padding(.top, AppSpacing.sm)
                             }
                             
-                            if let msg = errorMessage {
-                                Text(msg)
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(.destructive)
-                                    .padding(.top, AppSpacing.sm)
-                            }
-                            
                             // Botão Entrar
                             Button(action: submit) {
                                 Group {
@@ -153,6 +146,18 @@ struct MerchantLoginView: View {
                             .disabled(loading || email.isEmpty || password.isEmpty)
                             .padding(.top, AppSpacing.sm)
                             
+                            // Botão Cadastre-se
+                            Button(action: {
+                                // Navegar para o dashboard onde pode criar conta
+                                showDashboard = true
+                            }) {
+                                Text("Não tem conta lojista? Cadastre-se")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.primary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, AppSpacing.md)
+                            
                             // Botão Voltar
                             Button(action: {
                                 dismiss()
@@ -162,7 +167,7 @@ struct MerchantLoginView: View {
                                     .foregroundColor(.mutedForeground)
                             }
                             .frame(maxWidth: .infinity)
-                            .padding(.top, AppSpacing.md)
+                            .padding(.top, AppSpacing.sm)
                         }
                         .padding(AppSpacing.lg)
                         .background(Color.card)

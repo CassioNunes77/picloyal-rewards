@@ -21,6 +21,7 @@ struct LoginView: View {
     private let splashDuration: Double = 1.8
     
     @State private var splashDone = false
+    @State private var splashAnimated = false
     @State private var mode: LoginMode = .signin
     @State private var appleLoading = false
     @State private var googleLoading = false
@@ -58,27 +59,44 @@ struct LoginView: View {
     private var splashView: some View {
         VStack(spacing: 0) {
             Spacer()
-            // Logo Core+ centralizado
+            // Logo Core+ centralizado com animação
             Image("CorePlusLogo")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(maxWidth: 200, maxHeight: 200)
+                .frame(maxWidth: 280, maxHeight: 280)
+                .scaleEffect(splashAnimated ? 1.0 : 0.3)
+                .opacity(splashAnimated ? 1.0 : 0.0)
+                .animation(
+                    .spring(response: 0.8, dampingFraction: 0.6)
+                    .delay(0.1),
+                    value: splashAnimated
+                )
                 .padding(.bottom, AppSpacing.lg)
-            Text("Core+")
-                .font(.system(size: 30, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
-                .multilineTextAlignment(.center)
-            Text("Seu cartão de benefícios e descontos")
+            Text("Clube de Benefícios")
                 .font(.system(size: 16, weight: .regular, design: .rounded))
                 .foregroundColor(.white.opacity(0.9))
-                .padding(.top, 12)
                 .multilineTextAlignment(.center)
+                .opacity(splashAnimated ? 1.0 : 0.0)
+                .offset(y: splashAnimated ? 0 : 20)
+                .animation(
+                    .easeOut(duration: 0.6)
+                    .delay(0.4),
+                    value: splashAnimated
+                )
             Spacer()
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, AppSpacing.lg)
         .background(AppGradients.hero)
         .ignoresSafeArea()
+        .onAppear {
+            // Iniciar animação quando a view aparecer
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation {
+                    splashAnimated = true
+                }
+            }
+        }
     }
     
     // MARK: - Form (hero com cantos inferiores arredondados + card branco)

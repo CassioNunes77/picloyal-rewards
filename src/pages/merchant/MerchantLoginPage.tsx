@@ -109,8 +109,16 @@ export default function MerchantLoginPage() {
 
             <button
               type="button"
+              onClick={() => navigate("/merchant/dashboard")}
+              className="w-full mt-4 text-center text-sm font-medium text-primary hover:underline transition-colors"
+            >
+              Não tem conta lojista? Cadastre-se
+            </button>
+
+            <button
+              type="button"
               onClick={() => navigate("/")}
-              className="w-full mt-4 text-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+              className="w-full mt-2 text-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
             >
               Voltar para o app
             </button>
