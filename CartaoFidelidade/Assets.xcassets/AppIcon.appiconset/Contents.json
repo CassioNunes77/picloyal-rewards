@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "appstore1024 1.png",
+      "filename" : "Icon-ios-1024.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,7 +13,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "appstore1024 2.png",
+      "filename" : "Icon-ios-1024 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -25,12 +25,13 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "appstore1024 3.png",
+      "filename" : "Icon-ios-1024 2.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
     },
     {
+      "filename" : "Icon-ios-20@2x.png",
       "idiom" : "iphone",
       "scale" : "2x",
       "size" : "20x20"
@@ -42,7 +43,6 @@
       "size" : "20x20"
     },
     {
-      "filename" : "ipadSettings29.png",
       "idiom" : "iphone",
       "scale" : "1x",
       "size" : "29x29"
@@ -84,13 +84,12 @@
       "size" : "60x60"
     },
     {
-      "filename" : "appstore1024 5.png",
+      "filename" : "Icon-ios-1024 3.png",
       "idiom" : "ios-marketing",
       "scale" : "1x",
       "size" : "1024x1024"
     },
     {
-      "filename" : "mac16.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "16x16"
@@ -101,7 +100,6 @@
       "size" : "16x16"
     },
     {
-      "filename" : "mac32.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "32x32"
@@ -112,7 +110,6 @@
       "size" : "32x32"
     },
     {
-      "filename" : "mac128.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "128x128"
@@ -123,7 +120,6 @@
       "size" : "128x128"
     },
     {
-      "filename" : "mac256.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "256x256"
@@ -134,7 +130,6 @@
       "size" : "256x256"
     },
     {
-      "filename" : "mac512.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "512x512"

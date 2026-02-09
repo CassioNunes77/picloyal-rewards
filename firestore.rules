@@ -83,6 +83,53 @@ service cloud.firestore {
     }
     
     // ============================================
+    // LOJISTAS (MERCHANTS)
+    // ============================================
+    match /merchants/{merchantId} {
+      // Lojistas podem ler seus próprios dados
+      // Usuários autenticados podem ler todos os lojistas (para painel administrativo)
+      allow read: if request.auth != null;
+      
+      // Lojistas podem criar/atualizar apenas seus próprios dados
+      allow create, update: if request.auth != null && request.auth.uid == merchantId;
+      
+      // Lojistas não podem deletar seus próprios dados (apenas admin)
+      allow delete: if false;
+    }
+    
+    // ============================================
+    // LOJAS (STORES)
+    // ============================================
+    match /stores/{storeId} {
+      // Qualquer um pode ler lojas ativas
+      // Usuários autenticados podem ler todas as lojas
+      allow read: if true;
+      
+      // Apenas lojistas autenticados podem criar lojas
+      allow create: if request.auth != null &&
+                       request.resource.data.merchantId == request.auth.uid &&
+                       request.resource.data.keys().hasAll(['merchantId', 'name', 'cnpj', 'address', 'city', 'phone', 'hours', 'active']) &&
+                       request.resource.data.name is string &&
+                       request.resource.data.cnpj is string &&
+                       request.resource.data.address is string &&
+                       request.resource.data.city is string &&
+                       request.resource.data.phone is string &&
+                       request.resource.data.hours is string &&
+                       request.resource.data.active is bool &&
+                       request.resource.data.createdAt is timestamp &&
+                       request.resource.data.updatedAt is timestamp;
+      
+      // Lojistas podem atualizar apenas suas próprias lojas
+      allow update: if request.auth != null &&
+                       (resource.data.merchantId == request.auth.uid || 
+                        request.resource.data.merchantId == request.auth.uid) &&
+                       request.resource.data.updatedAt is timestamp;
+      
+      // Lojistas podem deletar apenas suas próprias lojas
+      allow delete: if request.auth != null && resource.data.merchantId == request.auth.uid;
+    }
+    
+    // ============================================
     // OUTRAS COLEÇÕES
     // ============================================
     // Por padrão, negar acesso a outras coleções não especificadas

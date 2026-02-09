@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function MerchantLoginPage() {
   const navigate = useNavigate();
@@ -61,11 +62,8 @@ export default function MerchantLoginPage() {
             <h2 className="text-xl font-semibold text-card-foreground mb-1">
               Entrar
             </h2>
-            <p className="text-sm text-muted-foreground mb-2">
+            <p className="text-sm text-muted-foreground mb-6">
               Use seu e-mail e senha para acessar
-            </p>
-            <p className="text-xs text-primary mb-6 bg-primary/10 px-3 py-2 rounded-lg">
-              💡 Email de teste: <strong>lojista@teste.com</strong>
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">

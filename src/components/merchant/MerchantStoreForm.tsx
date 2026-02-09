@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { createStore } from "@/services/merchantsService";
 
 interface MerchantStoreFormProps {
   onCancel: () => void;
@@ -12,6 +14,7 @@ interface MerchantStoreFormProps {
 }
 
 export default function MerchantStoreForm({ onCancel, onSuccess }: MerchantStoreFormProps) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     cnpj: "",
@@ -43,15 +46,31 @@ export default function MerchantStoreForm({ onCancel, onSuccess }: MerchantStore
       return;
     }
 
+    if (!user?.uid) {
+      toast.error("Você precisa estar autenticado para cadastrar uma loja");
+      return;
+    }
+
     setLoading(true);
     
-    // Simular salvamento (futuramente salvar no Firebase)
-    setTimeout(() => {
-      setLoading(false);
-      console.log("Dados da loja:", formData);
+    try {
+      await createStore(user.uid, {
+        name: formData.name.trim(),
+        cnpj: formData.cnpj.trim(),
+        address: formData.address.trim(),
+        city: formData.city.trim(),
+        phone: formData.phone.trim(),
+        hours: formData.hours.trim(),
+        active: true,
+      });
       toast.success("Loja cadastrada com sucesso!");
       onSuccess();
-    }, 1000);
+    } catch (error: any) {
+      console.error("Erro ao cadastrar loja:", error);
+      toast.error(error?.message || "Erro ao cadastrar loja. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formatCNPJ = (value: string) => {

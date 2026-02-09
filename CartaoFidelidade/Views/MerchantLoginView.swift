@@ -6,15 +6,18 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct MerchantLoginView: View {
     @Environment(\.dismiss) private var dismiss
+    @AppStorage("isLoggedIn") private var isLoggedIn = false
     var onSuccess: (() -> Void)?
     
     @State private var email = ""
     @State private var password = ""
     @State private var loading = false
     @State private var showDashboard = false
+    @State private var errorMessage: String?
     
     var body: some View {
         ZStack {
@@ -65,18 +68,7 @@ struct MerchantLoginView: View {
                             Text("Use seu e-mail e senha para acessar")
                                 .font(.system(size: 14, weight: .regular))
                                 .foregroundColor(.mutedForeground)
-                            
-                            HStack(spacing: AppSpacing.xs) {
-                                Text("💡 Email de teste:")
-                                    .font(.system(size: 12, weight: .regular))
-                                Text("lojista@teste.com")
-                                    .font(.system(size: 12, weight: .semibold))
-                            }
-                            .foregroundColor(.primary)
-                            .padding(AppSpacing.sm)
-                            .background(Color.primary.opacity(0.1))
-                            .cornerRadius(AppRadius.md)
-                            .padding(.bottom, AppSpacing.sm)
+                                .padding(.bottom, AppSpacing.sm)
                             
                             // E-mail
                             VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -126,6 +118,20 @@ struct MerchantLoginView: View {
                                 )
                             }
                             
+                            if let msg = errorMessage {
+                                Text(msg)
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(.destructive)
+                                    .padding(.top, AppSpacing.sm)
+                            }
+                            
+                            if let msg = errorMessage {
+                                Text(msg)
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(.destructive)
+                                    .padding(.top, AppSpacing.sm)
+                            }
+                            
                             // Botão Entrar
                             Button(action: submit) {
                                 Group {
@@ -173,24 +179,49 @@ struct MerchantLoginView: View {
     }
     
     private func submit() {
-        guard !email.trimmingCharacters(in: .whitespaces).isEmpty, !password.isEmpty else {
+        guard !email.trimmingCharacters(in: .whitespaces).isEmpty,
+              !password.isEmpty else {
+            errorMessage = "Preencha e-mail e senha"
             return
         }
         
-        // Email fictício para testes: lojista@teste.com (qualquer senha)
-        let testEmail = "lojista@teste.com"
-        if email.trimmingCharacters(in: .whitespaces).lowercased() != testEmail {
-            // Mostrar mensagem de erro (futuramente implementar toast)
-            return
-        }
-        
+        errorMessage = nil
         loading = true
-        // Por enquanto, apenas abre o dashboard
-        // Futuramente implementar autenticação
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            loading = false
-            withAnimation {
-                showDashboard = true
+        
+        Task { @MainActor in
+            do {
+                let result = try await Auth.auth().signIn(
+                    withEmail: email.trimmingCharacters(in: .whitespaces),
+                    password: password
+                )
+                
+                // Marcar como logado
+                isLoggedIn = true
+                
+                // Verificar se o usuário tem role merchant (futuramente)
+                // Por enquanto, apenas redireciona
+                loading = false
+                withAnimation {
+                    showDashboard = true
+                }
+                onSuccess?()
+            } catch {
+                loading = false
+                let nsError = error as NSError
+                if nsError.domain == "FIRAuthErrorDomain" {
+                    switch nsError.code {
+                    case 17011: // user-not-found
+                        errorMessage = "Usuário não encontrado. Crie uma conta primeiro."
+                    case 17009: // wrong-password
+                        errorMessage = "E-mail ou senha incorretos"
+                    case 17008: // invalid-email
+                        errorMessage = "E-mail inválido"
+                    default:
+                        errorMessage = "Erro ao fazer login: \(nsError.localizedDescription)"
+                    }
+                } else {
+                    errorMessage = "Erro ao fazer login. Tente novamente."
+                }
             }
         }
     }

@@ -58,11 +58,13 @@ struct LoginView: View {
     private var splashView: some View {
         VStack(spacing: 0) {
             Spacer()
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white.opacity(0.2))
-                .frame(width: 80, height: 80)
+            // Logo Core+ centralizado
+            Image("CorePlusLogo")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: 200, maxHeight: 200)
                 .padding(.bottom, AppSpacing.lg)
-            Text("Cartão Fidelidade")
+            Text("Core+")
                 .font(.system(size: 30, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
@@ -85,7 +87,7 @@ struct LoginView: View {
             VStack(spacing: 0) {
                 // Hero: gradiente + nome do app (cantos inferiores arredondados, como na web)
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("Cartão Fidelidade")
+                    Text("Core+")
                         .font(.system(size: 30, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                     
