@@ -65,7 +65,18 @@ struct MerchantLoginView: View {
                             Text("Use seu e-mail e senha para acessar")
                                 .font(.system(size: 14, weight: .regular))
                                 .foregroundColor(.mutedForeground)
-                                .padding(.bottom, AppSpacing.sm)
+                            
+                            HStack(spacing: AppSpacing.xs) {
+                                Text("💡 Email de teste:")
+                                    .font(.system(size: 12, weight: .regular))
+                                Text("lojista@teste.com")
+                                    .font(.system(size: 12, weight: .semibold))
+                            }
+                            .foregroundColor(.primary)
+                            .padding(AppSpacing.sm)
+                            .background(Color.primary.opacity(0.1))
+                            .cornerRadius(AppRadius.md)
+                            .padding(.bottom, AppSpacing.sm)
                             
                             // E-mail
                             VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -165,6 +176,14 @@ struct MerchantLoginView: View {
         guard !email.trimmingCharacters(in: .whitespaces).isEmpty, !password.isEmpty else {
             return
         }
+        
+        // Email fictício para testes: lojista@teste.com (qualquer senha)
+        let testEmail = "lojista@teste.com"
+        if email.trimmingCharacters(in: .whitespaces).lowercased() != testEmail {
+            // Mostrar mensagem de erro (futuramente implementar toast)
+            return
+        }
+        
         loading = true
         // Por enquanto, apenas abre o dashboard
         // Futuramente implementar autenticação

@@ -19,6 +19,14 @@ export default function MerchantLoginPage() {
       return;
     }
     
+    // Email fictício para testes: lojista@teste.com (qualquer senha)
+    const testEmail = "lojista@teste.com";
+    
+    if (email.trim().toLowerCase() !== testEmail) {
+      toast.error("Email de teste: lojista@teste.com");
+      return;
+    }
+    
     setLoading(true);
     // Por enquanto, apenas redireciona para o painel
     // Futuramente implementar autenticação
@@ -53,8 +61,11 @@ export default function MerchantLoginPage() {
             <h2 className="text-xl font-semibold text-card-foreground mb-1">
               Entrar
             </h2>
-            <p className="text-sm text-muted-foreground mb-6">
+            <p className="text-sm text-muted-foreground mb-2">
               Use seu e-mail e senha para acessar
+            </p>
+            <p className="text-xs text-primary mb-6 bg-primary/10 px-3 py-2 rounded-lg">
+              💡 Email de teste: <strong>lojista@teste.com</strong>
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
