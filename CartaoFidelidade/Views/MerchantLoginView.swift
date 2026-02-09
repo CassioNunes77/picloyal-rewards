@@ -152,6 +152,8 @@ struct MerchantLoginView: View {
             }
             .scrollDismissesKeyboard(.interactively)
             .ignoresSafeArea(edges: .top)
+                }
+            }
         }
     }
     
