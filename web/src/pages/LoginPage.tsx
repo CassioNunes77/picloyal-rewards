@@ -107,7 +107,33 @@ export default function LoginPage() {
   if (!splashDone) {
     return (
       <div className="min-h-screen gradient-hero flex flex-col items-center justify-center px-8 animate-fade-in">
-        <div className="w-20 h-20 rounded-2xl bg-white/20 mb-6 animate-scale-in" />
+        <div className="relative w-32 h-32 mb-6 flex items-center justify-center">
+          <img 
+            src="/logo-core-plus.png" 
+            alt="Core+" 
+            className="w-full h-full animate-scale-in object-contain"
+            onError={(e) => {
+              console.error("❌ Erro ao carregar logo:", e);
+              const img = e.target as HTMLImageElement;
+              img.style.display = 'none';
+              // Mostrar fallback visual
+              const fallback = img.nextElementSibling as HTMLElement;
+              if (fallback) {
+                fallback.style.display = 'flex';
+              }
+            }}
+            onLoad={() => {
+              console.log("✅ Logo carregada com sucesso");
+            }}
+          />
+          {/* Fallback visual caso a imagem não carregue */}
+          <div 
+            className="hidden w-full h-full rounded-2xl bg-white/20 items-center justify-center animate-scale-in"
+            style={{ display: 'none' }}
+          >
+            <span className="text-4xl font-bold text-white">C+</span>
+          </div>
+        </div>
         <h1 className="text-3xl font-bold text-white tracking-tight text-center">
           Core+
         </h1>
