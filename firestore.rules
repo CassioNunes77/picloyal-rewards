@@ -76,7 +76,13 @@ service cloud.firestore {
       allow read: if true;
       
       // Usuários podem criar/atualizar apenas seus próprios dados
-      allow create, update: if request.auth != null && request.auth.uid == userId;
+      // Permitir atualização do campo 'role' quando se registra como lojista
+      allow create, update: if request.auth != null && 
+                               request.auth.uid == userId &&
+                               // Validar que role seja 'user' ou 'merchant' se fornecido
+                               (!request.resource.data.keys().hasAny(['role']) ||
+                                request.resource.data.role == 'user' ||
+                                request.resource.data.role == 'merchant');
       
       // Usuários não podem deletar seus próprios dados (apenas admin)
       allow delete: if false;
@@ -90,8 +96,23 @@ service cloud.firestore {
       // Usuários autenticados podem ler todos os lojistas (para painel administrativo)
       allow read: if request.auth != null;
       
-      // Lojistas podem criar/atualizar apenas seus próprios dados
-      allow create, update: if request.auth != null && request.auth.uid == merchantId;
+      // Lojistas podem criar apenas seus próprios dados quando se registram
+      // O merchantId deve corresponder ao uid do usuário autenticado
+      allow create: if request.auth != null && 
+                        request.auth.uid == merchantId &&
+                        request.resource.data.uid == request.auth.uid &&
+                        request.resource.data.email is string &&
+                        request.resource.data.email.size() > 0 &&
+                        request.resource.data.createdAt is timestamp &&
+                        request.resource.data.updatedAt is timestamp;
+      
+      // Lojistas podem atualizar apenas seus próprios dados
+      // Não permitir alteração do uid ou email
+      allow update: if request.auth != null && 
+                       request.auth.uid == merchantId &&
+                       request.resource.data.uid == resource.data.uid &&
+                       request.resource.data.email == resource.data.email &&
+                       request.resource.data.updatedAt is timestamp;
       
       // Lojistas não podem deletar seus próprios dados (apenas admin)
       allow delete: if false;
@@ -101,32 +122,44 @@ service cloud.firestore {
     // LOJAS (STORES)
     // ============================================
     match /stores/{storeId} {
-      // Qualquer um pode ler lojas ativas
-      // Usuários autenticados podem ler todas as lojas
+      // Qualquer um pode ler lojas (público)
+      // Em produção, considere filtrar apenas lojas ativas
       allow read: if true;
       
       // Apenas lojistas autenticados podem criar lojas
+      // O merchantId deve corresponder ao uid do usuário autenticado
+      // Verificar se o usuário existe na coleção merchants
       allow create: if request.auth != null &&
                        request.resource.data.merchantId == request.auth.uid &&
+                       exists(/databases/$(database)/documents/merchants/$(request.auth.uid)) &&
                        request.resource.data.keys().hasAll(['merchantId', 'name', 'cnpj', 'address', 'city', 'phone', 'hours', 'active']) &&
                        request.resource.data.name is string &&
+                       request.resource.data.name.size() > 0 &&
                        request.resource.data.cnpj is string &&
+                       request.resource.data.cnpj.size() > 0 &&
                        request.resource.data.address is string &&
+                       request.resource.data.address.size() > 0 &&
                        request.resource.data.city is string &&
+                       request.resource.data.city.size() > 0 &&
                        request.resource.data.phone is string &&
+                       request.resource.data.phone.size() > 0 &&
                        request.resource.data.hours is string &&
                        request.resource.data.active is bool &&
                        request.resource.data.createdAt is timestamp &&
                        request.resource.data.updatedAt is timestamp;
       
       // Lojistas podem atualizar apenas suas próprias lojas
+      // Não permitir alteração do merchantId
       allow update: if request.auth != null &&
-                       (resource.data.merchantId == request.auth.uid || 
-                        request.resource.data.merchantId == request.auth.uid) &&
-                       request.resource.data.updatedAt is timestamp;
+                       resource.data.merchantId == request.auth.uid &&
+                       request.resource.data.merchantId == resource.data.merchantId &&
+                       request.resource.data.updatedAt is timestamp &&
+                       // Validar campos obrigatórios
+                       request.resource.data.keys().hasAll(['merchantId', 'name', 'cnpj', 'address', 'city', 'phone', 'hours', 'active']);
       
       // Lojistas podem deletar apenas suas próprias lojas
-      allow delete: if request.auth != null && resource.data.merchantId == request.auth.uid;
+      allow delete: if request.auth != null && 
+                       resource.data.merchantId == request.auth.uid;
     }
     
     // ============================================

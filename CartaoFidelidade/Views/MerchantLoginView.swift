@@ -6,17 +6,20 @@
 //
 
 import SwiftUI
+import UIKit
 import FirebaseAuth
 
 struct MerchantLoginView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("isLoggedIn") private var isLoggedIn = false
+    @AppStorage("isMerchant") private var isMerchant = false
     var onSuccess: (() -> Void)?
     
     @State private var email = ""
     @State private var password = ""
     @State private var loading = false
     @State private var showDashboard = false
+    @State private var showSignUpForm = false
     @State private var errorMessage: String?
     
     var body: some View {
@@ -24,9 +27,77 @@ struct MerchantLoginView: View {
             Color.appBackground
                 .ignoresSafeArea()
             
-            if showDashboard {
+            if showSignUpForm {
+                // Formulário de cadastro direto
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Hero: gradiente + título
+                        VStack(alignment: .leading, spacing: 0) {
+                            HStack {
+                                Spacer()
+                                Image(systemName: "storefront.fill")
+                                    .font(.system(size: 48))
+                                    .foregroundColor(.white)
+                                Spacer()
+                            }
+                            .padding(.top, 56)
+                            .padding(.bottom, 16)
+                            
+                            Text("Painel do Lojista")
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .foregroundColor(.white)
+                            
+                            Text("Crie sua conta para gerenciar sua loja")
+                                .font(.system(size: 16, weight: .regular, design: .rounded))
+                                .foregroundColor(.white.opacity(0.9))
+                                .padding(.top, 8)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 24)
+                        .padding(.bottom, 48)
+                        .background(
+                            AppGradients.hero
+                                .clipShape(BottomRoundedShape(radius: 32))
+                        )
+                        
+                        // Formulário de cadastro
+                        MerchantSignUpView(
+                            onSuccess: {
+                                // Após criar conta, ir para o dashboard
+                                print("🔄 [MerchantLoginView] onSuccess chamado, abrindo dashboard...")
+                                // Ocultar teclado antes de navegar
+                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    showSignUpForm = false
+                                    showDashboard = true
+                                }
+                                print("✅ [MerchantLoginView] Dashboard deve estar visível agora")
+                            },
+                            onCancel: {
+                                // Ocultar teclado ao cancelar
+                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                withAnimation {
+                                    showSignUpForm = false
+                                }
+                            }
+                        )
+                        .padding(.top, 24)
+                        .padding(.horizontal, 24)
+                        .offset(y: -24)
+                        .onTapGesture {
+                            // Ocultar teclado ao tocar na área do formulário
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        }
+                    }
+                }
+                .scrollDismissesKeyboard(.interactively)
+                .ignoresSafeArea(edges: .top)
+            } else if showDashboard {
                 MerchantDashboardView()
                     .transition(.slideFadeShort)
+                    .onAppear {
+                        print("✅ [MerchantLoginView] Dashboard do lojista aberto")
+                    }
             } else {
                 ScrollView {
                     VStack(spacing: 0) {
@@ -148,8 +219,10 @@ struct MerchantLoginView: View {
                             
                             // Botão Cadastre-se
                             Button(action: {
-                                // Navegar para o dashboard onde pode criar conta
-                                showDashboard = true
+                                // Abrir formulário de cadastro diretamente
+                                withAnimation {
+                                    showSignUpForm = true
+                                }
                             }) {
                                 Text("Não tem conta lojista? Cadastre-se")
                                     .font(.system(size: 14, weight: .medium))
@@ -200,11 +273,12 @@ struct MerchantLoginView: View {
                     password: password
                 )
                 
-                // Marcar como logado
+                // Marcar como logado e como lojista
                 isLoggedIn = true
+                isMerchant = true
                 
-                // Verificar se o usuário tem role merchant (futuramente)
-                // Por enquanto, apenas redireciona
+                print("✅ [MerchantLoginView] Usuário marcado como logado e como lojista")
+                
                 loading = false
                 withAnimation {
                     showDashboard = true

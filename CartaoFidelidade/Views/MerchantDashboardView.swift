@@ -6,12 +6,18 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct MerchantDashboardView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("isLoggedIn") private var isLoggedIn = false
+    @AppStorage("isMerchant") private var isMerchant = false
+    @AppStorage("userDisplayName") private var userDisplayName = ""
+    @AppStorage("userEmail") private var userEmail = ""
+    @AppStorage("userPhotoURL") private var userPhotoURL = ""
     @State private var showStoreForm = false
     @State private var showSignUpForm = false
+    @State private var showLogoutConfirmation = false
     
     var body: some View {
         ZStack {
@@ -33,6 +39,18 @@ struct MerchantDashboardView: View {
                         }
                         
                         Spacer()
+                        
+                        // Botão Sair da Conta (se estiver logado)
+                        if isLoggedIn {
+                            Button(action: {
+                                showLogoutConfirmation = true
+                            }) {
+                                Image(systemName: "arrow.right.square.fill")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(.white.opacity(0.8))
+                            }
+                            .padding(.trailing, 8)
+                        }
                         
                         Button(action: {
                             dismiss()
@@ -175,6 +193,32 @@ struct MerchantDashboardView: View {
                 }
             }
         }
+        .alert("Sair da conta?", isPresented: $showLogoutConfirmation) {
+            Button("Cancelar", role: .cancel) {}
+            Button("Sair", role: .destructive) {
+                performLogout()
+            }
+        } message: {
+            Text("Deseja realmente sair da sua conta de lojista?")
+        }
+    }
+    
+    private func performLogout() {
+        do {
+            try Auth.auth().signOut()
+            print("✅ [MerchantDashboardView] Logout realizado com sucesso")
+        } catch {
+            print("❌ [MerchantDashboardView] Erro ao fazer logout: \(error.localizedDescription)")
+        }
+        
+        // Limpar dados do usuário
+        userDisplayName = ""
+        userEmail = ""
+        userPhotoURL = ""
+        isLoggedIn = false
+        isMerchant = false
+        
+        print("✅ [MerchantDashboardView] Dados do usuário limpos, redirecionando para login")
     }
 }
 

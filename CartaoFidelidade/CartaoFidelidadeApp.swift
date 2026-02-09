@@ -8,10 +8,12 @@
 import SwiftUI
 import FirebaseCore
 import FirebaseAuth
+import FirebaseFirestore
 
 @main
 struct CartaoFidelidadeApp: App {
     @AppStorage("isLoggedIn") private var isLoggedIn = false
+    @AppStorage("isMerchant") private var isMerchant = false
     @AppStorage("userDisplayName") private var userDisplayName = ""
     @AppStorage("userEmail") private var userEmail = ""
     @AppStorage("userPhotoURL") private var userPhotoURL = ""
@@ -24,7 +26,16 @@ struct CartaoFidelidadeApp: App {
         WindowGroup {
             Group {
                 if isLoggedIn {
-                    ContentView()
+                    if isMerchant {
+                        // Mostrar painel do lojista
+                        MerchantDashboardView()
+                            .onAppear {
+                                print("✅ [CartaoFidelidadeApp] Painel do lojista aberto")
+                            }
+                    } else {
+                        // Mostrar painel do usuário
+                        ContentView()
+                    }
                 } else {
                     LoginView(
                         onLogin: { email, _, _ in
@@ -47,6 +58,9 @@ struct CartaoFidelidadeApp: App {
                                 if !(user.displayName?.isEmpty ?? true) { userDisplayName = user.displayName ?? userDisplayName }
                                 if !(user.email?.isEmpty ?? true) { userEmail = user.email ?? userEmail }
                                 userPhotoURL = user.photoURL?.absoluteString ?? ""
+                                
+                                // Verificar se é lojista
+                                checkUserRole(userId: user.uid)
                             }
                         },
                         onDismiss: nil
@@ -56,6 +70,33 @@ struct CartaoFidelidadeApp: App {
             .background(Color.appBackground.ignoresSafeArea())
             .onOpenURL { url in
                 _ = handleGoogleSignInURL(url)
+            }
+            .onAppear {
+                // Verificar role ao iniciar o app se já estiver logado
+                if isLoggedIn, let user = Auth.auth().currentUser {
+                    checkUserRole(userId: user.uid)
+                }
+            }
+        }
+    }
+    
+    private func checkUserRole(userId: String) {
+        Task {
+            let db = Firestore.firestore()
+            do {
+                let userDoc = try await db.collection("users").document(userId).getDocument()
+                if let data = userDoc.data(), let role = data["role"] as? String {
+                    isMerchant = (role == "merchant")
+                    print("✅ [CartaoFidelidadeApp] Role do usuário: \(role), isMerchant: \(isMerchant)")
+                } else {
+                    // Se não tiver role definido, verificar se existe na coleção merchants
+                    let merchantDoc = try await db.collection("merchants").document(userId).getDocument()
+                    isMerchant = merchantDoc.exists
+                    print("✅ [CartaoFidelidadeApp] Verificado via merchants collection, isMerchant: \(isMerchant)")
+                }
+            } catch {
+                print("❌ [CartaoFidelidadeApp] Erro ao verificar role: \(error.localizedDescription)")
+                isMerchant = false
             }
         }
     }
