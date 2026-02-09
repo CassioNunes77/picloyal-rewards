@@ -273,6 +273,29 @@ struct LoginView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.top, AppSpacing.md)
+                    
+                    // Acesso do Logista
+                    VStack(spacing: AppSpacing.sm) {
+                        Divider()
+                            .padding(.top, AppSpacing.lg)
+                        
+                        Text("Acesso do Logista")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(.mutedForeground)
+                            .padding(.top, AppSpacing.sm)
+                        
+                        Button(action: {
+                            // Navegar para o painel administrativo
+                            if let url = URL(string: "https://picloyal-rewards.netlify.app/sys-admin-panel-7x9k/login") {
+                                UIApplication.shared.open(url)
+                            }
+                        }) {
+                            Text("Entrar como lojista")
+                                .font(.system(size: 11, weight: .regular))
+                                .foregroundColor(.mutedForeground)
+                        }
+                        .padding(.top, 4)
+                    }
                 }
                 .padding(AppSpacing.lg)
                 .background(Color.card)

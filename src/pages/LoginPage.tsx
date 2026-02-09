@@ -275,6 +275,20 @@ export default function LoginPage() {
               ? "Não tem conta? Cadastre-se"
               : "Já tem conta? Entrar"}
           </button>
+
+          {/* Acesso do Logista */}
+          <div className="mt-8 pt-6 border-t border-border">
+            <p className="text-xs text-muted-foreground text-center mb-3">
+              Acesso do Logista
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate("/sys-admin-panel-7x9k/login")}
+              className="w-full text-center text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
+              Entrar como lojista
+            </button>
+          </div>
           </div>
         </div>
       </div>
