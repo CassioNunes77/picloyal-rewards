@@ -31,9 +31,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		DF5AABC32F21B1EB00BCE4F0 /* CartaoFidelidade.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CartaoFidelidade.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		DF5AABD42F21B1EF00BCE4F0 /* CartaoFidelidadeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CartaoFidelidadeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		DF5AABDE2F21B1EF00BCE4F0 /* CartaoFidelidadeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CartaoFidelidadeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DF5AABC32F21B1EB00BCE4F0 /* Core+.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Core+.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DF5AABD42F21B1EF00BCE4F0 /* Core+Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Core+Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DF5AABDE2F21B1EF00BCE4F0 /* Core+UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Core+UITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -96,9 +96,9 @@
 		DF5AABC42F21B1EB00BCE4F0 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				DF5AABC32F21B1EB00BCE4F0 /* CartaoFidelidade.app */,
-				DF5AABD42F21B1EF00BCE4F0 /* CartaoFidelidadeTests.xctest */,
-				DF5AABDE2F21B1EF00BCE4F0 /* CartaoFidelidadeUITests.xctest */,
+				DF5AABC32F21B1EB00BCE4F0 /* Core+.app */,
+				DF5AABD42F21B1EF00BCE4F0 /* Core+Tests.xctest */,
+				DF5AABDE2F21B1EF00BCE4F0 /* Core+UITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -106,9 +106,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		DF5AABC22F21B1EB00BCE4F0 /* CartaoFidelidade */ = {
+		DF5AABC22F21B1EB00BCE4F0 /* Core+ */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = DF5AABE82F21B1EF00BCE4F0 /* Build configuration list for PBXNativeTarget "CartaoFidelidade" */;
+			buildConfigurationList = DF5AABE82F21B1EF00BCE4F0 /* Build configuration list for PBXNativeTarget "Core+" */;
 			buildPhases = (
 				DF5AABBF2F21B1EB00BCE4F0 /* Sources */,
 				DF5AABC02F21B1EB00BCE4F0 /* Frameworks */,
@@ -121,7 +121,7 @@
 			fileSystemSynchronizedGroups = (
 				DF5AABC52F21B1EB00BCE4F0 /* CartaoFidelidade */,
 			);
-			name = CartaoFidelidade;
+			name = "Core+";
 			packageProductDependencies = (
 				DF6543532F361630007B1B76 /* FirebaseAuth */,
 				DF6543552F361630007B1B76 /* FirebaseCore */,
@@ -129,12 +129,12 @@
 				DF6543592F361640007B1B76 /* GoogleSignIn */,
 			);
 			productName = CartaoFidelidade;
-			productReference = DF5AABC32F21B1EB00BCE4F0 /* CartaoFidelidade.app */;
+			productReference = DF5AABC32F21B1EB00BCE4F0 /* Core+.app */;
 			productType = "com.apple.product-type.application";
 		};
-		DF5AABD32F21B1EF00BCE4F0 /* CartaoFidelidadeTests */ = {
+		DF5AABD32F21B1EF00BCE4F0 /* Core+Tests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = DF5AABEB2F21B1F000BCE4F0 /* Build configuration list for PBXNativeTarget "CartaoFidelidadeTests" */;
+			buildConfigurationList = DF5AABEB2F21B1F000BCE4F0 /* Build configuration list for PBXNativeTarget "Core+Tests" */;
 			buildPhases = (
 				DF5AABD02F21B1EF00BCE4F0 /* Sources */,
 				DF5AABD12F21B1EF00BCE4F0 /* Frameworks */,
@@ -148,16 +148,16 @@
 			fileSystemSynchronizedGroups = (
 				DF5AABD72F21B1EF00BCE4F0 /* CartaoFidelidadeTests */,
 			);
-			name = CartaoFidelidadeTests;
+			name = "Core+Tests";
 			packageProductDependencies = (
 			);
 			productName = CartaoFidelidadeTests;
-			productReference = DF5AABD42F21B1EF00BCE4F0 /* CartaoFidelidadeTests.xctest */;
+			productReference = DF5AABD42F21B1EF00BCE4F0 /* Core+Tests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		DF5AABDD2F21B1EF00BCE4F0 /* CartaoFidelidadeUITests */ = {
+		DF5AABDD2F21B1EF00BCE4F0 /* Core+UITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = DF5AABEE2F21B1F000BCE4F0 /* Build configuration list for PBXNativeTarget "CartaoFidelidadeUITests" */;
+			buildConfigurationList = DF5AABEE2F21B1F000BCE4F0 /* Build configuration list for PBXNativeTarget "Core+UITests" */;
 			buildPhases = (
 				DF5AABDA2F21B1EF00BCE4F0 /* Sources */,
 				DF5AABDB2F21B1EF00BCE4F0 /* Frameworks */,
@@ -171,11 +171,11 @@
 			fileSystemSynchronizedGroups = (
 				DF5AABE12F21B1EF00BCE4F0 /* CartaoFidelidadeUITests */,
 			);
-			name = CartaoFidelidadeUITests;
+			name = "Core+UITests";
 			packageProductDependencies = (
 			);
 			productName = CartaoFidelidadeUITests;
-			productReference = DF5AABDE2F21B1EF00BCE4F0 /* CartaoFidelidadeUITests.xctest */;
+			productReference = DF5AABDE2F21B1EF00BCE4F0 /* Core+UITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -201,7 +201,7 @@
 					};
 				};
 			};
-			buildConfigurationList = DF5AABBE2F21B1EB00BCE4F0 /* Build configuration list for PBXProject "CartaoFidelidade" */;
+			buildConfigurationList = DF5AABBE2F21B1EB00BCE4F0 /* Build configuration list for PBXProject "Core+" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -219,9 +219,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				DF5AABC22F21B1EB00BCE4F0 /* CartaoFidelidade */,
-				DF5AABD32F21B1EF00BCE4F0 /* CartaoFidelidadeTests */,
-				DF5AABDD2F21B1EF00BCE4F0 /* CartaoFidelidadeUITests */,
+				DF5AABC22F21B1EB00BCE4F0 /* Core+ */,
+				DF5AABD32F21B1EF00BCE4F0 /* Core+Tests */,
+				DF5AABDD2F21B1EF00BCE4F0 /* Core+UITests */,
 			);
 		};
 /* End PBXProject section */
@@ -277,12 +277,12 @@
 /* Begin PBXTargetDependency section */
 		DF5AABD62F21B1EF00BCE4F0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = DF5AABC22F21B1EB00BCE4F0 /* CartaoFidelidade */;
+			target = DF5AABC22F21B1EB00BCE4F0 /* Core+ */;
 			targetProxy = DF5AABD52F21B1EF00BCE4F0 /* PBXContainerItemProxy */;
 		};
 		DF5AABE02F21B1EF00BCE4F0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = DF5AABC22F21B1EB00BCE4F0 /* CartaoFidelidade */;
+			target = DF5AABC22F21B1EB00BCE4F0 /* Core+ */;
 			targetProxy = DF5AABDF2F21B1EF00BCE4F0 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -498,7 +498,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CartaoFidelidade.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/CartaoFidelidade";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Core+.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Core+";
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Debug;
@@ -520,7 +520,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CartaoFidelidade.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/CartaoFidelidade";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Core+.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Core+";
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Release;
@@ -570,7 +570,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		DF5AABBE2F21B1EB00BCE4F0 /* Build configuration list for PBXProject "CartaoFidelidade" */ = {
+		DF5AABBE2F21B1EB00BCE4F0 /* Build configuration list for PBXProject "Core+" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DF5AABE62F21B1EF00BCE4F0 /* Debug */,
@@ -579,7 +579,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		DF5AABE82F21B1EF00BCE4F0 /* Build configuration list for PBXNativeTarget "CartaoFidelidade" */ = {
+		DF5AABE82F21B1EF00BCE4F0 /* Build configuration list for PBXNativeTarget "Core+" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DF5AABE92F21B1EF00BCE4F0 /* Debug */,
@@ -588,7 +588,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		DF5AABEB2F21B1F000BCE4F0 /* Build configuration list for PBXNativeTarget "CartaoFidelidadeTests" */ = {
+		DF5AABEB2F21B1F000BCE4F0 /* Build configuration list for PBXNativeTarget "Core+Tests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DF5AABEC2F21B1F000BCE4F0 /* Debug */,
@@ -597,7 +597,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		DF5AABEE2F21B1F000BCE4F0 /* Build configuration list for PBXNativeTarget "CartaoFidelidadeUITests" */ = {
+		DF5AABEE2F21B1F000BCE4F0 /* Build configuration list for PBXNativeTarget "Core+UITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DF5AABEF2F21B1F000BCE4F0 /* Debug */,

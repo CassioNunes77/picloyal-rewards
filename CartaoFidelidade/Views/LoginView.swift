@@ -276,29 +276,20 @@ struct LoginView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.top, AppSpacing.md)
                     
-                    // Acesso do Logista
-                    VStack(spacing: AppSpacing.sm) {
-                        Divider()
-                            .padding(.top, AppSpacing.lg)
-                        
-                        Text("Acesso do Logista")
-                            .font(.system(size: 11, weight: .regular))
+                    // Entrar como Lojista
+                    Button(action: {
+                        showMerchantLogin = true
+                    }) {
+                        Text("Entrar como Lojista")
+                            .font(.system(size: 14, weight: .medium))
                             .foregroundColor(.mutedForeground)
-                            .padding(.top, AppSpacing.sm)
-                        
-                        Button(action: {
-                            showMerchantLogin = true
-                        }) {
-                            Text("Entrar como lojista")
-                                .font(.system(size: 11, weight: .regular))
-                                .foregroundColor(.mutedForeground)
-                        }
-                        .padding(.top, 4)
-                        .sheet(isPresented: $showMerchantLogin) {
-                            MerchantLoginView(onSuccess: {
-                                showMerchantLogin = false
-                            })
-                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, AppSpacing.sm)
+                    .sheet(isPresented: $showMerchantLogin) {
+                        MerchantLoginView(onSuccess: {
+                            showMerchantLogin = false
+                        })
                     }
                 }
                 .padding(AppSpacing.lg)

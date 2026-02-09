@@ -244,19 +244,13 @@ export default function LoginPage() {
               : "Já tem conta? Entrar"}
           </button>
 
-          {/* Acesso do Logista */}
-          <div className="mt-8 pt-6 border-t border-border">
-            <p className="text-xs text-muted-foreground text-center mb-3">
-              Acesso do Logista
-            </p>
-            <button
-              type="button"
-              onClick={() => navigate("/merchant/login")}
-              className="w-full text-center text-xs text-muted-foreground hover:text-primary transition-colors"
-            >
-              Entrar como lojista
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => navigate("/merchant/login")}
+            className="w-full mt-2 text-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+          >
+            Entrar como Lojista
+          </button>
         </div>
       </div>
     </div>
