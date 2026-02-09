@@ -283,7 +283,7 @@ export default function LoginPage() {
             </p>
             <button
               type="button"
-              onClick={() => navigate("/sys-admin-panel-7x9k/login")}
+              onClick={() => navigate("/merchant/login")}
               className="w-full text-center text-xs text-muted-foreground hover:text-primary transition-colors"
             >
               Entrar como lojista

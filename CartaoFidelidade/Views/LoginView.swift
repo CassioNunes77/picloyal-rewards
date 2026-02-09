@@ -16,6 +16,8 @@ struct LoginView: View {
     var onSuccess: (() -> Void)?
     var onDismiss: (() -> Void)?
     
+    @State private var showMerchantLogin = false
+    
     private let splashDuration: Double = 1.8
     
     @State private var splashDone = false
@@ -285,16 +287,18 @@ struct LoginView: View {
                             .padding(.top, AppSpacing.sm)
                         
                         Button(action: {
-                            // Navegar para o painel administrativo
-                            if let url = URL(string: "https://picloyal-rewards.netlify.app/sys-admin-panel-7x9k/login") {
-                                UIApplication.shared.open(url)
-                            }
+                            showMerchantLogin = true
                         }) {
                             Text("Entrar como lojista")
                                 .font(.system(size: 11, weight: .regular))
                                 .foregroundColor(.mutedForeground)
                         }
                         .padding(.top, 4)
+                        .sheet(isPresented: $showMerchantLogin) {
+                            MerchantLoginView(onSuccess: {
+                                showMerchantLogin = false
+                            })
+                        }
                     }
                 }
                 .padding(AppSpacing.lg)

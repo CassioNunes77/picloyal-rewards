@@ -29,6 +29,8 @@ import AdminStoresPage from "./pages/admin/AdminStoresPage";
 import AdminProductsPage from "./pages/admin/AdminProductsPage";
 import AdminFeedbackPage from "./pages/admin/AdminFeedbackPage";
 import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
+import MerchantLoginPage from "./pages/merchant/MerchantLoginPage";
+import MerchantDashboardPage from "./pages/merchant/MerchantDashboardPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -114,6 +116,10 @@ const App = () => (
                 <Route index element={<Navigate to="/sys-admin-panel-7x9k/dashboard" replace />} />
                 <Route path="*" element={<Navigate to="/sys-admin-panel-7x9k/dashboard" replace />} />
               </Route>
+
+              {/* Rotas do painel do lojista */}
+              <Route path="/merchant/login" element={<MerchantLoginPage />} />
+              <Route path="/merchant/dashboard" element={<MerchantDashboardPage />} />
 
               {/* Rotas do app principal */}
               <Route

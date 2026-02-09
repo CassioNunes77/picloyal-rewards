@@ -15,6 +15,8 @@ import NotificationsPage from "./pages/NotificationsPage";
 import HistoryPage from "./pages/HistoryPage";
 import RewardsPage from "./pages/RewardsPage";
 import StoreDetailPage from "./pages/StoreDetailPage";
+import MerchantLoginPage from "./pages/merchant/MerchantLoginPage";
+import MerchantDashboardPage from "./pages/merchant/MerchantDashboardPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,6 +49,8 @@ const App = () => (
             <DarkModeLoader />
             <Routes>
               <Route path="/" element={<LoginPage />} />
+              <Route path="/merchant/login" element={<MerchantLoginPage />} />
+              <Route path="/merchant/dashboard" element={<MerchantDashboardPage />} />
               <Route path="/home" element={<Index />} />
               <Route path="/stores" element={<StoresPage />} />
               <Route path="/store/:id" element={<StoreDetailPage />} />
