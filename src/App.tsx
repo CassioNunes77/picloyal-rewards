@@ -30,6 +30,7 @@ import AdminProductsPage from "./pages/admin/AdminProductsPage";
 import AdminFeedbackPage from "./pages/admin/AdminFeedbackPage";
 import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
 import MerchantLoginPage from "./pages/merchant/MerchantLoginPage";
+import MerchantSignUpPage from "./pages/merchant/MerchantSignUpPage";
 import MerchantDashboardPage from "./pages/merchant/MerchantDashboardPage";
 import NotFound from "./pages/NotFound";
 
@@ -119,6 +120,7 @@ const App = () => (
 
               {/* Rotas do painel do lojista */}
               <Route path="/merchant/login" element={<MerchantLoginPage />} />
+              <Route path="/merchant/signup" element={<MerchantSignUpPage />} />
               <Route path="/merchant/dashboard" element={<MerchantDashboardPage />} />
 
               {/* Rotas do app principal */}

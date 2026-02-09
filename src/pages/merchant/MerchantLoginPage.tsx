@@ -109,7 +109,7 @@ export default function MerchantLoginPage() {
 
             <button
               type="button"
-              onClick={() => navigate("/merchant/dashboard")}
+              onClick={() => navigate("/merchant/signup")}
               className="w-full mt-4 text-center text-sm font-medium text-primary hover:underline transition-colors"
             >
               Não tem conta lojista? Cadastre-se

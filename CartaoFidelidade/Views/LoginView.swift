@@ -71,8 +71,8 @@ struct LoginView: View {
                     .delay(0.1),
                     value: splashAnimated
                 )
-                .padding(.bottom, AppSpacing.lg)
-            Text("Clube de Benefícios")
+                .padding(.bottom, AppSpacing.sm)
+            Text("Seu clube de benefícios")
                 .font(.system(size: 16, weight: .regular, design: .rounded))
                 .foregroundColor(.white.opacity(0.9))
                 .multilineTextAlignment(.center)

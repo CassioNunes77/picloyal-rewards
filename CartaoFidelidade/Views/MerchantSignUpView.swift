@@ -38,7 +38,7 @@ struct MerchantSignUpView: View {
                     FormField(
                         label: "Nome",
                         icon: "person.fill",
-                        isRequired: false,
+                        isRequired: true,
                         content: {
                             TextField("Seu nome", text: $displayName)
                                 .textContentType(.name)
@@ -142,6 +142,7 @@ struct MerchantSignUpView: View {
     }
     
     private var isFormValid: Bool {
+        !displayName.trimmingCharacters(in: .whitespaces).isEmpty &&
         !email.trimmingCharacters(in: .whitespaces).isEmpty &&
         !password.isEmpty &&
         password.count >= 6 &&
@@ -150,7 +151,11 @@ struct MerchantSignUpView: View {
     
     private func submit() {
         guard isFormValid else {
-            if password.count < 6 {
+            if displayName.trimmingCharacters(in: .whitespaces).isEmpty {
+                errorMessage = "Preencha o nome"
+            } else if email.trimmingCharacters(in: .whitespaces).isEmpty {
+                errorMessage = "Preencha o e-mail"
+            } else if password.count < 6 {
                 errorMessage = "A senha deve ter pelo menos 6 caracteres"
             } else if password != confirmPassword {
                 errorMessage = "As senhas não coincidem"
