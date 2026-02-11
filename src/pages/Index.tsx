@@ -157,8 +157,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="gradient-hero">
-        {/* Location Selector (estilo iFood) */}
-        <div className="px-6 pt-3 pb-2">
+        {/* Location Selector (estilo iFood) - Centralizado */}
+        <div className="flex justify-center px-6 pt-14 pb-2">
           <LocationSelector />
         </div>
         
