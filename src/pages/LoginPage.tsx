@@ -115,6 +115,11 @@ export default function LoginPage() {
             src="/logo-core-plus.png" 
             alt="Core+" 
             className="w-full h-full animate-scale-in object-contain"
+            style={{
+              imageRendering: 'auto',
+              mixBlendMode: 'normal',
+              backgroundColor: 'transparent',
+            }}
             onError={(e) => {
               console.error("❌ Erro ao carregar logo:", e);
               const img = e.target as HTMLImageElement;

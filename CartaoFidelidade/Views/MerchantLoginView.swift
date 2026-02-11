@@ -8,6 +8,7 @@
 import SwiftUI
 import UIKit
 import FirebaseAuth
+import FirebaseFirestore
 
 struct MerchantLoginView: View {
     @Environment(\.dismiss) private var dismiss
