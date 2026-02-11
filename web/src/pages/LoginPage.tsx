@@ -107,7 +107,7 @@ export default function LoginPage() {
   if (!splashDone) {
     return (
       <div className="min-h-screen gradient-hero flex items-center justify-center px-8">
-        <div className="relative w-80 h-80 sm:w-96 sm:h-96 md:w-[400px] md:h-[400px] flex items-center justify-center">
+        <div className="relative w-96 h-96 sm:w-[400px] sm:h-[400px] md:w-[500px] md:h-[500px] flex items-center justify-center">
           <img 
             src="/logo-core-plus.png" 
             alt="Core+" 

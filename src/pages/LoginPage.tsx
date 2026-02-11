@@ -109,8 +109,8 @@ export default function LoginPage() {
   /* Splash: tela cheia com gradiente + logo com animação similar ao iOS */
   if (!splashDone) {
     return (
-      <div className="min-h-screen gradient-hero flex flex-col items-center justify-center px-8">
-        <div className="relative w-32 h-32 flex items-center justify-center">
+      <div className="min-h-screen gradient-hero flex items-center justify-center px-8">
+        <div className="relative w-80 h-80 sm:w-96 sm:h-96 md:w-[400px] md:h-[400px] flex items-center justify-center">
           <img 
             src="/logo-core-plus.png" 
             alt="Core+" 
@@ -142,9 +142,6 @@ export default function LoginPage() {
             <span className="text-4xl font-bold text-white">C+</span>
           </div>
         </div>
-        <p className="text-white/90 text-base mt-2 text-center animate-splash-text">
-          Seu cartão de benefícios e descontos
-        </p>
       </div>
     );
   }
