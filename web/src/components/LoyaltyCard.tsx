@@ -38,21 +38,21 @@ const LoyaltyCard = ({ currentPoints, totalPoints, userName, cardNumber }: Loyal
         <div className="mt-3 flex-1">
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-3xl font-bold">{currentPoints}</p>
-              <p className="text-sm opacity-80">pontos</p>
+              <p className="text-2xl font-bold">{currentPoints}</p>
+              <p className="text-xs opacity-80">pontos</p>
             </div>
             <div className="text-right">
-              <p className="text-sm opacity-80">Próxima recompensa</p>
-              <p className="font-semibold">{totalPoints - currentPoints} pts</p>
+              <p className="text-xs opacity-80">Próxima recompensa</p>
+              <p className="text-sm font-semibold">{totalPoints - currentPoints} pts</p>
             </div>
           </div>
           
-          <div className="mt-4">
-            <div className="flex justify-between text-xs opacity-80">
+          <div className="mt-2">
+            <div className="flex justify-between text-[10px] opacity-80">
               <span>Progresso</span>
               <span>{Math.round(progress)}%</span>
             </div>
-            <div className="mt-2 h-3 overflow-hidden rounded-full bg-primary-foreground/20">
+            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-primary-foreground/20">
               <div 
                 className="h-full rounded-full bg-primary-foreground transition-all duration-500 ease-out"
                 style={{ width: `${progress}%` }}
@@ -61,11 +61,11 @@ const LoyaltyCard = ({ currentPoints, totalPoints, userName, cardNumber }: Loyal
           </div>
         </div>
         
-        <div className="mt-4 flex items-center gap-1">
+        <div className="mt-2 flex items-center gap-1">
           {Array.from({ length: 5 }).map((_, i) => (
             <Star 
               key={i} 
-              className={`h-4 w-4 ${i < Math.floor(currentPoints / 200) ? 'fill-primary-foreground' : 'fill-primary-foreground/30'}`}
+              className={`h-3.5 w-3.5 ${i < Math.floor(currentPoints / 200) ? 'fill-primary-foreground' : 'fill-primary-foreground/30'}`}
             />
           ))}
         </div>
