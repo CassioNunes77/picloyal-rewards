@@ -53,14 +53,55 @@ struct CartaoFidelidadeApp: App {
                             try await performGoogleSignIn()
                         },
                         onSuccess: {
-                            isLoggedIn = true
-                            if let user = Auth.auth().currentUser {
-                                if !(user.displayName?.isEmpty ?? true) { userDisplayName = user.displayName ?? userDisplayName }
-                                if !(user.email?.isEmpty ?? true) { userEmail = user.email ?? userEmail }
-                                userPhotoURL = user.photoURL?.absoluteString ?? ""
-                                
-                                // Verificar se é lojista
-                                checkUserRole(userId: user.uid)
+                            Task { @MainActor in
+                                if let user = Auth.auth().currentUser {
+                                    // Verificar se existe em merchants (lojista)
+                                    let roleService = UserRoleService.shared
+                                    do {
+                                        let isMerchantUser = try await roleService.isMerchant(userId: user.uid)
+                                        
+                                        // Se for lojista, fazer logout e não permitir login como usuário comum
+                                        if isMerchantUser {
+                                            try? Auth.auth().signOut()
+                                            print("❌ [CartaoFidelidadeApp] Lojista tentou fazer login como usuário comum. Login bloqueado.")
+                                            return
+                                        }
+                                        
+                                        // Verificar se existe em users (usuário comum)
+                                        let isRegularUser = try await roleService.isUser(userId: user.uid)
+                                        
+                                        // Se não existir em users, criar documento (primeiro login)
+                                        if !isRegularUser {
+                                            let db = Firestore.firestore()
+                                            let userRef = db.collection("users").document(user.uid)
+                                            try await userRef.setData([
+                                                "uid": user.uid,
+                                                "email": user.email ?? "",
+                                                "displayName": user.displayName ?? "",
+                                                "photoURL": user.photoURL?.absoluteString ?? "",
+                                                "phoneNumber": user.phoneNumber ?? "",
+                                                "createdAt": Timestamp(),
+                                                "updatedAt": Timestamp(),
+                                                "lastLoginAt": Timestamp()
+                                            ])
+                                            print("✅ [CartaoFidelidadeApp] Documento de usuário criado no Firestore")
+                                        }
+                                        
+                                        // Se chegou aqui, é um usuário comum válido
+                                        isLoggedIn = true
+                                        isMerchant = false
+                                        
+                                        if !(user.displayName?.isEmpty ?? true) { userDisplayName = user.displayName ?? userDisplayName }
+                                        if !(user.email?.isEmpty ?? true) { userEmail = user.email ?? userEmail }
+                                        userPhotoURL = user.photoURL?.absoluteString ?? ""
+                                        
+                                        print("✅ [CartaoFidelidadeApp] Usuário comum logado com sucesso")
+                                    } catch {
+                                        print("❌ [CartaoFidelidadeApp] Erro ao verificar role: \(error.localizedDescription)")
+                                        // Em caso de erro, não permitir login
+                                        try? Auth.auth().signOut()
+                                    }
+                                }
                             }
                         },
                         onDismiss: nil
@@ -82,17 +123,16 @@ struct CartaoFidelidadeApp: App {
     
     private func checkUserRole(userId: String) {
         Task {
-            let db = Firestore.firestore()
+            let roleService = UserRoleService.shared
             do {
-                let userDoc = try await db.collection("users").document(userId).getDocument()
-                if let data = userDoc.data(), let role = data["role"] as? String {
-                    isMerchant = (role == "merchant")
-                    print("✅ [CartaoFidelidadeApp] Role do usuário: \(role), isMerchant: \(isMerchant)")
+                // Verificar se existe em merchants (lojista)
+                let isMerchantUser = try await roleService.isMerchant(userId: userId)
+                isMerchant = isMerchantUser
+                
+                if isMerchantUser {
+                    print("✅ [CartaoFidelidadeApp] Usuário encontrado em merchants, isMerchant: true")
                 } else {
-                    // Se não tiver role definido, verificar se existe na coleção merchants
-                    let merchantDoc = try await db.collection("merchants").document(userId).getDocument()
-                    isMerchant = merchantDoc.exists
-                    print("✅ [CartaoFidelidadeApp] Verificado via merchants collection, isMerchant: \(isMerchant)")
+                    print("✅ [CartaoFidelidadeApp] Usuário não encontrado em merchants, isMerchant: false")
                 }
             } catch {
                 print("❌ [CartaoFidelidadeApp] Erro ao verificar role: \(error.localizedDescription)")

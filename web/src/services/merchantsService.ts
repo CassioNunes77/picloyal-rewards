@@ -2,7 +2,6 @@ import { doc, getDoc, setDoc, Timestamp, updateDoc, collection, query, where, ge
 import { firestore } from "@/lib/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { createOrUpdateUser } from "./usersService";
 
 const MERCHANTS_COLLECTION = "merchants";
 const STORES_COLLECTION = "stores";
@@ -166,32 +165,45 @@ export async function createMerchantAccount(
   }
 
   try {
+    console.log("📝 [merchantsService] Iniciando criação de conta de lojista...");
+    console.log("📝 [merchantsService] Email:", email);
+    
     // 1. Criar conta no Firebase Auth
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
+    console.log("✅ [merchantsService] Conta criada no Firebase Auth. UID:", user.uid);
 
-    // 2. Criar documento na coleção users com role = "merchant"
-    await createOrUpdateUser(user);
-    await updateDoc(doc(firestore, "users", user.uid), {
-      role: "merchant",
-    });
+    try {
+      // 2. Criar documento APENAS na coleção merchants (não criar em users)
+      const merchantData: MerchantDataFirestore = {
+        uid: user.uid,
+        email: email,
+        displayName: displayName,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+        stores: [],
+      };
 
-    // 3. Criar documento na coleção merchants
-    const merchantData: MerchantDataFirestore = {
-      uid: user.uid,
-      email: email,
-      displayName: displayName,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
-      stores: [],
-    };
+      await setDoc(doc(firestore, MERCHANTS_COLLECTION, user.uid), merchantData);
+      console.log("✅ [merchantsService] Documento 'merchants' criado com sucesso");
+    } catch (merchantError: any) {
+      console.error("❌ [merchantsService] Erro ao criar documento 'merchants':", merchantError);
+      // Tentar deletar a conta do Auth se falhar
+      try {
+        await user.delete();
+        console.log("⚠️ [merchantsService] Conta do Auth deletada devido a erro no Firestore");
+      } catch (deleteError) {
+        console.error("❌ [merchantsService] Erro ao deletar conta do Auth:", deleteError);
+      }
+      throw new Error("Erro ao salvar dados do lojista: " + (merchantError?.message || "Erro desconhecido"));
+    }
 
-    await setDoc(doc(firestore, MERCHANTS_COLLECTION, user.uid), merchantData);
-
-    console.log("✅ [merchantsService] Conta de lojista criada com sucesso:", user.uid);
+    console.log("✅ [merchantsService] Conta de lojista criada com sucesso no Firestore. UID:", user.uid);
     return { uid: user.uid };
   } catch (error: any) {
     console.error("❌ [merchantsService] Erro ao criar conta de lojista:", error);
+    console.error("❌ [merchantsService] Código do erro:", error?.code);
+    console.error("❌ [merchantsService] Mensagem do erro:", error?.message);
     throw error;
   }
 }
@@ -286,5 +298,23 @@ export async function getMerchantStores(merchantId: string): Promise<StoreData[]
   } catch (error: any) {
     console.error("❌ [merchantsService] Erro ao buscar lojas do lojista:", error);
     return [];
+  }
+}
+
+/**
+ * Verifica se o usuário existe na coleção merchants
+ */
+export async function isMerchant(userId: string): Promise<boolean> {
+  if (!firestore) {
+    return false;
+  }
+  
+  try {
+    const merchantRef = doc(firestore, MERCHANTS_COLLECTION, userId);
+    const merchantSnap = await getDoc(merchantRef);
+    return merchantSnap.exists();
+  } catch (error: any) {
+    console.error("❌ [merchantsService] Erro ao verificar se é lojista:", error);
+    return false;
   }
 }

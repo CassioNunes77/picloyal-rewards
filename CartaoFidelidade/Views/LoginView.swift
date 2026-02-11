@@ -334,10 +334,91 @@ struct LoginView: View {
             return
         }
         loading = true
-        let isSignUp = mode == .signup
-        onLogin?(email.trimmingCharacters(in: .whitespaces), password, isSignUp)
-        onSuccess?()
-        loading = false
+        
+        Task { @MainActor in
+            do {
+                let isSignUp = mode == .signup
+                
+                if isSignUp {
+                    // Criar conta de usuário comum
+                    let result = try await Auth.auth().createUser(withEmail: email.trimmingCharacters(in: .whitespaces), password: password)
+                    // Verificar se não é lojista tentando criar conta de usuário comum
+                    try await validateUserRole(userId: result.user.uid, isSignUp: true)
+                } else {
+                    // Fazer login de usuário comum
+                    let result = try await Auth.auth().signIn(withEmail: email.trimmingCharacters(in: .whitespaces), password: password)
+                    // Verificar se é realmente um usuário comum (existe em users, não existe em merchants)
+                    try await validateUserRole(userId: result.user.uid, isSignUp: false)
+                }
+                
+                // Se chegou aqui, o role está correto
+                onLogin?(email.trimmingCharacters(in: .whitespaces), password, isSignUp)
+                onSuccess?()
+                loading = false
+            } catch {
+                loading = false
+                let nsError = error as NSError
+                if nsError.domain == "FIRAuthErrorDomain" {
+                    switch nsError.code {
+                    case 17011: // user-not-found
+                        errorMessage = "Usuário não encontrado. Crie uma conta primeiro."
+                    case 17009: // wrong-password
+                        errorMessage = "E-mail ou senha incorretos"
+                    case 17008: // invalid-email
+                        errorMessage = "E-mail inválido"
+                    case 17007: // email-already-in-use
+                        errorMessage = "Este e-mail já está em uso"
+                    default:
+                        errorMessage = "Erro ao fazer login: \(nsError.localizedDescription)"
+                    }
+                } else if nsError.domain == "UserRoleValidation" {
+                    errorMessage = nsError.localizedDescription
+                } else {
+                    errorMessage = "Erro ao fazer login. Tente novamente."
+                }
+            }
+        }
+    }
+    
+    private func validateUserRole(userId: String, isSignUp: Bool) async throws {
+        let roleService = UserRoleService.shared
+        let db = Firestore.firestore()
+        
+        // Verificar se é lojista (existe em merchants)
+        let isMerchantUser = try await roleService.isMerchant(userId: userId)
+        
+        if isMerchantUser {
+            // Se for lojista tentando fazer login como usuário comum, bloquear
+            try? Auth.auth().signOut()
+            throw NSError(domain: "UserRoleValidation", code: 1, userInfo: [NSLocalizedDescriptionKey: "Esta conta é de um lojista. Use o login do painel do lojista."])
+        }
+        
+        if isSignUp {
+            // Ao criar conta, criar documento APENAS em users
+            if let user = Auth.auth().currentUser {
+                let userRef = db.collection("users").document(userId)
+                try await userRef.setData([
+                    "uid": userId,
+                    "email": user.email ?? "",
+                    "displayName": user.displayName ?? "",
+                    "photoURL": user.photoURL?.absoluteString ?? "",
+                    "phoneNumber": user.phoneNumber ?? "",
+                    "createdAt": Timestamp(),
+                    "updatedAt": Timestamp(),
+                    "lastLoginAt": Timestamp()
+                ])
+                print("✅ [LoginView] Documento de usuário criado no Firestore")
+            }
+        } else {
+            // Ao fazer login, verificar se existe em users
+            let isRegularUser = try await roleService.isUser(userId: userId)
+            
+            if !isRegularUser {
+                // Tentando fazer login mas não existe em users
+                try? Auth.auth().signOut()
+                throw NSError(domain: "UserRoleValidation", code: 2, userInfo: [NSLocalizedDescriptionKey: "Conta não encontrada. Crie uma conta primeiro."])
+            }
+        }
     }
     
     private func performAppleSignIn() {
@@ -348,12 +429,23 @@ struct LoginView: View {
             let helper = AppleSignInHelper()
             do {
                 let result = try await helper.signIn()
+                
+                // Verificar role após login com Apple
+                if let user = Auth.auth().currentUser {
+                    try await validateUserRole(userId: user.uid, isSignUp: false)
+                }
+                
                 onAppleSignIn?(result)
                 onSuccess?()
             } catch is CancellationError {
                 // usuário cancelou
             } catch {
-                errorMessage = error.localizedDescription
+                let nsError = error as NSError
+                if nsError.domain == "UserRoleValidation" {
+                    errorMessage = nsError.localizedDescription
+                } else {
+                    errorMessage = error.localizedDescription
+                }
             }
         }
     }
@@ -365,9 +457,20 @@ struct LoginView: View {
             defer { googleLoading = false }
             do {
                 try await onGoogleSignIn?()
+                
+                // Verificar role após login com Google
+                if let user = Auth.auth().currentUser {
+                    try await validateUserRole(userId: user.uid, isSignUp: false)
+                }
+                
                 onSuccess?()
             } catch {
-                errorMessage = error.localizedDescription
+                let nsError = error as NSError
+                if nsError.domain == "UserRoleValidation" {
+                    errorMessage = nsError.localizedDescription
+                } else {
+                    errorMessage = error.localizedDescription
+                }
             }
         }
     }

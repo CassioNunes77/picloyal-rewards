@@ -22,34 +22,43 @@ class UserRoleService {
     private init() {}
     
     /// Verifica o role do usuário no Firestore
-    /// Retorna "merchant" se o usuário for lojista, "user" caso contrário
+    /// Retorna "merchant" se o usuário existir em merchants, "user" se existir em users
     func getUserRole(userId: String) async throws -> UserRole {
         print("🔍 [UserRoleService] Verificando role do usuário: \(userId)")
         
         do {
-            // Primeiro, verificar o campo 'role' na coleção 'users'
-            let userDoc = try await db.collection(usersCollection).document(userId).getDocument()
-            
-            if userDoc.exists, let data = userDoc.data(), let roleString = data["role"] as? String {
-                if let role = UserRole(rawValue: roleString) {
-                    print("✅ [UserRoleService] Role encontrado no campo 'role': \(role.rawValue)")
-                    return role
-                }
-            }
-            
-            // Se não tiver role definido, verificar se existe na coleção 'merchants'
+            // Verificar se existe na coleção 'merchants' (lojistas)
             let merchantDoc = try await db.collection(merchantsCollection).document(userId).getDocument()
             if merchantDoc.exists {
                 print("✅ [UserRoleService] Usuário encontrado na coleção 'merchants', role: merchant")
                 return .merchant
             }
             
-            // Por padrão, se não encontrar nada, é um usuário comum
-            print("✅ [UserRoleService] Role padrão: user")
+            // Verificar se existe na coleção 'users' (usuários comuns)
+            let userDoc = try await db.collection(usersCollection).document(userId).getDocument()
+            if userDoc.exists {
+                print("✅ [UserRoleService] Usuário encontrado na coleção 'users', role: user")
+                return .user
+            }
+            
+            // Se não encontrar em nenhuma coleção, assumir usuário comum
+            print("⚠️ [UserRoleService] Usuário não encontrado em nenhuma coleção, assumindo: user")
             return .user
         } catch {
             print("❌ [UserRoleService] Erro ao verificar role: \(error.localizedDescription)")
             throw error
         }
+    }
+    
+    /// Verifica se o usuário existe na coleção merchants
+    func isMerchant(userId: String) async throws -> Bool {
+        let merchantDoc = try await db.collection(merchantsCollection).document(userId).getDocument()
+        return merchantDoc.exists
+    }
+    
+    /// Verifica se o usuário existe na coleção users
+    func isUser(userId: String) async throws -> Bool {
+        let userDoc = try await db.collection(usersCollection).document(userId).getDocument()
+        return userDoc.exists
     }
 }

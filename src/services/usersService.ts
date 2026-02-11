@@ -465,3 +465,21 @@ export async function getTotalUsersCount(): Promise<number> {
     return 0;
   }
 }
+
+/**
+ * Verifica se o usuário existe na coleção users
+ */
+export async function isUser(userId: string): Promise<boolean> {
+  if (!firestore) {
+    return false;
+  }
+  
+  try {
+    const userRef = doc(firestore, COLLECTION_NAME, userId);
+    const userSnap = await getDoc(userRef);
+    return userSnap.exists();
+  } catch (error: any) {
+    console.error("❌ [usersService] Erro ao verificar se é usuário:", error);
+    return false;
+  }
+}

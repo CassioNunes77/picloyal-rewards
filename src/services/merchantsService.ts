@@ -175,28 +175,7 @@ export async function createMerchantAccount(
     console.log("✅ [merchantsService] Conta criada no Firebase Auth. UID:", user.uid);
 
     try {
-      // 2. Criar documento na coleção users com role = "merchant"
-      await createOrUpdateUser(user);
-      console.log("✅ [merchantsService] Documento 'users' criado/atualizado");
-      
-      await updateDoc(doc(firestore, "users", user.uid), {
-        role: "merchant",
-      });
-      console.log("✅ [merchantsService] Campo 'role' atualizado para 'merchant'");
-    } catch (userError: any) {
-      console.error("❌ [merchantsService] Erro ao criar documento 'users':", userError);
-      // Tentar deletar a conta do Auth se falhar
-      try {
-        await user.delete();
-        console.log("⚠️ [merchantsService] Conta do Auth deletada devido a erro no Firestore");
-      } catch (deleteError) {
-        console.error("❌ [merchantsService] Erro ao deletar conta do Auth:", deleteError);
-      }
-      throw new Error("Erro ao salvar dados do usuário: " + (userError?.message || "Erro desconhecido"));
-    }
-
-    try {
-      // 3. Criar documento na coleção merchants
+      // 2. Criar documento APENAS na coleção merchants (não criar em users)
       const merchantData: MerchantDataFirestore = {
         uid: user.uid,
         email: email,
@@ -320,5 +299,23 @@ export async function getMerchantStores(merchantId: string): Promise<StoreData[]
   } catch (error: any) {
     console.error("❌ [merchantsService] Erro ao buscar lojas do lojista:", error);
     return [];
+  }
+}
+
+/**
+ * Verifica se o usuário existe na coleção merchants
+ */
+export async function isMerchant(userId: string): Promise<boolean> {
+  if (!firestore) {
+    return false;
+  }
+  
+  try {
+    const merchantRef = doc(firestore, MERCHANTS_COLLECTION, userId);
+    const merchantSnap = await getDoc(merchantRef);
+    return merchantSnap.exists();
+  } catch (error: any) {
+    console.error("❌ [merchantsService] Erro ao verificar se é lojista:", error);
+    return false;
   }
 }

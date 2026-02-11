@@ -210,36 +210,7 @@ struct MerchantSignUpView: View {
                 print("📝 [MerchantSignUpView] UID: \(user.uid)")
                 print("📝 [MerchantSignUpView] Email: \(userEmail)")
                 
-                // 1. Criar/atualizar documento na coleção users com role = "merchant"
-                do {
-                    let userRef = db.collection("users").document(user.uid)
-                    var userData: [String: Any] = [
-                        "uid": user.uid,
-                        "email": user.email ?? userEmail,
-                        "role": "merchant",
-                        "createdAt": Timestamp(),
-                        "updatedAt": Timestamp(),
-                        "lastLoginAt": Timestamp()
-                    ]
-                    
-                    if !userName.isEmpty {
-                        userData["displayName"] = userName
-                    }
-                    if let photoURL = user.photoURL?.absoluteString {
-                        userData["photoURL"] = photoURL
-                    }
-                    if let phoneNumber = user.phoneNumber {
-                        userData["phoneNumber"] = phoneNumber
-                    }
-                    
-                    try await userRef.setData(userData, merge: true)
-                    print("✅ [MerchantSignUpView] Documento 'users' criado/atualizado com sucesso")
-                } catch {
-                    print("❌ [MerchantSignUpView] Erro ao criar documento 'users': \(error.localizedDescription)")
-                    throw error
-                }
-                
-                // 2. Criar documento na coleção merchants
+                // Criar documento APENAS na coleção merchants (não criar em users)
                 do {
                     let merchantRef = db.collection("merchants").document(user.uid)
                     var merchantData: [String: Any] = [

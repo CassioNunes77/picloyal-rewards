@@ -91,12 +91,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       
-      // Persistir usuário no Firestore quando fizer login
+      // Persistir usuário no Firestore quando fizer login (apenas se não for lojista)
       if (firebaseUser) {
         try {
-          console.log("🔍 [AuthContext] Usuário autenticado, persistindo no Firestore...");
-          await createOrUpdateUser(firebaseUser);
-          console.log("✅ [AuthContext] Usuário persistido no Firestore com sucesso");
+          // Verificar se não é lojista antes de criar em users
+          const { isMerchant } = await import("@/services/merchantsService");
+          const merchantExists = await isMerchant(firebaseUser.uid);
+          if (!merchantExists) {
+            // Apenas criar/atualizar em users se não for lojista
+            console.log("🔍 [AuthContext] Usuário autenticado, persistindo no Firestore (users)...");
+            await createOrUpdateUser(firebaseUser);
+            console.log("✅ [AuthContext] Usuário persistido no Firestore com sucesso");
+          } else {
+            console.log("ℹ️ [AuthContext] Usuário é lojista, não criando em users");
+          }
         } catch (error) {
           console.error("❌ [AuthContext] Erro ao persistir usuário no Firestore:", error);
           // Não bloqueia o login se houver erro ao persistir no Firestore

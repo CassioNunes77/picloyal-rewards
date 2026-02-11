@@ -1,5 +1,6 @@
-import { doc, getDoc, Timestamp, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, Timestamp, updateDoc } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
+import type { User } from "firebase/auth";
 
 const COLLECTION_NAME = "users";
 
@@ -136,6 +137,87 @@ function userDataToFirestore(userData: Partial<UserData>): Partial<UserDataFires
 }
 
 /**
+ * Cria ou atualiza o documento do usuário no Firestore
+ * APENAS cria em users (não cria em merchants)
+ */
+export async function createOrUpdateUser(user: User): Promise<void> {
+  console.log("🔍 [usersService] createOrUpdateUser chamado para:", user.uid);
+  
+  if (!firestore) {
+    console.error("❌ [usersService] Firestore não está configurado!");
+    throw new Error("Firestore não está configurado. Verifique as variáveis de ambiente do Firebase.");
+  }
+  
+  try {
+    const userRef = doc(firestore, COLLECTION_NAME, user.uid);
+    const userSnap = await getDoc(userRef);
+    
+    const now = Timestamp.now();
+    
+    if (!userSnap.exists()) {
+      // Criar novo documento do usuário APENAS em users
+      console.log("📝 [usersService] Criando novo documento do usuário:", user.uid);
+      const newUserData: UserDataFirestore = {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        phoneNumber: user.phoneNumber,
+        createdAt: now,
+        updatedAt: now,
+        lastLoginAt: now,
+      };
+      
+      await setDoc(userRef, newUserData);
+      console.log("✅ [usersService] Usuário criado com sucesso no Firestore:", user.uid);
+    } else {
+      // Atualizar documento existente
+      console.log("🔄 [usersService] Atualizando documento existente do usuário:", user.uid);
+      const existingData = userSnap.data();
+      
+      // Verificar se algum dado do Firebase Auth mudou
+      const needsUpdate = 
+        existingData.email !== user.email ||
+        existingData.displayName !== user.displayName ||
+        existingData.photoURL !== user.photoURL ||
+        existingData.phoneNumber !== user.phoneNumber;
+      
+      if (needsUpdate || true) { // Sempre atualizar lastLoginAt
+        const updateData: Partial<UserDataFirestore> = {
+          lastLoginAt: now,
+          updatedAt: now,
+        };
+        
+        if (existingData.email !== user.email) updateData.email = user.email;
+        if (existingData.displayName !== user.displayName) updateData.displayName = user.displayName;
+        if (existingData.photoURL !== user.photoURL) updateData.photoURL = user.photoURL;
+        if (existingData.phoneNumber !== user.phoneNumber) updateData.phoneNumber = user.phoneNumber;
+        
+        await updateDoc(userRef, updateData);
+        console.log("✅ [usersService] Usuário atualizado no Firestore:", user.uid);
+      } else {
+        console.log("ℹ️ [usersService] Nenhuma atualização necessária para o usuário:", user.uid);
+      }
+    }
+  } catch (error: any) {
+    console.error("❌ [usersService] Erro ao criar/atualizar usuário:", error);
+    console.error("Detalhes do erro:", {
+      code: error?.code,
+      message: error?.message,
+      stack: error?.stack,
+    });
+    
+    if (error?.code === "permission-denied") {
+      throw new Error("Permissão negada. Verifique as regras de segurança do Firestore.");
+    } else if (error?.code === "unavailable") {
+      throw new Error("Firestore indisponível. Verifique sua conexão com a internet.");
+    } else {
+      throw new Error(`Erro ao salvar usuário: ${error?.message || "Erro desconhecido"}`);
+    }
+  }
+}
+
+/**
  * Busca dados do usuário no Firestore
  */
 export async function getUserData(userId: string): Promise<UserData | null> {
@@ -207,5 +289,23 @@ export async function updateUserData(
     } else {
       throw new Error(`Erro ao atualizar usuário: ${error?.message || "Erro desconhecido"}`);
     }
+  }
+}
+
+/**
+ * Verifica se o usuário existe na coleção users
+ */
+export async function isUser(userId: string): Promise<boolean> {
+  if (!firestore) {
+    return false;
+  }
+  
+  try {
+    const userRef = doc(firestore, COLLECTION_NAME, userId);
+    const userSnap = await getDoc(userRef);
+    return userSnap.exists();
+  } catch (error: any) {
+    console.error("❌ [usersService] Erro ao verificar se é usuário:", error);
+    return false;
   }
 }

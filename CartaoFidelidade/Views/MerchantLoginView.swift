@@ -274,6 +274,19 @@ struct MerchantLoginView: View {
                     password: password
                 )
                 
+                // Verificar se o usuário existe APENAS na coleção merchants
+                let roleService = UserRoleService.shared
+                let isMerchantUser = try await roleService.isMerchant(userId: result.user.uid)
+                
+                // Se não for lojista (não existe em merchants), fazer logout e mostrar erro
+                guard isMerchantUser else {
+                    // Se não for lojista, fazer logout e mostrar erro
+                    try? Auth.auth().signOut()
+                    errorMessage = "Esta conta não é de um lojista. Use o login de usuário comum."
+                    loading = false
+                    return
+                }
+                
                 // Marcar como logado e como lojista
                 isLoggedIn = true
                 isMerchant = true
