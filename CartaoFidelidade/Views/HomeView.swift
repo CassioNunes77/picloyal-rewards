@@ -68,7 +68,7 @@ struct HomeView: View {
                         }
                         .padding(.horizontal, AppSpacing.lg)
                         .padding(.top, 56) // Considerando notch do iOS
-                        .padding(.bottom, AppSpacing.sm)
+                        .padding(.bottom, 4) // Espaço mínimo entre localidade e header
                         
                         // Header
                         HStack {

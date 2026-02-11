@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { MapPin, ChevronDown, Search, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { MapPin, ChevronDown, Search, Check, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -7,34 +7,62 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-
-const LOCATIONS = [
-  "São Paulo, SP",
-  "Rio de Janeiro, RJ",
-  "Belo Horizonte, MG",
-  "Brasília, DF",
-  "Salvador, BA",
-  "Curitiba, PR",
-  "Porto Alegre, RS",
-  "Recife, PE",
-  "Fortaleza, CE",
-  "Manaus, AM",
-];
+import { getActiveRegions, type Region } from "@/services/regionsService";
+import { toast } from "sonner";
 
 const LocationSelector = () => {
   const [selectedLocation, setSelectedLocation] = useState(() => {
-    return localStorage.getItem("selectedLocation") || "São Paulo, SP";
+    return localStorage.getItem("selectedLocation") || "";
   });
   const [showPicker, setShowPicker] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [locations, setLocations] = useState<Region[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const filteredLocations = LOCATIONS.filter((location) =>
-    location.toLowerCase().includes(searchText.toLowerCase())
-  );
+  useEffect(() => {
+    if (showPicker) {
+      loadLocations();
+    }
+  }, [showPicker]);
 
-  const handleSelectLocation = (location: string) => {
-    setSelectedLocation(location);
-    localStorage.setItem("selectedLocation", location);
+  const loadLocations = async () => {
+    setLoading(true);
+    try {
+      const regions = await getActiveRegions();
+      setLocations(regions);
+      
+      // Se não houver localização selecionada e houver regiões, selecionar a primeira
+      if (!selectedLocation && regions.length > 0) {
+        const firstLocation = `${regions[0].city}, ${regions[0].state}`;
+        setSelectedLocation(firstLocation);
+        localStorage.setItem("selectedLocation", firstLocation);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar localizações:", error);
+      toast.error("Erro ao carregar localizações");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredLocations = locations.filter((region) => {
+    const searchLower = searchText.toLowerCase();
+    return (
+      region.city.toLowerCase().includes(searchLower) ||
+      region.state.toLowerCase().includes(searchLower) ||
+      region.name.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const formatLocation = (region: Region): string => {
+    return `${region.city}, ${region.state}`;
+  };
+
+  const handleSelectLocation = (region: Region) => {
+    const locationString = formatLocation(region);
+    setSelectedLocation(locationString);
+    localStorage.setItem("selectedLocation", locationString);
+    localStorage.setItem("selectedRegionId", region.id);
     setShowPicker(false);
     setSearchText("");
   };
@@ -49,11 +77,8 @@ const LocationSelector = () => {
         style={{ animationDelay: "50ms" }}
       >
         <MapPin className="h-3.5 w-3.5 text-primary-foreground/90" />
-        <span className="text-xs font-medium text-primary-foreground/90">
-          Entregar em
-        </span>
         <span className="text-xs font-semibold text-primary-foreground line-clamp-1 max-w-[120px]">
-          {selectedLocation}
+          {selectedLocation || "Carregando..."}
         </span>
         <ChevronDown className="h-3 w-3 text-primary-foreground/80" />
       </button>
@@ -79,37 +104,46 @@ const LocationSelector = () => {
 
             {/* Locations List */}
             <div className="max-h-[400px] overflow-y-auto">
-              {filteredLocations.length === 0 ? (
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : filteredLocations.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  <p>Nenhuma cidade encontrada</p>
+                  <p>Nenhuma localidade encontrada</p>
                 </div>
               ) : (
                 <div className="space-y-0">
-                  {filteredLocations.map((location) => (
-                    <button
-                      key={location}
-                      onClick={() => handleSelectLocation(location)}
-                      className={`w-full flex items-center justify-between px-4 py-3 
-                                hover:bg-accent transition-colors rounded-lg
-                                ${
-                                  selectedLocation === location
-                                    ? "bg-accent"
-                                    : ""
-                                }`}
-                    >
-                      <div className="text-left">
-                        <p className="text-sm font-medium text-card-foreground">
-                          {location}
-                        </p>
+                  {filteredLocations.map((region) => {
+                    const locationString = formatLocation(region);
+                    return (
+                      <button
+                        key={region.id}
+                        onClick={() => handleSelectLocation(region)}
+                        className={`w-full flex items-center justify-between px-4 py-3 
+                                  hover:bg-accent transition-colors rounded-lg
+                                  ${
+                                    selectedLocation === locationString
+                                      ? "bg-accent"
+                                      : ""
+                                  }`}
+                      >
+                        <div className="text-left">
+                          <p className="text-sm font-medium text-card-foreground">
+                            {locationString}
+                          </p>
                         <p className="text-xs text-muted-foreground">
-                          Entregas disponíveis
+                          {region.storesCount > 0
+                              ? `${region.storesCount} loja${region.storesCount > 1 ? "s" : ""} disponível${region.storesCount > 1 ? "eis" : ""}`
+                              : "Lojas disponíveis"}
                         </p>
-                      </div>
-                      {selectedLocation === location && (
-                        <Check className="h-5 w-5 text-primary" />
-                      )}
-                    </button>
-                  ))}
+                        </div>
+                        {selectedLocation === locationString && (
+                          <Check className="h-5 w-5 text-primary" />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>

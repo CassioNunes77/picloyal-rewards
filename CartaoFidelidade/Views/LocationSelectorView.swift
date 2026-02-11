@@ -8,8 +8,10 @@
 import SwiftUI
 
 struct LocationSelectorView: View {
-    @AppStorage("selectedLocation") private var selectedLocation = "São Paulo, SP"
+    @AppStorage("selectedLocation") private var selectedLocation = ""
     @State private var showLocationPicker = false
+    @State private var regions: [Region] = []
+    @State private var loading = false
     
     var body: some View {
         Button(action: {
@@ -20,11 +22,7 @@ struct LocationSelectorView: View {
                     .font(.system(size: 14))
                     .foregroundColor(.white.opacity(0.9))
                 
-                Text("Entregar em")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.white.opacity(0.9))
-                
-                Text(selectedLocation)
+                Text(selectedLocation.isEmpty ? "Carregando..." : selectedLocation)
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(.white)
                     .lineLimit(1)
@@ -41,42 +39,63 @@ struct LocationSelectorView: View {
         .sheet(isPresented: $showLocationPicker) {
             LocationPickerSheet(
                 selectedLocation: $selectedLocation,
+                regions: $regions,
+                loading: $loading,
                 onDismiss: { showLocationPicker = false }
             )
+            .onAppear {
+                loadRegions()
+            }
+        }
+        .onAppear {
+            // Carregar localização salva ou primeira região disponível
+            if selectedLocation.isEmpty {
+                loadRegions()
+            }
+        }
+    }
+    
+    private func loadRegions() {
+        loading = true
+        Task {
+            do {
+                let fetchedRegions = try await RegionsService.shared.getActiveRegions()
+                await MainActor.run {
+                    regions = fetchedRegions
+                    loading = false
+                    
+                    // Se não houver localização selecionada e houver regiões, selecionar a primeira
+                    if selectedLocation.isEmpty && !regions.isEmpty {
+                        selectedLocation = regions[0].displayName
+                    }
+                }
+            } catch {
+                print("❌ [LocationSelectorView] Erro ao carregar regiões: \(error.localizedDescription)")
+                await MainActor.run {
+                    loading = false
+                }
+            }
         }
     }
 }
 
 struct LocationPickerSheet: View {
     @Binding var selectedLocation: String
+    @Binding var regions: [Region]
+    @Binding var loading: Bool
     let onDismiss: () -> Void
     @State private var searchText = ""
-    @State private var tempSelectedLocation: String
     
-    let locations = [
-        "São Paulo, SP",
-        "Rio de Janeiro, RJ",
-        "Belo Horizonte, MG",
-        "Brasília, DF",
-        "Salvador, BA",
-        "Curitiba, PR",
-        "Porto Alegre, RS",
-        "Recife, PE",
-        "Fortaleza, CE",
-        "Manaus, AM"
-    ]
-    
-    init(selectedLocation: Binding<String>, onDismiss: @escaping () -> Void) {
-        self._selectedLocation = selectedLocation
-        self.onDismiss = onDismiss
-        self._tempSelectedLocation = State(initialValue: selectedLocation.wrappedValue)
-    }
-    
-    var filteredLocations: [String] {
+    var filteredRegions: [Region] {
         if searchText.isEmpty {
-            return locations
+            return regions
         }
-        return locations.filter { $0.localizedCaseInsensitiveContains(searchText) }
+        let searchLower = searchText.lowercased()
+        return regions.filter { region in
+            region.city.localizedCaseInsensitiveContains(searchLower) ||
+            region.state.localizedCaseInsensitiveContains(searchLower) ||
+            region.name.localizedCaseInsensitiveContains(searchLower)
+        }
     }
     
     var body: some View {
@@ -100,38 +119,55 @@ struct LocationPickerSheet: View {
                 // Locations List
                 ScrollView {
                     VStack(spacing: 0) {
-                        ForEach(filteredLocations, id: \.self) { location in
-                            Button(action: {
-                                tempSelectedLocation = location
-                                selectedLocation = location
-                                onDismiss()
-                            }) {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(location)
-                                            .font(.appBody)
-                                            .foregroundColor(.cardForeground)
-                                        
-                                        Text("Entregas disponíveis")
-                                            .font(.appCaption)
-                                            .foregroundColor(.mutedForeground)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    if tempSelectedLocation == location {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(.primary)
-                                            .font(.system(size: 20))
-                                    }
-                                }
-                                .padding(AppSpacing.md)
-                                .background(tempSelectedLocation == location ? Color.accent.opacity(0.1) : Color.clear)
+                        if loading {
+                            HStack {
+                                Spacer()
+                                ProgressView()
+                                    .padding(.vertical, AppSpacing.xl)
+                                Spacer()
                             }
-                            .buttonStyle(PlainButtonStyle())
-                            
-                            Divider()
-                                .padding(.leading, AppSpacing.md)
+                        } else if filteredRegions.isEmpty {
+                            VStack(spacing: AppSpacing.sm) {
+                                Text("Nenhuma localidade encontrada")
+                                    .font(.appBody)
+                                    .foregroundColor(.mutedForeground)
+                                    .padding(.vertical, AppSpacing.xl)
+                            }
+                        } else {
+                            ForEach(filteredRegions) { region in
+                                Button(action: {
+                                    selectedLocation = region.displayName
+                                    onDismiss()
+                                }) {
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(region.displayName)
+                                                .font(.appBody)
+                                                .foregroundColor(.cardForeground)
+                                            
+                                            Text(region.storesCount > 0 
+                                                  ? "\(region.storesCount) loja\(region.storesCount > 1 ? "s" : "") disponível\(region.storesCount > 1 ? "eis" : "")"
+                                                  : "Lojas disponíveis")
+                                                .font(.appCaption)
+                                                .foregroundColor(.mutedForeground)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        if selectedLocation == region.displayName {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundColor(.primary)
+                                                .font(.system(size: 20))
+                                        }
+                                    }
+                                    .padding(AppSpacing.md)
+                                    .background(selectedLocation == region.displayName ? Color.accent.opacity(0.1) : Color.clear)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                
+                                Divider()
+                                    .padding(.leading, AppSpacing.md)
+                            }
                         }
                     }
                 }
