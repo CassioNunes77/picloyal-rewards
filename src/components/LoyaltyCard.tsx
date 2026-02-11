@@ -11,31 +11,31 @@ const LoyaltyCard = ({ currentPoints, totalPoints, userName, cardNumber }: Loyal
   const progress = (currentPoints / totalPoints) * 100;
   
   return (
-    <div className="relative overflow-hidden rounded-2xl gradient-card p-6 text-primary-foreground shadow-xl">
+    <div className="relative overflow-hidden rounded-2xl gradient-card px-4 py-4 text-primary-foreground shadow-xl" style={{ height: '200px' }}>
       {/* Background decoration */}
       <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary-foreground/10" />
       <div className="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-primary-foreground/5" />
       
       {/* Card content */}
-      <div className="relative z-10">
+      <div className="relative z-10 h-full flex flex-col">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20">
-              <Gift className="h-5 w-5" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20">
+              <Gift className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-sm font-medium opacity-80">Core+</p>
-              <p className="text-xs opacity-60">{cardNumber}</p>
+              <p className="text-xs font-medium opacity-80">Core+</p>
+              <p className="text-[10px] opacity-60">{cardNumber}</p>
             </div>
           </div>
-          <Sparkles className="h-6 w-6 opacity-80" />
+          <Sparkles className="h-5 w-5 opacity-80" />
         </div>
         
-        <div className="mt-6">
+        <div className="mt-3">
           <h2 className="text-lg font-bold">{userName}</h2>
         </div>
         
-        <div className="mt-6">
+        <div className="mt-3 flex-1">
           <div className="flex items-end justify-between">
             <div>
               <p className="text-3xl font-bold">{currentPoints}</p>

@@ -21,8 +21,8 @@ extension Color {
     static let primary = Color(red: 0.2, green: 0.8, blue: 0.4) // hsl(155 80% 40%)
     static let primaryForeground = Color.white
     
-    // Secondary (roxo)
-    static let secondary = Color(red: 0.55, green: 0.3, blue: 0.75) // hsl(270 70% 55%)
+    // Secondary (roxo) - alinhado com WEB
+    static let secondary = Color(red: 168/255.0, green: 42/255.0, blue: 224/255.0) // hsl(270 70% 55%) = #A82AE0
     static let secondaryForeground = Color.white
     
     // Muted
@@ -53,30 +53,30 @@ struct AppGradients {
         endPoint: .bottomTrailing
     )
     
-    // Secondary Gradient (roxo)
+    // Secondary Gradient (roxo) - alinhado com WEB
     static let secondary = LinearGradient(
         colors: [
-            Color(red: 0.55, green: 0.3, blue: 0.75), // hsl(270 70% 55%)
-            Color(red: 0.65, green: 0.25, blue: 0.7) // hsl(290 60% 50%)
+            Color(red: 168/255.0, green: 42/255.0, blue: 224/255.0), // hsl(270 70% 55%) = #A82AE0
+            Color(red: 128/255.0, green: 26/255.0, blue: 179/255.0) // hsl(290 60% 50%) = #801BB3
         ],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
     
-    // Hero Gradient (roxo vertical)
+    // Hero Gradient (roxo vertical) - alinhado com WEB
     static let hero = LinearGradient(
         colors: [
-            Color(red: 0.55, green: 0.3, blue: 0.75), // hsl(270 70% 55%)
-            Color(red: 0.6, green: 0.25, blue: 0.65) // hsl(280 60% 45%)
+            Color(red: 168/255.0, green: 42/255.0, blue: 224/255.0), // hsl(270 70% 55%) = #A82AE0 - roxo claro
+            Color(red: 138/255.0, green: 45/255.0, blue: 184/255.0) // hsl(280 60% 45%) = #8A2DB8 - roxo escuro
         ],
         startPoint: .top,
         endPoint: .bottom
     )
     
-    // Card Gradient (roxo para verde)
+    // Card Gradient (roxo para verde) - alinhado com WEB
     static let card = LinearGradient(
         colors: [
-            Color(red: 0.55, green: 0.3, blue: 0.75), // hsl(270 70% 55%)
+            Color(red: 168/255.0, green: 42/255.0, blue: 224/255.0), // hsl(270 70% 55%) = #A82AE0
             Color(red: 0.2, green: 0.8, blue: 0.4) // hsl(155 80% 40%)
         ],
         startPoint: .topLeading,
