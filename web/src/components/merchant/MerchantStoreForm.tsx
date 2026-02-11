@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { createStore } from "@/services/merchantsService";
+import CityAutocomplete from "./CityAutocomplete";
 
 interface MerchantStoreFormProps {
   onCancel: () => void;
@@ -37,8 +38,12 @@ export default function MerchantStoreForm({ onCancel, onSuccess }: MerchantStore
       toast.error("Preencha o CNPJ");
       return;
     }
-    if (!formData.address.trim() || !formData.city.trim()) {
-      toast.error("Preencha o endereço e cidade");
+    if (!formData.address.trim()) {
+      toast.error("Preencha o endereço");
+      return;
+    }
+    if (!formData.city.trim()) {
+      toast.error("Selecione uma cidade da lista");
       return;
     }
     if (!formData.phone.trim()) {
@@ -168,21 +173,14 @@ export default function MerchantStoreForm({ onCancel, onSuccess }: MerchantStore
         </div>
 
         {/* Cidade */}
-        <div className="space-y-2">
-          <Label htmlFor="city" className="text-card-foreground">
-            Cidade *
-          </Label>
-          <Input
-            id="city"
-            type="text"
-            placeholder="Ex: São Paulo - SP"
-            value={formData.city}
-            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-            className="h-12 rounded-xl border-border bg-background"
-            required
-            disabled={loading}
-          />
-        </div>
+        <CityAutocomplete
+          value={formData.city}
+          onChange={(city) => setFormData({ ...formData, city })}
+          label="Cidade"
+          required
+          disabled={loading}
+          placeholder="Digite o nome da cidade"
+        />
 
         {/* Telefone */}
         <div className="space-y-2">

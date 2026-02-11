@@ -81,16 +81,12 @@ struct MerchantStoreFormView: View {
                     )
                     
                     // Cidade
-                    FormField(
+                    CityAutocompleteView(
+                        value: $city,
                         label: "Cidade",
-                        icon: nil,
+                        placeholder: "Digite o nome da cidade",
                         isRequired: true,
-                        content: {
-                            TextField("Ex: São Paulo - SP", text: $city)
-                                .textContentType(.addressCity)
-                                .foregroundColor(.cardForeground)
-                                .disabled(loading)
-                        }
+                        isDisabled: loading
                     )
                     
                     // Telefone
@@ -196,10 +192,13 @@ struct MerchantStoreFormView: View {
     }
     
     private var isFormValid: Bool {
-        !name.trimmingCharacters(in: .whitespaces).isEmpty &&
+        // Validar se a cidade está na lista de cidades válidas
+        let isValidCity = !city.trimmingCharacters(in: .whitespaces).isEmpty
+        
+        return !name.trimmingCharacters(in: .whitespaces).isEmpty &&
         !cnpj.trimmingCharacters(in: .whitespaces).isEmpty &&
         !address.trimmingCharacters(in: .whitespaces).isEmpty &&
-        !city.trimmingCharacters(in: .whitespaces).isEmpty &&
+        isValidCity &&
         !phone.trimmingCharacters(in: .whitespaces).isEmpty &&
         !hours.trimmingCharacters(in: .whitespaces).isEmpty
     }
