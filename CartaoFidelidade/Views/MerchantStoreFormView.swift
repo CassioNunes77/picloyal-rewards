@@ -136,7 +136,7 @@ struct MerchantStoreFormView: View {
                                     Image(systemName: "photo.fill")
                                         .font(.system(size: 32))
                                         .foregroundColor(.mutedForeground)
-                                    Text("Funcionalidade de upload de foto será implementada em breve")
+                                    Text("Funcionalidade de upload de logo será implementada em breve")
                                         .font(.system(size: 12))
                                         .foregroundColor(.mutedForeground)
                                         .multilineTextAlignment(.center)

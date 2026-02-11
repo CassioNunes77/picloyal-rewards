@@ -225,7 +225,7 @@ export default function MerchantStoreForm({ onCancel, onSuccess }: MerchantStore
           </Label>
           <div className="border-2 border-dashed border-border rounded-xl p-8 text-center">
             <p className="text-sm text-muted-foreground">
-              Funcionalidade de upload de foto será implementada em breve
+              Funcionalidade de upload de logo será implementada em breve
             </p>
           </div>
         </div>
