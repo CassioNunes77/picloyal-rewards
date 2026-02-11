@@ -2,7 +2,6 @@ import { doc, getDoc, setDoc, Timestamp, updateDoc, collection, query, where, ge
 import { firestore } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, deleteUser } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { createOrUpdateUser } from "./usersService";
 
 const MERCHANTS_COLLECTION = "merchants";
 const STORES_COLLECTION = "stores";
