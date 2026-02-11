@@ -18,6 +18,7 @@ struct MerchantStoreFormView: View {
     @State private var phone = ""
     @State private var hours = ""
     @State private var loading = false
+    @State private var validCities: [String] = []
     
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.lg) {
@@ -82,7 +83,7 @@ struct MerchantStoreFormView: View {
                     
                     // Cidade
                     CityAutocompleteView(
-                        value: $city,
+                        city: $city,
                         label: "Cidade",
                         placeholder: "Digite o nome da cidade",
                         isRequired: true,
@@ -189,11 +190,15 @@ struct MerchantStoreFormView: View {
         .background(Color.card)
         .cornerRadius(24)
         .appShadow(AppShadow.lg)
+        .onAppear {
+            loadValidCities()
+        }
     }
     
     private var isFormValid: Bool {
         // Validar se a cidade está na lista de cidades válidas
-        let isValidCity = !city.trimmingCharacters(in: .whitespaces).isEmpty
+        let isValidCity = !city.trimmingCharacters(in: .whitespaces).isEmpty && 
+                          (validCities.isEmpty || validCities.contains(city))
         
         return !name.trimmingCharacters(in: .whitespaces).isEmpty &&
         !cnpj.trimmingCharacters(in: .whitespaces).isEmpty &&
@@ -201,6 +206,19 @@ struct MerchantStoreFormView: View {
         isValidCity &&
         !phone.trimmingCharacters(in: .whitespaces).isEmpty &&
         !hours.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+    
+    private func loadValidCities() {
+        Task {
+            do {
+                let cities = try await RegionsService.shared.getAllCities()
+                await MainActor.run {
+                    self.validCities = cities
+                }
+            } catch {
+                print("❌ [MerchantStoreFormView] Erro ao carregar cidades: \(error.localizedDescription)")
+            }
+        }
     }
     
     private func formatCNPJ(_ value: String) -> String {

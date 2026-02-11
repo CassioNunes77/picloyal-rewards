@@ -412,6 +412,41 @@ export async function getAllCities(): Promise<string[]> {
 }
 
 /**
+ * Busca todas as cidades únicas cadastradas no Firebase (incluindo desativadas)
+ * Retorna array de strings com formato "Cidade - UF"
+ */
+export async function getAllCities(): Promise<string[]> {
+  if (!firestore) {
+    console.error("❌ [regionsService] Firestore não está configurado");
+    throw new Error("Firestore não está configurado");
+  }
+
+  try {
+    console.log("🔍 [regionsService] Buscando todas as cidades...");
+    const regionsRef = collection(firestore, COLLECTION_NAME);
+    const querySnapshot = await getDocs(regionsRef);
+
+    // Extrair cidades únicas com formato "Cidade - UF"
+    const citiesSet = new Set<string>();
+    querySnapshot.docs.forEach((doc) => {
+      const data = doc.data() as RegionData;
+      if (data.city && data.state) {
+        const cityDisplay = `${data.city} - ${data.state}`;
+        citiesSet.add(cityDisplay);
+      }
+    });
+
+    // Converter para array e ordenar alfabeticamente
+    const cities = Array.from(citiesSet).sort((a, b) => a.localeCompare(b, "pt-BR"));
+    console.log("✅ [regionsService] Total de cidades únicas encontradas:", cities.length);
+    return cities;
+  } catch (error) {
+    console.error("❌ [regionsService] Erro ao buscar cidades:", error);
+    throw error;
+  }
+}
+
+/**
  * Escuta mudanças em tempo real nas regiões
  */
 export function subscribeToRegions(

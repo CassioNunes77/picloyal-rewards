@@ -8,30 +8,30 @@
 import SwiftUI
 
 struct CityAutocompleteView: View {
-    @Binding var value: String
+    @Binding var city: String
     let label: String
-    let placeholder: String
     let isRequired: Bool
     let isDisabled: Bool
+    let placeholder: String
     
-    @State private var cities: [String] = []
+    @State private var allCities: [String] = []
     @State private var filteredCities: [String] = []
     @State private var showSuggestions = false
     @State private var isLoading = false
     @FocusState private var isFocused: Bool
     
     init(
-        value: Binding<String>,
+        city: Binding<String>,
         label: String = "Cidade",
-        placeholder: String = "Digite o nome da cidade",
         isRequired: Bool = false,
-        isDisabled: Bool = false
+        isDisabled: Bool = false,
+        placeholder: String = "Digite o nome da cidade"
     ) {
-        self._value = value
+        self._city = city
         self.label = label
-        self.placeholder = placeholder
         self.isRequired = isRequired
         self.isDisabled = isDisabled
+        self.placeholder = placeholder
     }
     
     var body: some View {
@@ -46,21 +46,41 @@ struct CityAutocompleteView: View {
                     .foregroundColor(.cardForeground)
             }
             
-            // Input com sugestões
-            ZStack(alignment: .topLeading) {
-                TextField(placeholder, text: $value)
-                    .textContentType(.addressCity)
-                    .foregroundColor(.cardForeground)
-                    .disabled(isDisabled || isLoading)
-                    .focused($isFocused)
-                    .onChange(of: value) { oldValue, newValue in
-                        filterCities(newValue)
-                    }
-                    .onChange(of: isFocused) { oldValue, newValue in
-                        if newValue && !filteredCities.isEmpty {
-                            showSuggestions = true
-                        } else if !newValue {
-                            showSuggestions = false
+            // Campo de input com sugestões
+            ZStack(alignment: .top) {
+                VStack(spacing: 0) {
+                    // Input
+                    HStack {
+                        TextField(placeholder, text: $city)
+                            .focused($isFocused)
+                            .foregroundColor(.cardForeground)
+                            .disabled(isDisabled || isLoading)
+                            .onChange(of: city) { oldValue, newValue in
+                                filterCities(newValue)
+                            }
+                            .onChange(of: isFocused) { oldValue, newValue in
+                                if newValue {
+                                    if !filteredCities.isEmpty {
+                                        showSuggestions = true
+                                    }
+                                } else {
+                                    // Delay para permitir clique na sugestão
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                        showSuggestions = false
+                                    }
+                                }
+                            }
+                        
+                        if !city.isEmpty && !isDisabled {
+                            Button(action: {
+                                city = ""
+                                filteredCities = allCities
+                                showSuggestions = false
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.mutedForeground)
+                            }
                         }
                     }
                     .padding(AppSpacing.md)
@@ -69,38 +89,18 @@ struct CityAutocompleteView: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: AppRadius.lg)
                             .stroke(
-                                !isValidCity && !value.trimmingCharacters(in: .whitespaces).isEmpty && isRequired
-                                    ? Color.red
-                                    : Color.border,
+                                (!isValidCity && !city.isEmpty && isRequired) ? Color.red : Color.border,
                                 lineWidth: 1
                             )
                     )
-                
-                // Botão de limpar
-                if !value.isEmpty && !isDisabled {
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            value = ""
-                            filteredCities = cities
-                            showSuggestions = false
-                        }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .font(.system(size: 16))
-                                .foregroundColor(.mutedForeground)
-                        }
-                        .padding(.trailing, AppSpacing.md)
-                    }
-                }
-                
-                // Lista de sugestões
-                if showSuggestions && !filteredCities.isEmpty {
-                    VStack(spacing: 0) {
+                    
+                    // Lista de sugestões
+                    if showSuggestions && !filteredCities.isEmpty {
                         ScrollView {
                             VStack(spacing: 0) {
-                                ForEach(filteredCities, id: \.self) { city in
+                                ForEach(filteredCities, id: \.self) { cityOption in
                                     Button(action: {
-                                        value = city
+                                        city = cityOption
                                         showSuggestions = false
                                         isFocused = false
                                     }) {
@@ -108,7 +108,7 @@ struct CityAutocompleteView: View {
                                             Image(systemName: "mappin.circle.fill")
                                                 .font(.system(size: 14))
                                                 .foregroundColor(.mutedForeground)
-                                            Text(city)
+                                            Text(cityOption)
                                                 .font(.system(size: 14))
                                                 .foregroundColor(.cardForeground)
                                             Spacer()
@@ -118,46 +118,46 @@ struct CityAutocompleteView: View {
                                     }
                                     .buttonStyle(PlainButtonStyle())
                                     
-                                    if city != filteredCities.last {
+                                    if cityOption != filteredCities.last {
                                         Divider()
-                                            .padding(.leading, AppSpacing.md)
+                                            .background(Color.border)
                                     }
                                 }
                             }
                         }
                         .frame(maxHeight: 240)
+                        .background(Color.card)
+                        .cornerRadius(AppRadius.lg)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppRadius.lg)
+                                .stroke(Color.border, lineWidth: 1)
+                        )
+                        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                        .padding(.top, 4)
                     }
-                    .background(Color.card)
-                    .cornerRadius(AppRadius.lg)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: AppRadius.lg)
-                            .stroke(Color.border, lineWidth: 1)
-                    )
-                    .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
-                    .padding(.top, 52)
-                }
-                
-                // Mensagem "Nenhuma cidade encontrada"
-                if showSuggestions && filteredCities.isEmpty && !value.trimmingCharacters(in: .whitespaces).isEmpty {
-                    VStack {
-                        Text("Nenhuma cidade encontrada")
-                            .font(.system(size: 12))
-                            .foregroundColor(.mutedForeground)
-                            .padding(AppSpacing.md)
+                    
+                    // Mensagem quando não há resultados
+                    if showSuggestions && filteredCities.isEmpty && !city.isEmpty {
+                        VStack {
+                            Text("Nenhuma cidade encontrada")
+                                .font(.system(size: 12))
+                                .foregroundColor(.mutedForeground)
+                                .padding(AppSpacing.md)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .background(Color.card)
+                        .cornerRadius(AppRadius.lg)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppRadius.lg)
+                                .stroke(Color.border, lineWidth: 1)
+                        )
+                        .padding(.top, 4)
                     }
-                    .background(Color.card)
-                    .cornerRadius(AppRadius.lg)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: AppRadius.lg)
-                            .stroke(Color.border, lineWidth: 1)
-                    )
-                    .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
-                    .padding(.top, 52)
                 }
             }
             
             // Mensagem de erro
-            if !isValidCity && !value.trimmingCharacters(in: .whitespaces).isEmpty && isRequired {
+            if !isValidCity && !city.isEmpty && isRequired {
                 Text("Selecione uma cidade da lista")
                     .font(.system(size: 12))
                     .foregroundColor(.red)
@@ -169,17 +169,17 @@ struct CityAutocompleteView: View {
     }
     
     private var isValidCity: Bool {
-        !value.trimmingCharacters(in: .whitespaces).isEmpty && cities.contains(value)
+        !city.isEmpty && allCities.contains(city)
     }
     
     private func loadCities() {
         isLoading = true
         Task {
             do {
-                let allCities = try await RegionsService.shared.getAllCities()
+                let cities = try await RegionsService.shared.getAllCities()
                 await MainActor.run {
-                    self.cities = allCities
-                    self.filteredCities = allCities
+                    self.allCities = cities
+                    self.filteredCities = cities
                     self.isLoading = false
                 }
             } catch {
@@ -192,27 +192,27 @@ struct CityAutocompleteView: View {
     }
     
     private func filterCities(_ searchText: String) {
-        if searchText.trimmingCharacters(in: .whitespaces).isEmpty {
-            filteredCities = cities
+        if searchText.isEmpty {
+            filteredCities = allCities
             showSuggestions = false
             return
         }
         
         let searchLower = searchText.lowercased()
-        filteredCities = cities.filter { city in
+        filteredCities = allCities.filter { city in
             city.lowercased().contains(searchLower)
         }
+        
         showSuggestions = !filteredCities.isEmpty
     }
 }
 
 #Preview {
-    @Previewable @State var city = ""
-    return CityAutocompleteView(
-        value: $city,
+    CityAutocompleteView(
+        city: .constant(""),
         label: "Cidade",
-        placeholder: "Digite o nome da cidade",
         isRequired: true
     )
     .padding()
+    .background(Color.appBackground)
 }
