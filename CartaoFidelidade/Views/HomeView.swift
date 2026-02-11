@@ -60,6 +60,15 @@ struct HomeView: View {
                 VStack(spacing: 0) {
                     // Hero Section with Gradient
                     VStack(spacing: 0) {
+                        // Location Selector (estilo iFood)
+                        HStack {
+                            LocationSelectorView()
+                            Spacer()
+                        }
+                        .padding(.horizontal, AppSpacing.lg)
+                        .padding(.top, 8)
+                        .padding(.bottom, AppSpacing.xs)
+                        
                         // Header
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {

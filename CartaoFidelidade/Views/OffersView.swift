@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct Offer: Identifiable {
+struct Offer: Identifiable, Hashable {
     let id: Int
     let title: String
     let description: String
@@ -19,6 +19,14 @@ struct Offer: Identifiable {
     let category: String
     let pointsRequired: Int?
     let isNew: Bool
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func == (lhs: Offer, rhs: Offer) -> Bool {
+        lhs.id == rhs.id
+    }
 }
 
 struct OffersView: View {
@@ -27,7 +35,7 @@ struct OffersView: View {
     @State private var selectedCategory = "all"
     @State private var showToast = false
     @State private var toastMessage = ""
-    @State private var selectedOffer: Offer?
+    @State private var navigationPath = NavigationPath()
     
     let offers = [
         Offer(
@@ -133,163 +141,170 @@ struct OffersView: View {
     }
     
     var body: some View {
-        ZStack {
-            Color.appBackground
-                .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                // Header
-                ZStack(alignment: .top) {
-                    VStack(spacing: 0) {
-                        // Back button and title
-                        HStack {
-                            Button(action: {
-                                withAnimation {
-                                    activeTab = "home"
+        NavigationStack(path: $navigationPath) {
+            ZStack {
+                Color.appBackground
+                    .ignoresSafeArea()
+                
+                VStack(spacing: 0) {
+                    // Header
+                    ZStack(alignment: .top) {
+                        VStack(spacing: 0) {
+                            // Back button and title
+                            HStack {
+                                Button(action: {
+                                    withAnimation {
+                                        activeTab = "home"
+                                    }
+                                }) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color.white.opacity(0.2))
+                                            .frame(width: 40, height: 40)
+                                        
+                                        Image(systemName: "chevron.left")
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 20))
+                                    }
                                 }
-                            }) {
-                                ZStack {
-                                    Circle()
-                                        .fill(Color.white.opacity(0.2))
-                                        .frame(width: 40, height: 40)
-                                    
-                                    Image(systemName: "chevron.left")
-                                        .foregroundColor(.white)
-                                        .font(.system(size: 20))
-                                }
-                            }
-                            
-                            HStack(spacing: AppSpacing.sm) {
-                                Image(systemName: "sparkles")
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 24))
                                 
-                                Text("Ofertas Especiais")
-                                    .font(.appTitle)
+                                HStack(spacing: AppSpacing.sm) {
+                                    Image(systemName: "sparkles")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 24))
+                                    
+                                    Text("Ofertas Especiais")
+                                        .font(.appTitle)
+                                        .foregroundColor(.white)
+                                }
+                                
+                                Spacer()
+                            }
+                            .padding(.horizontal, AppSpacing.lg)
+                            .padding(.top, 48)
+                            .padding(.bottom, AppSpacing.md)
+                            
+                            // Search Bar
+                            HStack {
+                                Image(systemName: "magnifyingglass")
+                                    .foregroundColor(.white.opacity(0.6))
+                                    .font(.system(size: 20))
+                                
+                                TextField("Buscar ofertas...", text: $searchQuery)
                                     .foregroundColor(.white)
+                                    .tint(.white)
+                            }
+                            .padding(AppSpacing.md)
+                            .background(Color.white.opacity(0.2))
+                            .cornerRadius(AppRadius.lg)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: AppRadius.lg)
+                                    .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                            )
+                            .padding(.horizontal, AppSpacing.lg)
+                            .padding(.bottom, AppSpacing.lg)
+                            .fadeIn(delay: 0.1)
+                        }
+                        .padding(.bottom, AppSpacing.lg)
+                        .background(AppGradients.secondary)
+                        .ignoresSafeArea(edges: .top)
+                    }
+                    
+                    // Content
+                    ScrollView {
+                        VStack(spacing: AppSpacing.lg) {
+                            // Categories
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: AppSpacing.sm) {
+                                    ForEach(categories, id: \.0) { category in
+                                        CategoryButton(
+                                            id: category.0,
+                                            label: category.1,
+                                            icon: category.2,
+                                            isSelected: selectedCategory == category.0
+                                        ) {
+                                            selectedCategory = category.0
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal, AppSpacing.lg)
+                            }
+                            .padding(.vertical, AppSpacing.sm)
+                            .fadeIn(delay: 0.15)
+                            
+                            // Offers List
+                            if filteredOffers.isEmpty {
+                                VStack(spacing: AppSpacing.md) {
+                                    Image(systemName: "tag")
+                                        .font(.system(size: 48))
+                                        .foregroundColor(.mutedForeground)
+                                    
+                                    Text("Nenhuma oferta encontrada")
+                                        .font(.appBody)
+                                        .foregroundColor(.mutedForeground)
+                                    
+                                    Text("Tente buscar com outros termos")
+                                        .font(.appCaption)
+                                        .foregroundColor(.mutedForeground)
+                                }
+                                .padding(.top, AppSpacing.xl * 2)
+                            } else {
+                                ForEach(Array(filteredOffers.enumerated()), id: \.element.id) { index, offer in
+                                    Button(action: {
+                                        navigationPath.append(offer)
+                                    }) {
+                                        OfferCard(offer: offer, compact: true, onTap: nil)
+                                            .fadeIn(delay: 0.2 + Double(index) * 0.05)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                }
                             }
                             
                             Spacer()
+                                .frame(height: 100)
                         }
                         .padding(.horizontal, AppSpacing.lg)
-                        .padding(.top, 48)
-                        .padding(.bottom, AppSpacing.md)
-                        
-                        // Search Bar
-                        HStack {
-                            Image(systemName: "magnifyingglass")
-                                .foregroundColor(.white.opacity(0.6))
-                                .font(.system(size: 20))
-                            
-                            TextField("Buscar ofertas...", text: $searchQuery)
-                                .foregroundColor(.white)
-                                .tint(.white)
-                        }
-                        .padding(AppSpacing.md)
-                        .background(Color.white.opacity(0.2))
-                        .cornerRadius(AppRadius.lg)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: AppRadius.lg)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                        )
-                        .padding(.horizontal, AppSpacing.lg)
-                        .padding(.bottom, AppSpacing.lg)
-                        .fadeIn(delay: 0.1)
+                        .padding(.top, AppSpacing.lg)
                     }
-                    .padding(.bottom, AppSpacing.lg)
-                    .background(AppGradients.secondary)
-                    .ignoresSafeArea(edges: .top)
+                    .background(Color.appBackground)
+                    .cornerRadius(AppRadius.xl, corners: [.topLeft, .topRight])
+                    .offset(y: -AppRadius.xl)
                 }
                 
-                // Content
-                ScrollView {
-                    VStack(spacing: AppSpacing.lg) {
-                        // Categories
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: AppSpacing.sm) {
-                                ForEach(categories, id: \.0) { category in
-                                    CategoryButton(
-                                        id: category.0,
-                                        label: category.1,
-                                        icon: category.2,
-                                        isSelected: selectedCategory == category.0
-                                    ) {
-                                        selectedCategory = category.0
-                                    }
-                                }
-                            }
-                            .padding(.horizontal, AppSpacing.lg)
-                        }
-                        .padding(.vertical, AppSpacing.sm)
-                        .fadeIn(delay: 0.15)
-                        
-                        // Offers List
-                        if filteredOffers.isEmpty {
-                            VStack(spacing: AppSpacing.md) {
-                                Image(systemName: "tag")
-                                    .font(.system(size: 48))
-                                    .foregroundColor(.mutedForeground)
-                                
-                                Text("Nenhuma oferta encontrada")
-                                    .font(.appBody)
-                                    .foregroundColor(.mutedForeground)
-                                
-                                Text("Tente buscar com outros termos")
-                                    .font(.appCaption)
-                                    .foregroundColor(.mutedForeground)
-                            }
-                            .padding(.top, AppSpacing.xl * 2)
-                        } else {
-                            ForEach(Array(filteredOffers.enumerated()), id: \.element.id) { index, offer in
-                                OfferCard(offer: offer, compact: true, onTap: { selectedOffer = offer })
-                                    .fadeIn(delay: 0.2 + Double(index) * 0.05)
-                            }
-                        }
-                        
+                // Toast
+                if showToast {
+                    VStack {
                         Spacer()
-                            .frame(height: 100)
-                    }
-                    .padding(.horizontal, AppSpacing.lg)
-                    .padding(.top, AppSpacing.lg)
-                }
-                .background(Color.appBackground)
-                .cornerRadius(AppRadius.xl, corners: [.topLeft, .topRight])
-                .offset(y: -AppRadius.xl)
-            }
-            
-            // Toast
-            if showToast {
-                VStack {
-                    Spacer()
 
-                    Text(toastMessage)
-                        .font(.appBody)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, AppSpacing.lg)
-                        .padding(.vertical, AppSpacing.md)
-                        .background(Color.appForeground.opacity(0.9))
-                        .cornerRadius(AppRadius.md)
-                        .padding(.bottom, 100)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
-                .animation(.easeInOut, value: showToast)
-            }
-        }
-        .sheet(item: $selectedOffer) { offer in
-            OfferDetailView(
-                offer: offer,
-                storeNameOverride: nil,
-                onUseOffer: {
-                    toastMessage = "🎉 Oferta \"\(offer.title)\" ativada!"
-                    withAnimation { showToast = true }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                        withAnimation { showToast = false }
+                        Text(toastMessage)
+                            .font(.appBody)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, AppSpacing.lg)
+                            .padding(.vertical, AppSpacing.md)
+                            .background(Color.appForeground.opacity(0.9))
+                            .cornerRadius(AppRadius.md)
+                            .padding(.bottom, 100)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
-                },
-                onDismiss: { selectedOffer = nil }
-            )
+                    .animation(.easeInOut, value: showToast)
+                }
+            }
+            .navigationDestination(for: Offer.self) { offer in
+                OfferDetailView(
+                    offer: offer,
+                    storeNameOverride: nil,
+                    onUseOffer: {
+                        toastMessage = "🎉 Oferta \"\(offer.title)\" ativada!"
+                        withAnimation { showToast = true }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            withAnimation { showToast = false }
+                        }
+                    },
+                    onDismiss: {}
+                )
+            }
+            .ignoresSafeArea(edges: .top)
         }
-        .ignoresSafeArea(edges: .top)
     }
     
     private func showToast(message: String) {
@@ -361,116 +376,130 @@ struct OfferCard: View {
     private var cornerRadius: CGFloat { compact ? AppRadius.lg : AppRadius.xl }
     
     var body: some View {
-        Button(action: {}) {
-            HStack(spacing: AppSpacing.md) {
-                // Icon
-                ZStack {
-                    RoundedRectangle(cornerRadius: AppRadius.lg)
-                        .fill(iconGradient)
-                        .frame(width: iconSize, height: iconSize)
-                    
-                    Image(systemName: offer.icon)
-                        .foregroundColor(.white)
-                        .font(.system(size: iconFontSize))
+        Group {
+            if onTap != nil {
+                // Usar Button quando há callback (para compatibilidade com outras telas)
+                Button(action: {
+                    onTap?()
+                }) {
+                    cardContent
                 }
-                
-                // Content
-                VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    HStack {
-                        Text(offer.title)
-                            .font(titleFont)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.cardForeground)
-                            .lineLimit(1)
-                        
-                        if offer.isNew {
-                            Text("NOVO")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundColor(.destructiveForeground)
-                                .padding(.horizontal, AppSpacing.sm)
-                                .padding(.vertical, 2)
-                                .background(Color.destructive)
-                                .cornerRadius(AppRadius.sm)
-                        }
-                        
-                        Spacer()
-                        
-                        Text(offer.discount)
-                            .font(.system(size: discountFontSize, weight: .bold))
-                            .foregroundColor(.secondaryForeground)
-                            .padding(.horizontal, compact ? AppSpacing.sm : AppSpacing.md)
-                            .padding(.vertical, compact ? AppSpacing.xs : AppSpacing.sm)
-                            .background(AppGradients.secondary)
-                            .cornerRadius(AppRadius.md)
-                    }
-                    
-                    Text(offer.description)
-                        .font(.appCaption)
-                        .foregroundColor(.mutedForeground)
-                        .lineLimit(2)
-                    
-                    HStack(spacing: AppSpacing.sm) {
-                        if !offer.storeName.isEmpty {
-                            HStack(spacing: 4) {
-                                Image(systemName: "mappin")
-                                    .font(.system(size: 12))
-                                Text(offer.storeName)
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.mutedForeground)
-                                    .lineLimit(1)
+                .buttonStyle(PlainButtonStyle())
+                .simultaneousGesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { _ in
+                            if !isPressed {
+                                isPressed = true
                             }
                         }
-                        
+                        .onEnded { _ in
+                            isPressed = false
+                        }
+                )
+            } else {
+                // Sem Button quando usado dentro de NavigationLink
+                cardContent
+            }
+        }
+    }
+    
+    private var cardContent: some View {
+        HStack(spacing: AppSpacing.md) {
+            // Icon
+            ZStack {
+                RoundedRectangle(cornerRadius: AppRadius.lg)
+                    .fill(iconGradient)
+                    .frame(width: iconSize, height: iconSize)
+                
+                Image(systemName: offer.icon)
+                    .foregroundColor(.white)
+                    .font(.system(size: iconFontSize))
+            }
+            
+            // Content
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                HStack {
+                    Text(offer.title)
+                        .font(titleFont)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.cardForeground)
+                        .lineLimit(1)
+                    
+                    if offer.isNew {
+                        Text("NOVO")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.destructiveForeground)
+                            .padding(.horizontal, AppSpacing.sm)
+                            .padding(.vertical, 2)
+                            .background(Color.destructive)
+                            .cornerRadius(AppRadius.sm)
+                    }
+                    
+                    Spacer()
+                    
+                    Text(offer.discount)
+                        .font(.system(size: discountFontSize, weight: .bold))
+                        .foregroundColor(.secondaryForeground)
+                        .padding(.horizontal, compact ? AppSpacing.sm : AppSpacing.md)
+                        .padding(.vertical, compact ? AppSpacing.xs : AppSpacing.sm)
+                        .background(AppGradients.secondary)
+                        .cornerRadius(AppRadius.md)
+                }
+                
+                Text(offer.description)
+                    .font(.appCaption)
+                    .foregroundColor(.mutedForeground)
+                    .lineLimit(2)
+                
+                HStack(spacing: AppSpacing.sm) {
+                    if !offer.storeName.isEmpty {
                         HStack(spacing: 4) {
-                            Image(systemName: "clock")
+                            Image(systemName: "mappin")
                                 .font(.system(size: 12))
-                            Text("Válido até \(offer.validUntil)")
+                            Text(offer.storeName)
                                 .font(.system(size: 12))
                                 .foregroundColor(.mutedForeground)
+                                .lineLimit(1)
                         }
                     }
                     
-                    if let points = offer.pointsRequired {
-                        HStack(spacing: 4) {
-                            Image(systemName: "sparkles")
-                                .font(.system(size: 12))
-                            Text("\(points) pontos necessários")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.accentForeground)
-                        }
-                        .padding(.horizontal, AppSpacing.sm)
-                        .padding(.vertical, 4)
-                        .background(Color.accent)
-                        .cornerRadius(AppRadius.sm)
+                    HStack(spacing: 4) {
+                        Image(systemName: "clock")
+                            .font(.system(size: 12))
+                        Text("Válido até \(offer.validUntil)")
+                            .font(.system(size: 12))
+                            .foregroundColor(.mutedForeground)
                     }
                 }
                 
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.mutedForeground)
-                    .font(.system(size: compact ? 18 : 20))
-            }
-            .padding(padding)
-            .background(Color.card)
-            .cornerRadius(cornerRadius)
-            .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(Color.primary.opacity(0.2), lineWidth: 2)
-            )
-            .appShadow(isPressed ? AppShadow.sm : AppShadow.md)
-            .scaleEffect(isPressed ? 0.98 : 1.0)
-        }
-        .buttonStyle(PlainButtonStyle())
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    if !isPressed {
-                        isPressed = true
+                if let points = offer.pointsRequired {
+                    HStack(spacing: 4) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 12))
+                        Text("\(points) pontos necessários")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.accentForeground)
                     }
+                    .padding(.horizontal, AppSpacing.sm)
+                    .padding(.vertical, 4)
+                    .background(Color.accent)
+                    .cornerRadius(AppRadius.sm)
                 }
-                .onEnded { _ in
-                    isPressed = false
-                }
+            }
+            
+            Image(systemName: "chevron.right")
+                .foregroundColor(.mutedForeground)
+                .font(.system(size: compact ? 18 : 20))
+        }
+        .padding(padding)
+        .background(Color.card)
+        .cornerRadius(cornerRadius)
+        .overlay(
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .stroke(Color.primary.opacity(0.2), lineWidth: 2)
         )
+        .appShadow(isPressed ? AppShadow.sm : AppShadow.md)
+        .scaleEffect(isPressed ? 0.98 : 1.0)
     }
 }
 

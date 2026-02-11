@@ -8,6 +8,7 @@ import QuickAction from "@/components/QuickAction";
 import BottomNav from "@/components/BottomNav";
 import SettingsScreen from "@/components/SettingsScreen";
 import QRCodeCard from "@/components/QRCodeCard";
+import LocationSelector from "@/components/LocationSelector";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -87,7 +88,12 @@ const Index = () => {
     <div className="min-h-screen bg-background pb-24">
       {/* Hero Section with Gradient */}
       <div className="gradient-hero">
-        <header className="relative z-10 px-6 pt-12 pb-4">
+        {/* Location Selector (estilo iFood) */}
+        <div className="px-6 pt-3 pb-2">
+          <LocationSelector />
+        </div>
+        
+        <header className="relative z-10 px-6 pt-2 pb-4">
           <div className="flex items-center justify-between">
             <div className="animate-fade-in">
               <p className="text-sm text-primary-foreground/80">Bem-vindo de volta,</p>
