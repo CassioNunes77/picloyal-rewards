@@ -72,10 +72,6 @@ struct LoyaltyCard: View {
                 
                 // User greeting
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Olá,")
-                        .font(.appCaption)
-                        .foregroundColor(.white.opacity(0.8))
-                    
                     Text(userName)
                         .font(.appHeadline)
                         .foregroundColor(.white)
