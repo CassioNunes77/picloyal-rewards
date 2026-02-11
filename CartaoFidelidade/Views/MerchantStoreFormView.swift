@@ -83,7 +83,7 @@ struct MerchantStoreFormView: View {
                     
                     // Cidade
                     CityAutocompleteView(
-                        city: $city,
+                        selectedCity: $city,
                         label: "Cidade",
                         placeholder: "Digite o nome da cidade",
                         isRequired: true,

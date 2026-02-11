@@ -90,38 +90,7 @@ class RegionsService {
             
             // Converter para array e ordenar alfabeticamente
             let cities = Array(citiesSet).sorted { $0.localizedCompare($1) == .orderedAscending }
-            print("✅ [RegionsService] \(cities.count) cidades únicas encontradas")
-            return cities
-        } catch {
-            print("❌ [RegionsService] Erro ao buscar cidades: \(error.localizedDescription)")
-            throw error
-        }
-    }
-    
-    /// Busca todas as cidades únicas cadastradas no Firebase (incluindo desativadas)
-    /// Retorna array de strings com formato "Cidade - UF"
-    func getAllCities() async throws -> [String] {
-        print("🔍 [RegionsService] Buscando todas as cidades...")
-        
-        let regionsRef = db.collection(collectionName)
-        
-        do {
-            let snapshot = try await regionsRef.getDocuments()
-            print("✅ [RegionsService] \(snapshot.documents.count) documentos encontrados")
             
-            var citiesSet = Set<String>()
-            
-            for document in snapshot.documents {
-                let data = document.data()
-                if let city = data["city"] as? String,
-                   let state = data["state"] as? String {
-                    let cityDisplay = "\(city) - \(state)"
-                    citiesSet.insert(cityDisplay)
-                }
-            }
-            
-            // Converter para array e ordenar alfabeticamente
-            let cities = Array(citiesSet).sorted { $0.localizedCompare($1) == .orderedAscending }
             print("✅ [RegionsService] \(cities.count) cidades únicas encontradas")
             return cities
         } catch {

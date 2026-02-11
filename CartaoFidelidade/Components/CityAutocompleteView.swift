@@ -8,30 +8,31 @@
 import SwiftUI
 
 struct CityAutocompleteView: View {
-    @Binding var city: String
+    @Binding var selectedCity: String
     let label: String
+    let placeholder: String
     let isRequired: Bool
     let isDisabled: Bool
-    let placeholder: String
     
-    @State private var allCities: [String] = []
+    @State private var cities: [String] = []
     @State private var filteredCities: [String] = []
     @State private var showSuggestions = false
     @State private var isLoading = false
+    @State private var searchText = ""
     @FocusState private var isFocused: Bool
     
     init(
-        city: Binding<String>,
+        selectedCity: Binding<String>,
         label: String = "Cidade",
+        placeholder: String = "Digite o nome da cidade",
         isRequired: Bool = false,
-        isDisabled: Bool = false,
-        placeholder: String = "Digite o nome da cidade"
+        isDisabled: Bool = false
     ) {
-        self._city = city
+        self._selectedCity = selectedCity
         self.label = label
+        self.placeholder = placeholder
         self.isRequired = isRequired
         self.isDisabled = isDisabled
-        self.placeholder = placeholder
     }
     
     var body: some View {
@@ -46,41 +47,23 @@ struct CityAutocompleteView: View {
                     .foregroundColor(.cardForeground)
             }
             
-            // Campo de input com sugestões
-            ZStack(alignment: .top) {
-                VStack(spacing: 0) {
-                    // Input
-                    HStack {
-                        TextField(placeholder, text: $city)
-                            .focused($isFocused)
-                            .foregroundColor(.cardForeground)
-                            .disabled(isDisabled || isLoading)
-                            .onChange(of: city) { oldValue, newValue in
-                                filterCities(newValue)
-                            }
-                            .onChange(of: isFocused) { oldValue, newValue in
-                                if newValue {
-                                    if !filteredCities.isEmpty {
-                                        showSuggestions = true
-                                    }
-                                } else {
-                                    // Delay para permitir clique na sugestão
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                        showSuggestions = false
-                                    }
-                                }
-                            }
-                        
-                        if !city.isEmpty && !isDisabled {
-                            Button(action: {
-                                city = ""
-                                filteredCities = allCities
-                                showSuggestions = false
-                            }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.mutedForeground)
-                            }
+            // Campo de entrada
+            ZStack(alignment: .trailing) {
+                TextField(placeholder, text: $searchText)
+                    .textContentType(.addressCity)
+                    .foregroundColor(.cardForeground)
+                    .focused($isFocused)
+                    .disabled(isDisabled || isLoading)
+                    .onChange(of: searchText) { oldValue, newValue in
+                        filterCities(newValue)
+                        selectedCity = newValue
+                    }
+                    .onChange(of: isFocused) { oldValue, newValue in
+                        if newValue && !filteredCities.isEmpty {
+                            showSuggestions = true
+                        } else if !newValue {
+                            // Validar cidade ao perder foco
+                            validateCity()
                         }
                     }
                     .padding(AppSpacing.md)
@@ -89,97 +72,116 @@ struct CityAutocompleteView: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: AppRadius.lg)
                             .stroke(
-                                (!isValidCity && !city.isEmpty && isRequired) ? Color.red : Color.border,
+                                isValidCity ? Color.border : Color.red,
                                 lineWidth: 1
                             )
                     )
-                    
-                    // Lista de sugestões
-                    if showSuggestions && !filteredCities.isEmpty {
-                        ScrollView {
-                            VStack(spacing: 0) {
-                                ForEach(filteredCities, id: \.self) { cityOption in
-                                    Button(action: {
-                                        city = cityOption
-                                        showSuggestions = false
-                                        isFocused = false
-                                    }) {
-                                        HStack(spacing: AppSpacing.sm) {
-                                            Image(systemName: "mappin.circle.fill")
-                                                .font(.system(size: 14))
-                                                .foregroundColor(.mutedForeground)
-                                            Text(cityOption)
-                                                .font(.system(size: 14))
-                                                .foregroundColor(.cardForeground)
-                                            Spacer()
-                                        }
-                                        .padding(AppSpacing.md)
-                                        .background(Color.appBackground)
-                                    }
-                                    .buttonStyle(PlainButtonStyle())
-                                    
-                                    if cityOption != filteredCities.last {
-                                        Divider()
-                                            .background(Color.border)
-                                    }
-                                }
-                            }
-                        }
-                        .frame(maxHeight: 240)
-                        .background(Color.card)
-                        .cornerRadius(AppRadius.lg)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: AppRadius.lg)
-                                .stroke(Color.border, lineWidth: 1)
-                        )
-                        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
-                        .padding(.top, 4)
+                
+                // Botão limpar
+                if !searchText.isEmpty && !isDisabled {
+                    Button(action: {
+                        searchText = ""
+                        selectedCity = ""
+                        filteredCities = cities
+                        showSuggestions = false
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.mutedForeground)
+                            .font(.system(size: 18))
                     }
-                    
-                    // Mensagem quando não há resultados
-                    if showSuggestions && filteredCities.isEmpty && !city.isEmpty {
-                        VStack {
-                            Text("Nenhuma cidade encontrada")
-                                .font(.system(size: 12))
-                                .foregroundColor(.mutedForeground)
-                                .padding(AppSpacing.md)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .background(Color.card)
-                        .cornerRadius(AppRadius.lg)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: AppRadius.lg)
-                                .stroke(Color.border, lineWidth: 1)
-                        )
-                        .padding(.top, 4)
-                    }
+                    .padding(.trailing, AppSpacing.md)
                 }
             }
             
             // Mensagem de erro
-            if !isValidCity && !city.isEmpty && isRequired {
+            if !isValidCity && !searchText.isEmpty && isRequired {
                 Text("Selecione uma cidade da lista")
                     .font(.system(size: 12))
                     .foregroundColor(.red)
             }
+            
+            // Lista de sugestões
+            if showSuggestions && !filteredCities.isEmpty {
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(filteredCities, id: \.self) { city in
+                            Button(action: {
+                                searchText = city
+                                selectedCity = city
+                                showSuggestions = false
+                                isFocused = false
+                            }) {
+                                HStack(spacing: AppSpacing.sm) {
+                                    Image(systemName: "mappin.circle.fill")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.mutedForeground)
+                                    Text(city)
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.cardForeground)
+                                    Spacer()
+                                }
+                                .padding(AppSpacing.md)
+                                .background(Color.card)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            if city != filteredCities.last {
+                                Divider()
+                                    .background(Color.border)
+                            }
+                        }
+                    }
+                }
+                .frame(maxHeight: 240)
+                .background(Color.card)
+                .cornerRadius(AppRadius.lg)
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppRadius.lg)
+                        .stroke(Color.border, lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+            }
+            
+            // Mensagem quando não há resultados
+            if showSuggestions && filteredCities.isEmpty && !searchText.isEmpty {
+                VStack {
+                    Text("Nenhuma cidade encontrada")
+                        .font(.system(size: 14))
+                        .foregroundColor(.mutedForeground)
+                        .padding(AppSpacing.md)
+                }
+                .frame(maxWidth: .infinity)
+                .background(Color.card)
+                .cornerRadius(AppRadius.lg)
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppRadius.lg)
+                        .stroke(Color.border, lineWidth: 1)
+                )
+            }
         }
         .onAppear {
             loadCities()
+            searchText = selectedCity
+        }
+        .onChange(of: selectedCity) { oldValue, newValue in
+            if newValue != searchText {
+                searchText = newValue
+            }
         }
     }
     
     private var isValidCity: Bool {
-        !city.isEmpty && allCities.contains(city)
+        !searchText.isEmpty && cities.contains(searchText)
     }
     
     private func loadCities() {
         isLoading = true
         Task {
             do {
-                let cities = try await RegionsService.shared.getAllCities()
+                let allCities = try await RegionsService.shared.getAllCities()
                 await MainActor.run {
-                    self.allCities = cities
-                    self.filteredCities = cities
+                    self.cities = allCities
+                    self.filteredCities = allCities
                     self.isLoading = false
                 }
             } catch {
@@ -191,26 +193,35 @@ struct CityAutocompleteView: View {
         }
     }
     
-    private func filterCities(_ searchText: String) {
-        if searchText.isEmpty {
-            filteredCities = allCities
+    private func filterCities(_ text: String) {
+        if text.isEmpty {
+            filteredCities = cities
             showSuggestions = false
             return
         }
         
-        let searchLower = searchText.lowercased()
-        filteredCities = allCities.filter { city in
-            city.lowercased().contains(searchLower)
+        let lowercasedText = text.lowercased()
+        filteredCities = cities.filter { city in
+            city.lowercased().contains(lowercasedText)
         }
-        
         showSuggestions = !filteredCities.isEmpty
+    }
+    
+    private func validateCity() {
+        if isRequired && !isValidCity && !searchText.isEmpty {
+            // Manter sugestões abertas se cidade inválida
+            showSuggestions = true
+        } else {
+            showSuggestions = false
+        }
     }
 }
 
 #Preview {
     CityAutocompleteView(
-        city: .constant(""),
+        selectedCity: .constant(""),
         label: "Cidade",
+        placeholder: "Digite o nome da cidade",
         isRequired: true
     )
     .padding()
