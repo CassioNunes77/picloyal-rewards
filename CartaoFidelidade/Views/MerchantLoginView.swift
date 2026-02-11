@@ -274,18 +274,25 @@ struct MerchantLoginView: View {
                     password: password
                 )
                 
+                let userId = result.user.uid
+                print("🔍 [MerchantLoginView] Verificando login de lojista para usuário: \(userId)")
+                
                 // Verificar se o usuário existe APENAS na coleção merchants
+                // Esta é a validação principal: o login só é permitido se o usuário existir em merchants
                 let roleService = UserRoleService.shared
-                let isMerchantUser = try await roleService.isMerchant(userId: result.user.uid)
+                let isMerchantUser = try await roleService.isMerchant(userId: userId)
                 
                 // Se não for lojista (não existe em merchants), fazer logout e mostrar erro
                 guard isMerchantUser else {
+                    print("❌ [MerchantLoginView] Usuário \(userId) não encontrado na coleção 'merchants'. Login negado.")
                     // Se não for lojista, fazer logout e mostrar erro
                     try? Auth.auth().signOut()
                     errorMessage = "Esta conta não é de um lojista. Use o login de usuário comum."
                     loading = false
                     return
                 }
+                
+                print("✅ [MerchantLoginView] Usuário \(userId) confirmado como lojista na coleção 'merchants'. Login permitido.")
                 
                 // Marcar como logado e como lojista
                 isLoggedIn = true

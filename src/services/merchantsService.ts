@@ -304,18 +304,31 @@ export async function getMerchantStores(merchantId: string): Promise<StoreData[]
 
 /**
  * Verifica se o usuário existe na coleção merchants
+ * Esta função é usada para validar login de lojistas
  */
 export async function isMerchant(userId: string): Promise<boolean> {
   if (!firestore) {
+    console.error("❌ [merchantsService] Firestore não está configurado!");
     return false;
   }
   
   try {
+    console.log(`🔍 [merchantsService] Verificando se usuário ${userId} existe na coleção 'merchants'...`);
     const merchantRef = doc(firestore, MERCHANTS_COLLECTION, userId);
     const merchantSnap = await getDoc(merchantRef);
-    return merchantSnap.exists();
+    const exists = merchantSnap.exists();
+    
+    if (exists) {
+      console.log(`✅ [merchantsService] Usuário ${userId} encontrado na coleção 'merchants'`);
+    } else {
+      console.log(`⚠️ [merchantsService] Usuário ${userId} NÃO encontrado na coleção 'merchants'`);
+    }
+    
+    return exists;
   } catch (error: any) {
     console.error("❌ [merchantsService] Erro ao verificar se é lojista:", error);
+    console.error("❌ [merchantsService] Código do erro:", error?.code);
+    console.error("❌ [merchantsService] Mensagem do erro:", error?.message);
     return false;
   }
 }

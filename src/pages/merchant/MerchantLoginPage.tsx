@@ -6,6 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { isMerchant } from "@/services/merchantsService";
 
 export default function MerchantLoginPage() {
   const navigate = useNavigate();
@@ -20,22 +23,49 @@ export default function MerchantLoginPage() {
       return;
     }
     
-    // Email fictício para testes: lojista@teste.com (qualquer senha)
-    const testEmail = "lojista@teste.com";
-    
-    if (email.trim().toLowerCase() !== testEmail) {
-      toast.error("Email de teste: lojista@teste.com");
-      return;
-    }
-    
     setLoading(true);
-    // Por enquanto, apenas redireciona para o painel
-    // Futuramente implementar autenticação
-    setTimeout(() => {
-      setLoading(false);
-      navigate("/merchant/dashboard", { replace: true });
+    try {
+      // Fazer login no Firebase Auth
+      const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
+      const userId = userCredential.user.uid;
+      
+      console.log(`🔍 [MerchantLoginPage] Verificando login de lojista para usuário: ${userId}`);
+      
+      // Verificar se o usuário existe APENAS na coleção merchants
+      // Esta é a validação principal: o login só é permitido se o usuário existir em merchants
+      const merchantExists = await isMerchant(userId);
+      
+      if (!merchantExists) {
+        console.log(`❌ [MerchantLoginPage] Usuário ${userId} não encontrado na coleção 'merchants'. Login negado.`);
+        // Se não for lojista, fazer logout e mostrar erro
+        await signOut(auth);
+        toast.error("Esta conta não é de um lojista. Use o login de usuário comum.");
+        setLoading(false);
+        return;
+      }
+      
+      console.log(`✅ [MerchantLoginPage] Usuário ${userId} confirmado como lojista na coleção 'merchants'. Login permitido.`);
+      
+      // Se chegou aqui, é um lojista válido
       toast.success("Bem-vindo ao painel do lojista!");
-    }, 500);
+      navigate("/merchant/dashboard", { replace: true });
+    } catch (error: any) {
+      console.error("Erro ao fazer login:", error);
+      const errorCode = error?.code;
+      const errorMessage = error?.message;
+      
+      if (errorCode === "auth/user-not-found") {
+        toast.error("Usuário não encontrado. Crie uma conta primeiro.");
+      } else if (errorCode === "auth/wrong-password") {
+        toast.error("E-mail ou senha incorretos");
+      } else if (errorCode === "auth/invalid-email") {
+        toast.error("E-mail inválido");
+      } else {
+        toast.error(errorMessage || "Erro ao fazer login. Tente novamente.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

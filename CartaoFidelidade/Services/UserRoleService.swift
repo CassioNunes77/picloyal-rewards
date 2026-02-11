@@ -51,9 +51,19 @@ class UserRoleService {
     }
     
     /// Verifica se o usuário existe na coleção merchants
+    /// Esta função é usada para validar login de lojistas
     func isMerchant(userId: String) async throws -> Bool {
+        print("🔍 [UserRoleService] Verificando se usuário \(userId) existe na coleção 'merchants'...")
         let merchantDoc = try await db.collection(merchantsCollection).document(userId).getDocument()
-        return merchantDoc.exists
+        let exists = merchantDoc.exists
+        
+        if exists {
+            print("✅ [UserRoleService] Usuário \(userId) encontrado na coleção 'merchants'")
+        } else {
+            print("⚠️ [UserRoleService] Usuário \(userId) NÃO encontrado na coleção 'merchants'")
+        }
+        
+        return exists
     }
     
     /// Verifica se o usuário existe na coleção users

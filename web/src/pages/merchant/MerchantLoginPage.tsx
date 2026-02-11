@@ -29,16 +29,22 @@ export default function MerchantLoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
       const userId = userCredential.user.uid;
       
+      console.log(`🔍 [MerchantLoginPage] Verificando login de lojista para usuário: ${userId}`);
+      
       // Verificar se o usuário existe APENAS na coleção merchants
+      // Esta é a validação principal: o login só é permitido se o usuário existir em merchants
       const merchantExists = await isMerchant(userId);
       
       if (!merchantExists) {
+        console.log(`❌ [MerchantLoginPage] Usuário ${userId} não encontrado na coleção 'merchants'. Login negado.`);
         // Se não for lojista, fazer logout e mostrar erro
         await signOut(auth);
         toast.error("Esta conta não é de um lojista. Use o login de usuário comum.");
         setLoading(false);
         return;
       }
+      
+      console.log(`✅ [MerchantLoginPage] Usuário ${userId} confirmado como lojista na coleção 'merchants'. Login permitido.`);
       
       // Se chegou aqui, é um lojista válido
       toast.success("Bem-vindo ao painel do lojista!");
