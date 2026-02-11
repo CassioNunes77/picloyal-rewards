@@ -121,9 +121,9 @@ struct MerchantStoreFormView: View {
                         }
                     )
                     
-                    // Foto - Placeholder
+                    // Logo - Placeholder
                     VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                        Text("Foto da Loja")
+                        Text("Logo da Loja")
                             .font(.system(size: 14, weight: .medium))
                             .foregroundColor(.cardForeground)
                         

@@ -218,10 +218,10 @@ export default function MerchantStoreForm({ onCancel, onSuccess }: MerchantStore
           />
         </div>
 
-        {/* Foto - Placeholder para futuro */}
+        {/* Logo - Placeholder para futuro */}
         <div className="space-y-2">
           <Label className="text-card-foreground">
-            Foto da Loja
+            Logo da Loja
           </Label>
           <div className="border-2 border-dashed border-border rounded-xl p-8 text-center">
             <p className="text-sm text-muted-foreground">
