@@ -42,6 +42,15 @@ const LoyaltyCard = ({ currentPoints, totalPoints, userName, cardNumber }: Loyal
               <p className="text-xs opacity-80">pontos</p>
             </div>
             <div className="text-right">
+              {/* Stars acima de "Próxima recompensa" */}
+              <div className="flex items-center justify-end gap-1 mb-1">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star 
+                    key={i} 
+                    className={`h-3.5 w-3.5 ${i < Math.floor(currentPoints / 200) ? 'fill-primary-foreground' : 'fill-primary-foreground/30'}`}
+                  />
+                ))}
+              </div>
               <p className="text-xs opacity-80">Próxima recompensa</p>
               <p className="text-sm font-semibold">{totalPoints - currentPoints} pts</p>
             </div>
@@ -59,15 +68,6 @@ const LoyaltyCard = ({ currentPoints, totalPoints, userName, cardNumber }: Loyal
               />
             </div>
           </div>
-        </div>
-        
-        <div className="mt-2 flex items-center gap-1">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Star 
-              key={i} 
-              className={`h-3.5 w-3.5 ${i < Math.floor(currentPoints / 200) ? 'fill-primary-foreground' : 'fill-primary-foreground/30'}`}
-            />
-          ))}
         </div>
       </div>
     </div>

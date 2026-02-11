@@ -51,7 +51,7 @@ struct LoyaltyCard: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 1) {
-                            Text("Cartão Fidelidade")
+                            Text("Core+")
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundColor(.white.opacity(0.8))
                             
@@ -95,6 +95,16 @@ struct LoyaltyCard: View {
                         Spacer()
                         
                         VStack(alignment: .trailing, spacing: 2) {
+                            // Stars acima de "Próxima recompensa"
+                            HStack(spacing: 3) {
+                                ForEach(0..<5) { index in
+                                    Image(systemName: index < starsCount ? "star.fill" : "star")
+                                        .foregroundColor(index < starsCount ? .white : .white.opacity(0.3))
+                                        .font(.system(size: 14))
+                                }
+                            }
+                            .padding(.bottom, 4)
+                            
                             Text("Próxima recompensa")
                                 .font(.system(size: 11))
                                 .foregroundColor(.white.opacity(0.8))
@@ -132,17 +142,6 @@ struct LoyaltyCard: View {
                             }
                         }
                         .frame(height: 8)
-                    }
-                }
-                
-                Spacer().frame(height: AppSpacing.sm)
-                
-                // Stars
-                HStack(spacing: 3) {
-                    ForEach(0..<5) { index in
-                        Image(systemName: index < starsCount ? "star.fill" : "star")
-                            .foregroundColor(index < starsCount ? .white : .white.opacity(0.3))
-                            .font(.system(size: 14))
                     }
                 }
             }
