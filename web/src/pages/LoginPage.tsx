@@ -107,7 +107,7 @@ export default function LoginPage() {
   if (!splashDone) {
     return (
       <div className="min-h-screen gradient-hero flex flex-col items-center justify-center px-8">
-        <div className="relative w-32 h-32 flex items-center justify-center">
+        <div className="relative w-64 h-64 sm:w-80 sm:h-80 flex items-center justify-center">
           <img 
             src="/logo-core-plus.png" 
             alt="Core+" 
@@ -139,9 +139,6 @@ export default function LoginPage() {
             <span className="text-4xl font-bold text-white">C+</span>
           </div>
         </div>
-        <p className="text-white/90 text-base mt-2 text-center animate-splash-text">
-          Seu cartão de benefícios e descontos
-        </p>
       </div>
     );
   }
