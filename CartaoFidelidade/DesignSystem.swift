@@ -74,10 +74,11 @@ struct AppGradients {
     )
     
     // Card Gradient (roxo para verde) - alinhado com WEB
+    // Gradiente diagonal 145deg: hsl(270 70% 55%) -> hsl(155 80% 40%)
     static let card = LinearGradient(
         colors: [
-            Color(red: 168/255.0, green: 42/255.0, blue: 224/255.0), // hsl(270 70% 55%) = #A82AE0
-            Color(red: 0.2, green: 0.8, blue: 0.4) // hsl(155 80% 40%)
+            Color(red: 168/255.0, green: 42/255.0, blue: 224/255.0), // hsl(270 70% 55%) = #A82AE0 - roxo claro
+            Color(red: 51/255.0, green: 204/255.0, blue: 102/255.0) // hsl(155 80% 40%) = #33CC66 - verde
         ],
         startPoint: .topLeading,
         endPoint: .bottomTrailing

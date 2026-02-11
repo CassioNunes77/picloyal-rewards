@@ -11,7 +11,7 @@ const LoyaltyCard = ({ currentPoints, totalPoints, userName, cardNumber }: Loyal
   const progress = (currentPoints / totalPoints) * 100;
   
   return (
-    <div className="relative overflow-hidden rounded-2xl gradient-card px-4 py-4 text-primary-foreground shadow-xl" style={{ height: '200px' }}>
+    <div className="relative overflow-hidden rounded-2xl gradient-card px-4 py-6 text-primary-foreground shadow-xl" style={{ height: '200px' }}>
       {/* Background decoration */}
       <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary-foreground/10" />
       <div className="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-primary-foreground/5" />

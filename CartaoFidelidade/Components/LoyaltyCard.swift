@@ -147,8 +147,8 @@ struct LoyaltyCard: View {
                 }
             }
             .padding(.horizontal, AppSpacing.md)
-            .padding(.top, AppSpacing.md)
-            .padding(.bottom, AppSpacing.md)
+            .padding(.top, AppSpacing.xl)
+            .padding(.bottom, AppSpacing.xl)
         }
         .frame(height: 200)
         .cornerRadius(AppRadius.xl)
