@@ -7,6 +7,8 @@
 
 import SwiftUI
 import UIKit
+import FirebaseAuth
+import FirebaseFirestore
 
 struct LoginView: View {
     @Environment(\.dismiss) private var dismiss
@@ -69,18 +71,6 @@ struct LoginView: View {
                 .animation(
                     .spring(response: 0.8, dampingFraction: 0.6)
                     .delay(0.1),
-                    value: splashAnimated
-                )
-                .padding(.bottom, AppSpacing.sm)
-            Text("Seu clube de benefícios")
-                .font(.system(size: 16, weight: .regular, design: .rounded))
-                .foregroundColor(.white.opacity(0.9))
-                .multilineTextAlignment(.center)
-                .opacity(splashAnimated ? 1.0 : 0.0)
-                .offset(y: splashAnimated ? 0 : 20)
-                .animation(
-                    .easeOut(duration: 0.6)
-                    .delay(0.4),
                     value: splashAnimated
                 )
             Spacer()
@@ -390,23 +380,25 @@ struct LoginView: View {
         if isMerchantUser {
             // Se for lojista tentando fazer login como usuário comum, bloquear
             try? Auth.auth().signOut()
-            throw NSError(domain: "UserRoleValidation", code: 1, userInfo: [NSLocalizedDescriptionKey: "Esta conta é de um lojista. Use o login do painel do lojista."])
+            throw NSError(domain: "UserRoleValidation", code: 1, userInfo: [NSLocalizedDescriptionKey: "E-mail ou senha incorretos"])
         }
         
         if isSignUp {
             // Ao criar conta, criar documento APENAS em users
             if let user = Auth.auth().currentUser {
                 let userRef = db.collection("users").document(userId)
-                try await userRef.setData([
+                let now = Timestamp()
+                let userData: [String: Any] = [
                     "uid": userId,
                     "email": user.email ?? "",
                     "displayName": user.displayName ?? "",
                     "photoURL": user.photoURL?.absoluteString ?? "",
                     "phoneNumber": user.phoneNumber ?? "",
-                    "createdAt": Timestamp(),
-                    "updatedAt": Timestamp(),
-                    "lastLoginAt": Timestamp()
-                ])
+                    "createdAt": now,
+                    "updatedAt": now,
+                    "lastLoginAt": now
+                ]
+                try await userRef.setData(userData)
                 print("✅ [LoginView] Documento de usuário criado no Firestore")
             }
         } else {

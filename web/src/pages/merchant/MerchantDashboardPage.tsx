@@ -56,24 +56,7 @@ export default function MerchantDashboardPage() {
             />
           ) : !showStoreForm ? (
             <>
-              {!user ? (
-                <div className="text-center py-8">
-                  <UserPlus className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <h2 className="text-xl font-semibold text-card-foreground mb-2">
-                    Crie sua conta de lojista
-                  </h2>
-                  <p className="text-sm text-muted-foreground mb-6">
-                    Cadastre seu e-mail e senha para começar a gerenciar sua loja
-                  </p>
-                  <Button
-                    onClick={() => setShowSignUpForm(true)}
-                    className="gradient-primary text-primary-foreground hover:opacity-95 transition-opacity shadow-md"
-                  >
-                    <UserPlus className="h-5 w-5 mr-2" />
-                    Criar Conta
-                  </Button>
-                </div>
-              ) : (
+              {user ? (
                 <div className="text-center py-8">
                   <Store className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                   <h2 className="text-xl font-semibold text-card-foreground mb-2">
@@ -88,6 +71,23 @@ export default function MerchantDashboardPage() {
                   >
                     <Plus className="h-5 w-5 mr-2" />
                     Cadastrar Loja
+                  </Button>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <UserPlus className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <h2 className="text-xl font-semibold text-card-foreground mb-2">
+                    Crie sua conta de lojista
+                  </h2>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    Cadastre seu e-mail e senha para começar a gerenciar sua loja
+                  </p>
+                  <Button
+                    onClick={() => setShowSignUpForm(true)}
+                    className="gradient-primary text-primary-foreground hover:opacity-95 transition-opacity shadow-md"
+                  >
+                    <UserPlus className="h-5 w-5 mr-2" />
+                    Criar Conta
                   </Button>
                 </div>
               )}
