@@ -91,25 +91,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .catch(() => {})
       .finally(() => {});
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      // Se for lojista tentando acessar área de usuário comum, bloquear
-      if (firebaseUser) {
+      // Verificar se está em rota de lojista antes de bloquear
+      const isMerchantRoute = window.location.pathname.startsWith('/merchant');
+      
+      // Se for lojista tentando acessar área de usuário comum (e não estiver em rota de lojista), bloquear
+      if (firebaseUser && !isMerchantRoute) {
         try {
           const merchantExists = await isMerchant(firebaseUser.uid);
           if (merchantExists) {
-            // Se for lojista, fazer logout e não permitir acesso
-            console.log("❌ [AuthContext] Lojista tentou acessar área de usuário comum. Bloqueando acesso.");
+            // Se for lojista tentando acessar área de usuário comum, fazer logout e redirecionar
+            console.log("❌ [AuthContext] Lojista tentou acessar área de usuário comum. Redirecionando para login do lojista.");
+            await firebaseSignOut(auth);
+            setUser(null);
+            setLoading(false);
+            // Redirecionar para login do lojista
+            window.location.href = '/merchant/login';
+            return;
+          }
+        } catch (error) {
+          console.error("❌ [AuthContext] Erro ao verificar se é lojista:", error);
+          // Em caso de erro, não fazer logout se estiver em rota de lojista
+          if (!isMerchantRoute) {
             await firebaseSignOut(auth);
             setUser(null);
             setLoading(false);
             return;
           }
-        } catch (error) {
-          console.error("❌ [AuthContext] Erro ao verificar se é lojista:", error);
-          // Em caso de erro, fazer logout por segurança
-          await firebaseSignOut(auth);
-          setUser(null);
-          setLoading(false);
-          return;
         }
       }
       
