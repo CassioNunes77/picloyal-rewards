@@ -120,7 +120,7 @@ struct MerchantStoreFormView: View {
                                 .foregroundColor(.cardForeground)
                                 .frame(minHeight: 100)
                                 .scrollContentBackground(.hidden)
-                                .background(Color.clear)
+                                .background(Color.appBackground)
                                 .disabled(loading)
                         }
                     )

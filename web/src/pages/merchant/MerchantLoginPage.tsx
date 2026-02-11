@@ -83,7 +83,7 @@ export default function MerchantLoginPage() {
               Painel do Lojista
             </h1>
             <p className="text-white/90 text-sm mt-2 text-center">
-              Gerencie sua loja e clientes
+              Gerencie suas lojas
             </p>
           </div>
 

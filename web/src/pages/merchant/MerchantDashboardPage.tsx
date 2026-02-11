@@ -72,7 +72,7 @@ export default function MerchantDashboardPage() {
               Painel do Lojista
             </h1>
             <p className="text-white/90 text-sm mt-1">
-              Gerencie sua loja e clientes
+              Gerencie suas lojas
             </p>
           </div>
           <Button

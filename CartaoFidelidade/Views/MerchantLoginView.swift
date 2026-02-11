@@ -118,7 +118,7 @@ struct MerchantLoginView: View {
                                 .font(.system(size: 28, weight: .bold, design: .rounded))
                                 .foregroundColor(.white)
                             
-                            Text("Gerencie sua loja e clientes")
+                            Text("Gerencie suas lojas")
                                 .font(.system(size: 16, weight: .regular, design: .rounded))
                                 .foregroundColor(.white.opacity(0.9))
                                 .padding(.top, 8)

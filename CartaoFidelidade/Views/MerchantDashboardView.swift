@@ -33,7 +33,7 @@ struct MerchantDashboardView: View {
                                 .font(.system(size: 24, weight: .bold, design: .rounded))
                                 .foregroundColor(.white)
                             
-                            Text("Gerencie sua loja e clientes")
+                            Text("Gerencie suas lojas")
                                 .font(.system(size: 14, weight: .regular))
                                 .foregroundColor(.white.opacity(0.9))
                         }
