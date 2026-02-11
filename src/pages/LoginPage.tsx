@@ -106,15 +106,15 @@ export default function LoginPage() {
     );
   }
 
-  /* Splash: tela cheia com gradiente + logo do app */
+  /* Splash: tela cheia com gradiente + logo com animação similar ao iOS */
   if (!splashDone) {
     return (
-      <div className="min-h-screen gradient-hero flex flex-col items-center justify-center px-8 animate-fade-in">
-        <div className="relative w-32 h-32 mb-6 flex items-center justify-center">
+      <div className="min-h-screen gradient-hero flex flex-col items-center justify-center px-8">
+        <div className="relative w-32 h-32 flex items-center justify-center">
           <img 
             src="/logo-core-plus.png" 
             alt="Core+" 
-            className="w-full h-full animate-scale-in object-contain"
+            className="w-full h-full animate-splash-logo object-contain"
             style={{
               imageRendering: 'auto',
               mixBlendMode: 'normal',
@@ -136,16 +136,13 @@ export default function LoginPage() {
           />
           {/* Fallback visual caso a imagem não carregue */}
           <div 
-            className="hidden w-full h-full rounded-2xl bg-white/20 items-center justify-center animate-scale-in"
+            className="hidden w-full h-full rounded-2xl bg-white/20 items-center justify-center animate-splash-logo"
             style={{ display: 'none' }}
           >
             <span className="text-4xl font-bold text-white">C+</span>
           </div>
         </div>
-        <h1 className="text-3xl font-bold text-white tracking-tight text-center">
-          Core+
-        </h1>
-        <p className="text-white/90 text-base mt-3 text-center">
+        <p className="text-white/90 text-base mt-2 text-center animate-splash-text">
           Seu cartão de benefícios e descontos
         </p>
       </div>

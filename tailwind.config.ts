@@ -111,6 +111,14 @@ export default {
 			'shimmer': {
 				'0%': { backgroundPosition: '-200% 0' },
 				'100%': { backgroundPosition: '200% 0' }
+			},
+			'splash-logo': {
+				'0%': { transform: 'scale(0.3)', opacity: '0' },
+				'100%': { transform: 'scale(1)', opacity: '1' }
+			},
+			'splash-text': {
+				'0%': { opacity: '0', transform: 'translateY(20px)' },
+				'100%': { opacity: '1', transform: 'translateY(0)' }
 			}
 		},
 		animation: {
@@ -126,7 +134,9 @@ export default {
 			'bounce-sm': 'bounce-sm 0.15s ease-in-out',
 			'pulse-ring': 'pulse-ring 0.6s ease-out forwards',
 			'shimmer': 'shimmer 2s linear infinite',
-			'enter': 'fade-in 0.3s ease-out, scale-in 0.2s ease-out'
+			'enter': 'fade-in 0.3s ease-out, scale-in 0.2s ease-out',
+			'splash-logo': 'splash-logo 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s forwards',
+			'splash-text': 'splash-text 0.6s ease-out 0.4s forwards'
 		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',

@@ -25,6 +25,8 @@ import {
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, firestore } from "@/lib/firebase";
 import { createOrUpdateUser } from "@/services/usersService";
+import { isMerchant } from "@/services/merchantsService";
+import { isUser } from "@/services/usersService";
 
 export const AUTH_REQUIRES_RECENT_LOGIN = "auth/requires-recent-login";
 
@@ -89,13 +91,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .catch(() => {})
       .finally(() => {});
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      // Se for lojista tentando acessar área de usuário comum, bloquear
+      if (firebaseUser) {
+        try {
+          const merchantExists = await isMerchant(firebaseUser.uid);
+          if (merchantExists) {
+            // Se for lojista, fazer logout e não permitir acesso
+            console.log("❌ [AuthContext] Lojista tentou acessar área de usuário comum. Bloqueando acesso.");
+            await firebaseSignOut(auth);
+            setUser(null);
+            setLoading(false);
+            return;
+          }
+        } catch (error) {
+          console.error("❌ [AuthContext] Erro ao verificar se é lojista:", error);
+          // Em caso de erro, fazer logout por segurança
+          await firebaseSignOut(auth);
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+      }
+      
       setUser(firebaseUser);
       
       // Persistir usuário no Firestore quando fizer login (apenas se não for lojista)
       if (firebaseUser) {
         try {
           // Verificar se não é lojista antes de criar em users
-          const { isMerchant } = await import("@/services/merchantsService");
           const merchantExists = await isMerchant(firebaseUser.uid);
           if (!merchantExists) {
             // Apenas criar/atualizar em users se não for lojista
@@ -121,7 +144,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!auth) throw new Error("Firebase não configurado. Configure as variáveis no Netlify.");
     setAuthError(null);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userId = userCredential.user.uid;
+      
+      // Verificar se é lojista (existe em merchants)
+      const merchantExists = await isMerchant(userId);
+      if (merchantExists) {
+        // Se for lojista, fazer logout e mostrar erro
+        await firebaseSignOut(auth);
+        throw new Error("Esta conta é de um lojista. Use o login do painel do lojista.");
+      }
+      
+      // Verificar se existe em users (usuário comum)
+      const userExists = await isUser(userId);
+      if (!userExists) {
+        // Se não existir em users, fazer logout e mostrar erro
+        await firebaseSignOut(auth);
+        throw new Error("Conta não encontrada. Crie uma conta primeiro.");
+      }
     } catch (e: unknown) {
       const message =
         e && typeof e === "object" && "message" in e
@@ -136,7 +176,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!auth) throw new Error("Firebase não configurado. Configure as variáveis no Netlify.");
     setAuthError(null);
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userId = userCredential.user.uid;
+      
+      // Verificar se já existe em merchants (não deveria acontecer, mas verificar por segurança)
+      const merchantExists = await isMerchant(userId);
+      if (merchantExists) {
+        // Se já for lojista, fazer logout e mostrar erro
+        await firebaseSignOut(auth);
+        throw new Error("Esta conta já é de um lojista. Use o login do painel do lojista.");
+      }
+      
+      // createOrUpdateUser já cria em users, então não precisamos fazer nada adicional
     } catch (e: unknown) {
       const message =
         e && typeof e === "object" && "message" in e
@@ -158,7 +209,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthError(null);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      const userCredential = await signInWithPopup(auth, provider);
+      const userId = userCredential.user.uid;
+      
+      // Verificar se é lojista (existe em merchants)
+      const merchantExists = await isMerchant(userId);
+      if (merchantExists) {
+        // Se for lojista, fazer logout e mostrar erro
+        await firebaseSignOut(auth);
+        throw new Error("Esta conta é de um lojista. Use o login do painel do lojista.");
+      }
+      
       console.log("[Auth] Entrar com Google: sucesso");
     } catch (e: unknown) {
       const err = e as { code?: string; message?: string } | null;

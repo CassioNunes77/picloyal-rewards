@@ -72,6 +72,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .catch(() => {})
       .finally(() => {});
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      // Se for lojista tentando acessar área de usuário comum, bloquear
+      if (firebaseUser) {
+        try {
+          const merchantExists = await isMerchant(firebaseUser.uid);
+          if (merchantExists) {
+            // Se for lojista, fazer logout e não permitir acesso
+            console.log("❌ [AuthContext] Lojista tentou acessar área de usuário comum. Bloqueando acesso.");
+            await firebaseSignOut(auth);
+            setUser(null);
+            setLoading(false);
+            return;
+          }
+        } catch (error) {
+          console.error("❌ [AuthContext] Erro ao verificar se é lojista:", error);
+          // Em caso de erro, fazer logout por segurança
+          await firebaseSignOut(auth);
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+      }
+      
       setUser(firebaseUser);
       
       // Persistir usuário no Firestore quando fizer login (apenas se não for lojista)
@@ -136,14 +158,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const userId = userCredential.user.uid;
-      
-      // Verificar se já existe em merchants (não deveria acontecer, mas verificar por segurança)
-      const merchantExists = await isMerchant(userId);
-      if (merchantExists) {
-        // Se já for lojista, fazer logout e mostrar erro
-        await firebaseSignOut(auth);
-        throw new Error("Esta conta já é de um lojista. Use o login do painel do lojista.");
-      }
       
       // Verificar se já existe em merchants (não deveria acontecer, mas verificar por segurança)
       const merchantExists = await isMerchant(userId);
