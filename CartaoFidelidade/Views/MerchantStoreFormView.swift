@@ -119,6 +119,8 @@ struct MerchantStoreFormView: View {
                             TextEditor(text: $hours)
                                 .foregroundColor(.cardForeground)
                                 .frame(minHeight: 100)
+                                .scrollContentBackground(.hidden)
+                                .background(Color.clear)
                                 .disabled(loading)
                         }
                     )
