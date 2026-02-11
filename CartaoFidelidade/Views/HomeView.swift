@@ -68,7 +68,7 @@ struct HomeView: View {
                         }
                         .padding(.horizontal, AppSpacing.lg)
                         .padding(.top, 56) // Considerando notch do iOS
-                        .padding(.bottom, 4) // Espaço mínimo entre localidade e header
+                        .padding(.bottom, 0) // Sem espaço entre localidade e header
                         
                         // Header
                         HStack {
@@ -135,7 +135,7 @@ struct HomeView: View {
                             }
                         }
                         .padding(.horizontal, AppSpacing.lg)
-                        .padding(.top, 48)
+                        .padding(.top, AppSpacing.xs) // Espaço mínimo após localidade
                         .padding(.bottom, AppSpacing.md)
                         
                         // Loyalty Card
