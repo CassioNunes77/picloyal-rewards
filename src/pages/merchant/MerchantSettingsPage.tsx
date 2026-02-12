@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut } from "lucide-react";
+import { LogOut, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -46,6 +46,19 @@ export default function MerchantSettingsPage() {
         <div>
           <div className="bg-card rounded-2xl shadow-lg border border-border p-6 max-w-2xl">
             <div className="space-y-4">
+              <div>
+                <h2 className="text-lg font-semibold text-card-foreground mb-4">
+                  Legal
+                </h2>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/merchant/privacy-policy")}
+                  className="w-full justify-start"
+                >
+                  <ShieldCheck className="h-4 w-4 mr-2" />
+                  Políticas de Privacidade
+                </Button>
+              </div>
               <div>
                 <h2 className="text-lg font-semibold text-card-foreground mb-4">
                   Conta

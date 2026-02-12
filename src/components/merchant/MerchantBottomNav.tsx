@@ -4,7 +4,7 @@ import { LayoutDashboard, Store, User, Settings } from "lucide-react";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", id: "dashboard", path: "/merchant/dashboard" },
-  { icon: Store, label: "Lojas", id: "stores", path: "/merchant/dashboard" },
+  { icon: Store, label: "Lojas", id: "stores", path: "/merchant/stores" },
   { icon: User, label: "Perfil", id: "profile", path: "/merchant/profile" },
   { icon: Settings, label: "Configurações", id: "settings", path: "/merchant/settings" },
 ];
@@ -23,7 +23,8 @@ export default function MerchantBottomNav({ activeTab }: MerchantBottomNavProps)
     if (activeTab) return activeTab;
     if (location.pathname.includes("/merchant/profile")) return "profile";
     if (location.pathname.includes("/merchant/settings")) return "settings";
-    return "dashboard"; // Dashboard é o padrão
+    if (location.pathname.includes("/merchant/stores") || location.pathname.includes("/merchant/store/")) return "stores";
+    return "dashboard";
   };
 
   const currentActiveTab = getActiveTab();
@@ -31,16 +32,7 @@ export default function MerchantBottomNav({ activeTab }: MerchantBottomNavProps)
   const handleTabPress = (id: string, path: string) => {
     setPressedTab(id);
     setTimeout(() => setPressedTab(null), 150);
-    
-    if (id === "stores") {
-      // Para "Lojas", apenas scroll para o topo ou recarrega a lista
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
-    
-    if (path) {
-      navigate(path);
-    }
+    if (path) navigate(path);
   };
 
   return (

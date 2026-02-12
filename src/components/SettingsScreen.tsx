@@ -3,6 +3,7 @@ import {
   Bell, 
   Moon, 
   Shield, 
+  ShieldCheck,
   HelpCircle, 
   LogOut, 
   ChevronRight,
@@ -285,12 +286,19 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
           </div>
         </div>
 
-        {/* Support Section */}
+        {/* Legal / Suporte */}
         <div className="mb-6">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1 animate-fade-in" style={{ animationDelay: '400ms' }}>
-            Suporte
+            Legal e Suporte
           </h3>
           <div className="space-y-2">
+            <SettingsItem
+              icon={ShieldCheck}
+              label="Políticas de Privacidade"
+              description="Leia nossa política de privacidade"
+              delay={400}
+              onClick={() => navigate("/privacy-policy")}
+            />
             <SettingsItem
               icon={HelpCircle}
               label="Central de Ajuda"
@@ -460,12 +468,19 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
 
           {/* Coluna Direita: Suporte e Ações da Conta */}
           <div className="space-y-6">
-            {/* Support Section */}
+            {/* Legal / Support Section */}
             <div>
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
-                Suporte
+                Legal e Suporte
               </h3>
               <div className="space-y-2">
+                <SettingsItem
+                  icon={ShieldCheck}
+                  label="Políticas de Privacidade"
+                  description="Leia nossa política de privacidade"
+                  delay={400}
+                  onClick={() => navigate("/privacy-policy")}
+                />
                 <SettingsItem
                   icon={HelpCircle}
                   label="Central de Ajuda"

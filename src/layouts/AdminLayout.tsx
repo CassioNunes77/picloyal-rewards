@@ -12,8 +12,8 @@ import {
   LogOut,
   Menu,
   X,
-  Settings,
   BarChart3,
+  Shield,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -25,6 +25,7 @@ const adminNavItems = [
   { id: "stores", label: "Lojas", icon: Store, path: "stores" },
   { id: "products", label: "Produtos", icon: Package, path: "products" },
   { id: "feedback", label: "Feedback", icon: MessageSquare, path: "feedback" },
+  { id: "privacy", label: "Política de Privacidade", icon: Shield, path: "privacy" },
 ];
 
 export default function AdminLayout() {

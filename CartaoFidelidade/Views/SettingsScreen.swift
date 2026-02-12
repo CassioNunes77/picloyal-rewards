@@ -20,6 +20,7 @@ struct SettingsScreen: View {
     @State private var showDeleteAccountConfirmation = false
     @State private var showDeleteAccountError = false
     @State private var deleteAccountErrorMessage = ""
+    @State private var showPrivacyPolicy = false
     
     var body: some View {
         GeometryReader { geo in
@@ -171,8 +172,15 @@ struct SettingsScreen: View {
                         )
                     }
                     
-                    // Support
-                    SettingsSection(title: "Suporte") {
+                    // Legal e Suporte
+                    SettingsSection(title: "Legal e Suporte") {
+                        SettingsItem(
+                            icon: "shield.fill",
+                            label: "Políticas de Privacidade",
+                            description: "Leia nossa política de privacidade",
+                            delay: 0.4,
+                            action: { showPrivacyPolicy = true }
+                        )
                         SettingsItem(
                             icon: "questionmark.circle.fill",
                             label: "Central de Ajuda",
@@ -258,6 +266,9 @@ struct SettingsScreen: View {
             Button("OK") { showDeleteAccountError = false }
         } message: {
             Text(deleteAccountErrorMessage)
+        }
+        .fullScreenCover(isPresented: $showPrivacyPolicy) {
+            PrivacyPolicyView(onBack: { showPrivacyPolicy = false })
         }
     }
     

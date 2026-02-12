@@ -31,13 +31,16 @@ import AdminStoresPage from "./pages/admin/AdminStoresPage";
 import AdminProductsPage from "./pages/admin/AdminProductsPage";
 import AdminFeedbackPage from "./pages/admin/AdminFeedbackPage";
 import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
+import AdminPrivacyPage from "./pages/admin/AdminPrivacyPage";
 import MerchantLoginPage from "./pages/merchant/MerchantLoginPage";
 import MerchantSignUpPage from "./pages/merchant/MerchantSignUpPage";
 import MerchantDashboardPage from "./pages/merchant/MerchantDashboardPage";
+import MerchantStoresPage from "./pages/merchant/MerchantStoresPage";
 import MerchantProfilePage from "./pages/merchant/MerchantProfilePage";
 import MerchantSettingsPage from "./pages/merchant/MerchantSettingsPage";
 import StoreDetailsPage from "./pages/merchant/StoreDetailsPage";
 import NotFound from "./pages/NotFound";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 
 const queryClient = new QueryClient();
 
@@ -125,6 +128,7 @@ const App = () => {
                 <Route path="products" element={<AdminProductsPage />} />
                 <Route path="feedback" element={<AdminFeedbackPage />} />
                 <Route path="analytics" element={<AdminAnalyticsPage />} />
+                <Route path="privacy" element={<AdminPrivacyPage />} />
                 <Route index element={<Navigate to="/sys-admin-panel-7x9k/dashboard" replace />} />
                 <Route path="*" element={<Navigate to="/sys-admin-panel-7x9k/dashboard" replace />} />
               </Route>
@@ -134,9 +138,11 @@ const App = () => {
               <Route path="/merchant/signup" element={<MerchantSignUpPage />} />
               <Route element={<MerchantLayout />}>
                 <Route path="/merchant/dashboard" element={<MerchantDashboardPage />} />
+                <Route path="/merchant/stores" element={<MerchantStoresPage />} />
                 <Route path="/merchant/store/:storeId" element={<StoreDetailsPage />} />
                 <Route path="/merchant/profile" element={<MerchantProfilePage />} />
                 <Route path="/merchant/settings" element={<MerchantSettingsPage />} />
+                <Route path="/merchant/privacy-policy" element={<PrivacyPolicyPage />} />
               </Route>
 
               {/* Rotas do app principal */}
@@ -159,6 +165,7 @@ const App = () => {
                         <Route path="/rewards" element={<RewardsPage />} />
                         <Route path="/reward" element={<RewardDetailPage />} />
                         <Route path="/settings" element={<SettingsPage />} />
+                        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                       </Route>
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                       <Route path="*" element={<NotFound />} />

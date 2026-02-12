@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", id: "dashboard", path: "/merchant/dashboard" },
-  { icon: Store, label: "Lojas", id: "stores", path: "/merchant/dashboard" },
+  { icon: Store, label: "Lojas", id: "stores", path: "/merchant/stores" },
   { icon: User, label: "Perfil", id: "profile", path: "/merchant/profile" },
   { icon: Settings, label: "Configurações", id: "settings", path: "/merchant/settings" },
 ];
@@ -19,6 +19,7 @@ export default function MerchantDesktopLayout() {
   const getActiveId = () => {
     if (pathname.includes("/merchant/profile")) return "profile";
     if (pathname.includes("/merchant/settings")) return "settings";
+    if (pathname.includes("/merchant/stores") || pathname.includes("/merchant/store/")) return "stores";
     return "dashboard";
   };
 
@@ -40,13 +41,7 @@ export default function MerchantDesktopLayout() {
               return (
                 <button
                   key={item.id}
-                  onClick={() => {
-                    if (item.id === "stores") {
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                      return;
-                    }
-                    navigate(item.path);
-                  }}
+                  onClick={() => navigate(item.path)}
                   className={cn(
                     "flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors",
                     isActive

@@ -163,6 +163,38 @@ service cloud.firestore {
     }
     
     // ============================================
+    // OFERTAS (OFFERS)
+    // ============================================
+    // Ofertas das lojas: leitura pública; criar/atualizar/deletar apenas o lojista dono
+    match /offers/{offerId} {
+      allow read: if true;
+      allow create: if request.auth != null
+                       && request.resource.data.merchantId == request.auth.uid
+                       && exists(/databases/$(database)/documents/merchants/$(request.auth.uid))
+                       && request.resource.data.keys().hasAll(['storeId', 'merchantId', 'title', 'description', 'category', 'validUntil', 'active', 'createdAt', 'updatedAt'])
+                       && request.resource.data.storeId is string
+                       && request.resource.data.merchantId is string
+                       && request.resource.data.title is string
+                       && request.resource.data.description is string
+                       && request.resource.data.category is string
+                       && request.resource.data.validUntil is timestamp
+                       && request.resource.data.active is bool
+                       && request.resource.data.createdAt is timestamp
+                       && request.resource.data.updatedAt is timestamp;
+      allow update, delete: if request.auth != null
+                               && resource.data.merchantId == request.auth.uid;
+    }
+
+    // ============================================
+    // CONTEÚDO DO APP (ex.: Política de Privacidade)
+    // ============================================
+    // Documento único editável no painel admin; leitura pública para exibir em todas as telas
+    match /appContent/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // ============================================
     // OUTRAS COLEÇÕES
     // ============================================
     // Por padrão, negar acesso a outras coleções não especificadas

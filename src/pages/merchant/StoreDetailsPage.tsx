@@ -47,7 +47,7 @@ export default function StoreDetailsPage() {
         setStore(foundStore);
       } else {
         toast.error("Loja não encontrada");
-        navigate("/merchant/dashboard");
+        navigate("/merchant/stores");
       }
     } catch (error) {
       console.error("Erro ao carregar loja:", error);
@@ -136,7 +136,7 @@ export default function StoreDetailsPage() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate("/merchant/dashboard")}
+              onClick={() => navigate("/merchant/stores")}
               className="text-white hover:bg-white/20"
             >
               <ArrowLeft className="h-5 w-5" />

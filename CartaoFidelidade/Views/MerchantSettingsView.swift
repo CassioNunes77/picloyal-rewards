@@ -13,6 +13,7 @@ struct MerchantSettingsView: View {
     
     @AppStorage("isLoggedIn") private var isLoggedIn = false
     @State private var showLogoutConfirmation = false
+    @State private var showPrivacyPolicy = false
     
     var body: some View {
         ZStack {
@@ -52,6 +53,24 @@ struct MerchantSettingsView: View {
                     
                     // Opções de configuração
                     VStack(spacing: AppSpacing.md) {
+                        Button(action: { showPrivacyPolicy = true }) {
+                            HStack {
+                                Image(systemName: "shield.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.primary)
+                                Text("Políticas de Privacidade")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.cardForeground)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.mutedForeground)
+                            }
+                            .padding(AppSpacing.md)
+                            .background(Color.card)
+                            .cornerRadius(AppRadius.lg)
+                        }
+                        .buttonStyle(PlainButtonStyle())
                         if isLoggedIn {
                             Button(action: {
                                 showLogoutConfirmation = true
@@ -90,6 +109,9 @@ struct MerchantSettingsView: View {
             }
         } message: {
             Text("Deseja realmente sair da sua conta de lojista?")
+        }
+        .fullScreenCover(isPresented: $showPrivacyPolicy) {
+            PrivacyPolicyView(onBack: { showPrivacyPolicy = false })
         }
     }
     
