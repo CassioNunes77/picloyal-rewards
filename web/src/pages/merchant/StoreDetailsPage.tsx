@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getMerchantStores, type StoreData } from "@/services/merchantsService";
 import { getStoreOffers, createOffer, deleteOffer, type OfferData } from "@/services/offersService";
 import OfferForm from "@/components/merchant/OfferForm";
+import MerchantBottomNav from "@/components/merchant/MerchantBottomNav";
 
 export default function StoreDetailsPage() {
   const { storeId } = useParams<{ storeId: string }>();
@@ -120,7 +121,7 @@ export default function StoreDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <div className="gradient-hero pb-8 pt-12 px-6">
         <div className="flex items-center gap-4 mb-4">
@@ -283,6 +284,9 @@ export default function StoreDetailsPage() {
           )}
         </div>
       </div>
+
+      {/* Bottom Navigation */}
+      <MerchantBottomNav />
     </div>
   );
 }

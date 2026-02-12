@@ -1,43 +1,20 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Store, Plus, LogOut, MapPin, Phone, Clock, ChevronRight, Loader2, Edit } from "lucide-react";
+import { Store, Plus, MapPin, Phone, Clock, ChevronRight, Loader2, Edit, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import MerchantStoreForm from "@/components/merchant/MerchantStoreForm";
-import MerchantStoreEditForm from "@/components/merchant/MerchantStoreEditForm";
-import MerchantBottomNav from "@/components/merchant/MerchantBottomNav";
 import { useAuth } from "@/contexts/AuthContext";
 import { getMerchantStores, type StoreData } from "@/services/merchantsService";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import MerchantStoreEditForm from "@/components/merchant/MerchantStoreEditForm";
+import MerchantBottomNav from "@/components/merchant/MerchantBottomNav";
 
-export default function MerchantDashboardPage() {
+export default function MerchantStoresPage() {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
-  const [showStoreForm, setShowStoreForm] = useState(false);
-  const [editingStore, setEditingStore] = useState<StoreData | null>(null);
+  const { user } = useAuth();
   const [stores, setStores] = useState<StoreData[]>([]);
   const [loadingStores, setLoadingStores] = useState(true);
-  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [editingStore, setEditingStore] = useState<StoreData | null>(null);
 
-  // Redirecionar se não estiver autenticado
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate("/merchant/login", { replace: true });
-    }
-  }, [user, authLoading, navigate]);
-
-  // Carregar lojas do lojista
   useEffect(() => {
     if (user?.uid) {
       loadStores();
@@ -59,62 +36,36 @@ export default function MerchantDashboardPage() {
     }
   };
 
-  const handleLogoutClick = () => {
-    setShowLogoutDialog(true);
-  };
-
-  const handleLogout = async () => {
-    setShowLogoutDialog(false);
-    try {
-      await signOut(auth);
-      navigate("/merchant/login", { replace: true });
-      toast.success("Logout realizado com sucesso");
-    } catch (error) {
-      console.error("Erro ao fazer logout:", error);
-      toast.error("Erro ao fazer logout");
-    }
+  const handleEditStore = (store: StoreData) => {
+    setEditingStore(store);
   };
 
   const handleStoreSuccess = () => {
-    setShowStoreForm(false);
     setEditingStore(null);
-    loadStores(); // Recarregar lista de lojas
-  };
-
-  const handleEditStore = (store: StoreData) => {
-    setEditingStore(store);
-    setShowStoreForm(false);
-  };
-
-  const handleEditSuccess = () => {
-    setEditingStore(null);
-    loadStores(); // Recarregar lista de lojas
+    loadStores();
   };
 
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <div className="gradient-hero pb-8 pt-12 px-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <p className="text-white/90 text-sm">
-              Bem-vindo, {user?.displayName || user?.email?.split("@")[0] || "Lojista"}
-            </p>
-            <h1 className="text-2xl font-bold text-white tracking-tight mt-1">
-              Painel do Lojista
-            </h1>
-            <p className="text-white/90 text-sm mt-1">
-              Gerencie suas lojas
-            </p>
-          </div>
+        <div className="flex items-center gap-4 mb-4">
           <Button
             variant="ghost"
             size="icon"
-            onClick={handleLogoutClick}
+            onClick={() => navigate("/merchant/dashboard")}
             className="text-white hover:bg-white/20"
           >
-            <LogOut className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5" />
           </Button>
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold text-white tracking-tight">
+              Lojas
+            </h1>
+            <p className="text-white/90 text-sm mt-1">
+              Gerencie suas lojas cadastradas
+            </p>
+          </div>
         </div>
       </div>
 
@@ -125,11 +76,6 @@ export default function MerchantDashboardPage() {
             <MerchantStoreEditForm
               store={editingStore}
               onCancel={() => setEditingStore(null)}
-              onSuccess={handleEditSuccess}
-            />
-          ) : showStoreForm ? (
-            <MerchantStoreForm
-              onCancel={() => setShowStoreForm(false)}
               onSuccess={handleStoreSuccess}
             />
           ) : loadingStores ? (
@@ -141,17 +87,16 @@ export default function MerchantDashboardPage() {
             <div className="text-center py-8">
               <Store className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-card-foreground mb-2">
-                Cadastre sua loja
+                Nenhuma loja cadastrada
               </h2>
               <p className="text-sm text-muted-foreground mb-6">
-                Preencha os dados da sua loja para começar a usar o Core+
+                Cadastre sua primeira loja no Dashboard
               </p>
               <Button
-                onClick={() => setShowStoreForm(true)}
+                onClick={() => navigate("/merchant/dashboard")}
                 className="gradient-primary text-primary-foreground hover:opacity-95 transition-opacity shadow-md"
               >
-                <Plus className="h-5 w-5 mr-2" />
-                Cadastrar Loja
+                Ir para Dashboard
               </Button>
             </div>
           ) : (
@@ -165,14 +110,6 @@ export default function MerchantDashboardPage() {
                     {stores.length} {stores.length === 1 ? "loja cadastrada" : "lojas cadastradas"}
                   </p>
                 </div>
-                <Button
-                  onClick={() => setShowStoreForm(true)}
-                  size="sm"
-                  className="gradient-primary text-primary-foreground hover:opacity-95 transition-opacity shadow-md"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nova Loja
-                </Button>
               </div>
 
               <div className="space-y-3">
@@ -219,13 +156,6 @@ export default function MerchantDashboardPage() {
                             <span>{store.phone}</span>
                           </div>
                         )}
-                        
-                        {store.hours && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Clock className="h-4 w-4" />
-                            <span className="line-clamp-1">{store.hours}</span>
-                          </div>
-                        )}
                       </div>
                       
                       <div className="flex items-center gap-2">
@@ -251,27 +181,6 @@ export default function MerchantDashboardPage() {
           )}
         </div>
       </div>
-
-      {/* Dialog de confirmação de logout */}
-      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Sair da conta?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Deseja realmente sair da sua conta de lojista? Você precisará fazer login novamente para acessar o painel.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleLogout}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Sair
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Bottom Navigation */}
       <MerchantBottomNav />
