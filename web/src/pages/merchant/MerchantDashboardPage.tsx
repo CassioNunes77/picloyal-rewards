@@ -68,7 +68,10 @@ export default function MerchantDashboardPage() {
       <div className="gradient-hero pb-8 pt-12 px-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">
+            <p className="text-white/90 text-sm">
+              Bem-vindo, {user?.displayName || user?.email?.split("@")[0] || "Lojista"}
+            </p>
+            <h1 className="text-2xl font-bold text-white tracking-tight mt-1">
               Painel do Lojista
             </h1>
             <p className="text-white/90 text-sm mt-1">
