@@ -9,7 +9,7 @@ import Foundation
 import FirebaseFirestore
 import FirebaseAuth
 
-struct Store: Identifiable, Codable {
+struct FirebaseStore: Identifiable, Codable {
     let id: String
     let merchantId: String
     let name: String
@@ -98,7 +98,7 @@ class StoresService {
             let snapshot = try await query.getDocuments()
             print("✅ [StoresService] \(snapshot.documents.count) lojas encontradas")
             
-            var stores: [Store] = []
+            var stores: [FirebaseStore] = []
             
             for document in snapshot.documents {
                 do {
@@ -120,8 +120,8 @@ class StoresService {
         }
     }
     
-    /// Parse de documento do Firestore para Store
-    private func parseStore(documentId: String, data: [String: Any]) throws -> Store {
+    /// Parse de documento do Firestore para FirebaseStore
+    private func parseStore(documentId: String, data: [String: Any]) throws -> FirebaseStore {
         guard let merchantId = data["merchantId"] as? String,
               let name = data["name"] as? String,
               let cnpj = data["cnpj"] as? String,
@@ -147,7 +147,7 @@ class StoresService {
             updatedAt = updatedAtTimestamp.dateValue()
         }
         
-        return Store(
+        return FirebaseStore(
             id: documentId,
             merchantId: merchantId,
             name: name,
