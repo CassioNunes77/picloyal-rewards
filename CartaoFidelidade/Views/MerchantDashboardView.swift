@@ -18,6 +18,8 @@ struct MerchantDashboardView: View {
     @State private var showStoreForm = false
     @State private var showSignUpForm = false
     @State private var showLogoutConfirmation = false
+    @State private var stores: [FirebaseStore] = []
+    @State private var loadingStores = false
     
     var body: some View {
         ZStack {
@@ -129,8 +131,8 @@ struct MerchantDashboardView: View {
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 48)
-                            } else {
-                                // Está logado - mostrar opção de cadastrar loja
+                            } else if stores.isEmpty {
+                                // Está logado mas não tem lojas - mostrar opção de cadastrar loja
                                 VStack(spacing: AppSpacing.lg) {
                                     Image(systemName: "storefront.fill")
                                         .font(.system(size: 64))
@@ -170,6 +172,55 @@ struct MerchantDashboardView: View {
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 48)
+                            } else {
+                                // Está logado e tem lojas - listar lojas
+                                VStack(spacing: AppSpacing.md) {
+                                    // Header com título e botão Nova Loja
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text("Suas Lojas")
+                                                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                                                .foregroundColor(.cardForeground)
+                                            
+                                            Text("\(stores.count) \(stores.count == 1 ? "loja cadastrada" : "lojas cadastradas")")
+                                                .font(.system(size: 14, weight: .regular))
+                                                .foregroundColor(.mutedForeground)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Button(action: {
+                                            withAnimation {
+                                                showStoreForm = true
+                                            }
+                                        }) {
+                                            HStack(spacing: AppSpacing.xs) {
+                                                Image(systemName: "plus.circle.fill")
+                                                    .font(.system(size: 16))
+                                                Text("Nova Loja")
+                                                    .font(.system(size: 14, weight: .semibold))
+                                            }
+                                            .foregroundColor(.primaryForeground)
+                                            .padding(.horizontal, AppSpacing.md)
+                                            .padding(.vertical, AppSpacing.sm)
+                                        }
+                                        .background(AppGradients.primary)
+                                        .cornerRadius(AppRadius.md)
+                                        .appShadow(AppShadow.sm)
+                                    }
+                                    .padding(.horizontal, AppSpacing.lg)
+                                    .padding(.top, AppSpacing.md)
+                                    
+                                    // Lista de lojas
+                                    VStack(spacing: AppSpacing.sm) {
+                                        ForEach(stores) { store in
+                                            StoreCardView(store: store)
+                                        }
+                                    }
+                                    .padding(.horizontal, AppSpacing.lg)
+                                    .padding(.bottom, AppSpacing.lg)
+                                }
+                                .frame(maxWidth: .infinity)
                             }
                         } else {
                             // Formulário de cadastro de loja
@@ -183,6 +234,7 @@ struct MerchantDashboardView: View {
                                     withAnimation {
                                         showStoreForm = false
                                     }
+                                    loadStores() // Recarregar lista de lojas
                                 }
                             )
                             .padding(.top, 24)
@@ -200,6 +252,36 @@ struct MerchantDashboardView: View {
             }
         } message: {
             Text("Deseja realmente sair da sua conta de lojista?")
+        }
+        .onAppear {
+            if isLoggedIn {
+                loadStores()
+            }
+        }
+    }
+    
+    private func loadStores() {
+        guard let currentUser = Auth.auth().currentUser else {
+            stores = []
+            loadingStores = false
+            return
+        }
+        
+        loadingStores = true
+        
+        Task {
+            do {
+                let merchantStores = try await StoresService.shared.getMerchantStores(merchantId: currentUser.uid)
+                await MainActor.run {
+                    self.stores = merchantStores
+                    self.loadingStores = false
+                }
+            } catch {
+                print("❌ [MerchantDashboardView] Erro ao carregar lojas: \(error.localizedDescription)")
+                await MainActor.run {
+                    self.loadingStores = false
+                }
+            }
         }
     }
     
