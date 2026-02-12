@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct MerchantStoreFormView: View {
     var onCancel: () -> Void
@@ -19,6 +20,8 @@ struct MerchantStoreFormView: View {
     @State private var hours = ""
     @State private var loading = false
     @State private var validCities: [String] = []
+    @State private var errorMessage: String? = nil
+    @State private var showError = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.lg) {
@@ -193,6 +196,11 @@ struct MerchantStoreFormView: View {
         .onAppear {
             loadValidCities()
         }
+        .alert("Erro", isPresented: $showError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage ?? "Erro desconhecido ao cadastrar loja")
+        }
     }
     
     private var isFormValid: Bool {
@@ -262,20 +270,47 @@ struct MerchantStoreFormView: View {
     private func submit() {
         guard isFormValid else { return }
         
-        loading = true
+        guard let currentUser = Auth.auth().currentUser else {
+            errorMessage = "Você precisa estar autenticado para cadastrar uma loja"
+            showError = true
+            return
+        }
         
-        // Simular salvamento (futuramente salvar no Firebase)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            loading = false
-            print("Dados da loja:", [
-                "name": name,
-                "cnpj": cnpj,
-                "address": address,
-                "city": city,
-                "phone": phone,
-                "hours": hours
-            ])
-            onSuccess()
+        loading = true
+        errorMessage = nil
+        
+        Task {
+            do {
+                let storeData = StoreData(
+                    name: name.trimmingCharacters(in: .whitespaces),
+                    cnpj: cnpj.trimmingCharacters(in: .whitespaces),
+                    address: address.trimmingCharacters(in: .whitespaces),
+                    city: city.trimmingCharacters(in: .whitespaces),
+                    phone: phone.trimmingCharacters(in: .whitespaces),
+                    hours: hours.trimmingCharacters(in: .whitespaces),
+                    photoURL: nil,
+                    active: true
+                )
+                
+                let storeId = try await StoresService.shared.createStore(
+                    merchantId: currentUser.uid,
+                    storeData: storeData
+                )
+                
+                print("✅ [MerchantStoreFormView] Loja criada com sucesso: \(storeId)")
+                
+                await MainActor.run {
+                    loading = false
+                    onSuccess()
+                }
+            } catch {
+                print("❌ [MerchantStoreFormView] Erro ao criar loja: \(error.localizedDescription)")
+                await MainActor.run {
+                    loading = false
+                    errorMessage = error.localizedDescription
+                    showError = true
+                }
+            }
         }
     }
 }
