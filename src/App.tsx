@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AdminAuthProvider, useAdminAuth } from "@/contexts/AdminAuthContext";
 import AppLayout from "./layouts/AppLayout";
 import AdminLayout from "./layouts/AdminLayout";
+import MerchantLayout from "./layouts/merchant/MerchantLayout";
 import Index from "./pages/Index";
 import StoresPage from "./pages/StoresPage";
 import OffersPage from "./pages/OffersPage";
@@ -123,9 +124,11 @@ const App = () => (
               {/* Rotas do painel do lojista */}
               <Route path="/merchant/login" element={<MerchantLoginPage />} />
               <Route path="/merchant/signup" element={<MerchantSignUpPage />} />
-              <Route path="/merchant/dashboard" element={<MerchantDashboardPage />} />
-              <Route path="/merchant/profile" element={<MerchantProfilePage />} />
-              <Route path="/merchant/settings" element={<MerchantSettingsPage />} />
+              <Route element={<MerchantLayout />}>
+                <Route path="/merchant/dashboard" element={<MerchantDashboardPage />} />
+                <Route path="/merchant/profile" element={<MerchantProfilePage />} />
+                <Route path="/merchant/settings" element={<MerchantSettingsPage />} />
+              </Route>
 
               {/* Rotas do app principal */}
               <Route

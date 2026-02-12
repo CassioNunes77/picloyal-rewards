@@ -15,7 +15,6 @@ import {
 import { toast } from "sonner";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import MerchantBottomNav from "@/components/merchant/MerchantBottomNav";
 
 export default function MerchantSettingsPage() {
   const navigate = useNavigate();
@@ -34,7 +33,7 @@ export default function MerchantSettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background">
       <div className="gradient-hero pb-8 pt-12 px-6">
         <h1 className="text-2xl font-bold text-white tracking-tight">
           Configurações
@@ -80,8 +79,6 @@ export default function MerchantSettingsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <MerchantBottomNav activeTab="settings" />
     </div>
   );
 }

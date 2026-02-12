@@ -1,11 +1,10 @@
 import { useAuth } from "@/contexts/AuthContext";
-import MerchantBottomNav from "@/components/merchant/MerchantBottomNav";
 
 export default function MerchantProfilePage() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background">
       <div className="gradient-hero pb-8 pt-12 px-6">
         <h1 className="text-2xl font-bold text-white tracking-tight">
           Perfil
@@ -37,8 +36,6 @@ export default function MerchantProfilePage() {
           </div>
         </div>
       </div>
-
-      <MerchantBottomNav activeTab="profile" />
     </div>
   );
 }
