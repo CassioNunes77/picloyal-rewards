@@ -59,6 +59,19 @@ struct MerchantDashboardView: View {
                 MerchantBottomNav(activeTab: $activeTab)
             }
         }
+        .alert("Sair da conta?", isPresented: $showLogoutConfirmation) {
+            Button("Cancelar", role: .cancel) {}
+            Button("Sair", role: .destructive) {
+                performLogout()
+            }
+        } message: {
+            Text("Deseja realmente sair da sua conta de lojista?")
+        }
+        .onAppear {
+            if isLoggedIn {
+                loadStores()
+            }
+        }
     }
     
     private var dashboardContent: some View {
@@ -337,20 +350,6 @@ struct MerchantDashboardView: View {
                 }
             }
         }
-        .alert("Sair da conta?", isPresented: $showLogoutConfirmation) {
-            Button("Cancelar", role: .cancel) {}
-            Button("Sair", role: .destructive) {
-                performLogout()
-            }
-        } message: {
-            Text("Deseja realmente sair da sua conta de lojista?")
-        }
-        .onAppear {
-            if isLoggedIn {
-                loadStores()
-            }
-        }
-    }
     
     private func loadStores() {
         guard let currentUser = Auth.auth().currentUser else {
