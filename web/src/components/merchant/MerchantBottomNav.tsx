@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { LayoutDashboard, Store, User, Settings } from "lucide-react";
 
@@ -18,11 +17,6 @@ export default function MerchantBottomNav({ activeTab }: MerchantBottomNavProps)
   const navigate = useNavigate();
   const location = useLocation();
   const [pressedTab, setPressedTab] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Determinar tab ativo baseado na rota atual
   const getActiveTab = () => {
@@ -49,30 +43,9 @@ export default function MerchantBottomNav({ activeTab }: MerchantBottomNavProps)
     }
   };
 
-  const navContent = (
-    <nav 
-      className="fixed bottom-0 left-0 right-0 z-[9999] border-t border-border shadow-lg"
-      style={{ 
-        paddingBottom: 'max(env(safe-area-inset-bottom, 0), 8px)',
-        backgroundColor: 'hsl(var(--card))',
-        minHeight: '64px',
-        width: '100vw',
-        maxWidth: '100vw',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-        paddingTop: '12px',
-        margin: 0,
-        position: 'fixed',
-        display: 'block',
-        visibility: 'visible',
-        opacity: 1,
-        pointerEvents: 'auto',
-        boxSizing: 'border-box',
-        left: 0,
-        right: 0
-      }}
-    >
-      <div className="mx-auto w-full max-w-md flex items-center justify-around px-4 py-3">
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-lg safe-area-inset">
+      <div className="mx-auto flex max-w-md items-center justify-around px-4 pb-2 pt-2">
         {navItems.map((item) => {
           const isActive = currentActiveTab === item.id;
           const isPressed = pressedTab === item.id;
@@ -109,8 +82,4 @@ export default function MerchantBottomNav({ activeTab }: MerchantBottomNavProps)
       </div>
     </nav>
   );
-
-  if (!mounted) return null;
-
-  return createPortal(navContent, document.body);
 }
