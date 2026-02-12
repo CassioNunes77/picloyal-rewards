@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Store, Plus, LogOut, MapPin, Phone, Clock, ChevronRight, Loader2 } from "lucide-react";
+import { Store, Plus, LogOut, MapPin, Phone, Clock, ChevronRight, Loader2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import MerchantStoreForm from "@/components/merchant/MerchantStoreForm";
+import MerchantStoreEditForm from "@/components/merchant/MerchantStoreEditForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { getMerchantStores, type StoreData } from "@/services/merchantsService";
 import { signOut } from "firebase/auth";
@@ -23,6 +24,7 @@ export default function MerchantDashboardPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [showStoreForm, setShowStoreForm] = useState(false);
+  const [editingStore, setEditingStore] = useState<StoreData | null>(null);
   const [stores, setStores] = useState<StoreData[]>([]);
   const [loadingStores, setLoadingStores] = useState(true);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
@@ -74,8 +76,18 @@ export default function MerchantDashboardPage() {
 
   const handleStoreSuccess = () => {
     setShowStoreForm(false);
+    setEditingStore(null);
     loadStores(); // Recarregar lista de lojas
-    toast.success("Loja cadastrada com sucesso!");
+  };
+
+  const handleEditStore = (store: StoreData) => {
+    setEditingStore(store);
+    setShowStoreForm(false);
+  };
+
+  const handleEditSuccess = () => {
+    setEditingStore(null);
+    loadStores(); // Recarregar lista de lojas
   };
 
   return (
@@ -108,7 +120,13 @@ export default function MerchantDashboardPage() {
       {/* Content */}
       <div className="px-6 -mt-6 pb-8">
         <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
-          {showStoreForm ? (
+          {editingStore ? (
+            <MerchantStoreEditForm
+              store={editingStore}
+              onCancel={() => setEditingStore(null)}
+              onSuccess={handleEditSuccess}
+            />
+          ) : showStoreForm ? (
             <MerchantStoreForm
               onCancel={() => setShowStoreForm(false)}
               onSuccess={handleStoreSuccess}
@@ -208,7 +226,20 @@ export default function MerchantDashboardPage() {
                         )}
                       </div>
                       
-                      <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 ml-2" />
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditStore(store);
+                          }}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                        <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                      </div>
                     </div>
                   </div>
                 ))}

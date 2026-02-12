@@ -283,6 +283,43 @@ export async function createStore(merchantId: string, storeData: Omit<StoreData,
 }
 
 /**
+ * Atualiza uma loja existente
+ */
+export async function updateStore(
+  storeId: string,
+  merchantId: string,
+  storeData: Partial<Omit<StoreData, "id" | "merchantId" | "createdAt" | "updatedAt">>
+): Promise<void> {
+  if (!firestore) {
+    throw new Error("Firestore não está configurado");
+  }
+
+  try {
+    const storeRef = doc(firestore, STORES_COLLECTION, storeId);
+    const updateData: Partial<StoreDataFirestore> = {
+      updatedAt: Timestamp.now(),
+    };
+
+    if (storeData.name !== undefined) updateData.name = storeData.name;
+    if (storeData.cnpj !== undefined) updateData.cnpj = storeData.cnpj;
+    if (storeData.address !== undefined) updateData.address = storeData.address;
+    if (storeData.city !== undefined) updateData.city = storeData.city;
+    if (storeData.phone !== undefined) updateData.phone = storeData.phone;
+    if (storeData.hours !== undefined) updateData.hours = storeData.hours;
+    if (storeData.active !== undefined) updateData.active = storeData.active;
+    if (storeData.photoURL !== undefined && storeData.photoURL !== null) {
+      updateData.photoURL = storeData.photoURL;
+    }
+
+    await updateDoc(storeRef, updateData);
+    console.log("✅ [merchantsService] Loja atualizada com sucesso:", storeId);
+  } catch (error: any) {
+    console.error("❌ [merchantsService] Erro ao atualizar loja:", error);
+    throw error;
+  }
+}
+
+/**
  * Busca todas as lojas de um lojista
  */
 export async function getMerchantStores(merchantId: string): Promise<StoreData[]> {

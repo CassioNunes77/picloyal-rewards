@@ -87,6 +87,65 @@ class StoresService {
         }
     }
     
+    /// Atualiza uma loja existente
+    func updateStore(storeId: String, merchantId: String, storeData: StoreUpdateData) async throws {
+        print("🔍 [StoresService] Atualizando loja: \(storeId)")
+        
+        guard let currentUser = Auth.auth().currentUser, currentUser.uid == merchantId else {
+            print("❌ [StoresService] Usuário não autenticado ou merchantId não corresponde ao usuário atual")
+            throw NSError(domain: "StoresService", code: 401, userInfo: [NSLocalizedDescriptionKey: "Usuário não autenticado"])
+        }
+        
+        // Verificar se a loja pertence ao merchant
+        let storeRef = db.collection(collectionName).document(storeId)
+        let storeDoc = try await storeRef.getDocument()
+        
+        guard storeDoc.exists,
+              let storeMerchantId = storeDoc.data()?["merchantId"] as? String,
+              storeMerchantId == merchantId else {
+            print("❌ [StoresService] Loja não encontrada ou não pertence ao merchant")
+            throw NSError(domain: "StoresService", code: 404, userInfo: [NSLocalizedDescriptionKey: "Loja não encontrada"])
+        }
+        
+        // Preparar dados de atualização
+        var updateData: [String: Any] = [
+            "updatedAt": Timestamp()
+        ]
+        
+        if let name = storeData.name {
+            updateData["name"] = name
+        }
+        if let cnpj = storeData.cnpj {
+            updateData["cnpj"] = cnpj
+        }
+        if let address = storeData.address {
+            updateData["address"] = address
+        }
+        if let city = storeData.city {
+            updateData["city"] = city
+        }
+        if let phone = storeData.phone {
+            updateData["phone"] = phone
+        }
+        if let hours = storeData.hours {
+            updateData["hours"] = hours
+        }
+        if let active = storeData.active {
+            updateData["active"] = active
+        }
+        if let photoURL = storeData.photoURL {
+            updateData["photoURL"] = photoURL
+        }
+        
+        do {
+            try await storeRef.updateData(updateData)
+            print("✅ [StoresService] Loja atualizada com sucesso: \(storeId)")
+        } catch {
+            print("❌ [StoresService] Erro ao atualizar loja: \(error.localizedDescription)")
+            throw error
+        }
+    }
+    
     /// Busca todas as lojas de um lojista
     func getMerchantStores(merchantId: String) async throws -> [FirebaseStore] {
         print("🔍 [StoresService] Buscando lojas do merchant: \(merchantId)")
@@ -174,4 +233,36 @@ struct StoreData {
     let hours: String
     let photoURL: String?
     let active: Bool
+}
+
+/// Estrutura para dados de atualização de uma loja (todos os campos são opcionais)
+struct StoreUpdateData {
+    let name: String?
+    let cnpj: String?
+    let address: String?
+    let city: String?
+    let phone: String?
+    let hours: String?
+    let photoURL: String?
+    let active: Bool?
+    
+    init(
+        name: String? = nil,
+        cnpj: String? = nil,
+        address: String? = nil,
+        city: String? = nil,
+        phone: String? = nil,
+        hours: String? = nil,
+        photoURL: String? = nil,
+        active: Bool? = nil
+    ) {
+        self.name = name
+        self.cnpj = cnpj
+        self.address = address
+        self.city = city
+        self.phone = phone
+        self.hours = hours
+        self.photoURL = photoURL
+        self.active = active
+    }
 }

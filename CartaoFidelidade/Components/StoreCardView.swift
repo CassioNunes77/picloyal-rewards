@@ -9,6 +9,7 @@ import SwiftUI
 
 struct StoreCardView: View {
     let store: FirebaseStore
+    var onEdit: (() -> Void)? = nil
     
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -95,9 +96,19 @@ struct StoreCardView: View {
                 
                 Spacer()
                 
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.mutedForeground)
+                HStack(spacing: AppSpacing.sm) {
+                    if let onEdit = onEdit {
+                        Button(action: onEdit) {
+                            Image(systemName: "pencil.circle.fill")
+                                .font(.system(size: 20, weight: .medium))
+                                .foregroundColor(.primary)
+                        }
+                    }
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.mutedForeground)
+                }
             }
         }
         .padding(AppSpacing.md)
