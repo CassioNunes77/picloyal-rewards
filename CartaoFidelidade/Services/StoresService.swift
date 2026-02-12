@@ -88,7 +88,7 @@ class StoresService {
     }
     
     /// Busca todas as lojas de um lojista
-    func getMerchantStores(merchantId: String) async throws -> [Store] {
+    func getMerchantStores(merchantId: String) async throws -> [FirebaseStore] {
         print("🔍 [StoresService] Buscando lojas do merchant: \(merchantId)")
         
         let storesRef = db.collection(collectionName)
