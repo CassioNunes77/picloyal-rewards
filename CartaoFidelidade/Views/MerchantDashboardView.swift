@@ -57,15 +57,6 @@ struct MerchantDashboardView: View {
                                     .font(.system(size: 24))
                                     .foregroundColor(.white.opacity(0.8))
                             }
-                            .padding(.trailing, 8)
-                        }
-                        
-                        Button(action: {
-                            dismiss()
-                        }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .font(.system(size: 24))
-                                .foregroundColor(.white.opacity(0.8))
                         }
                     }
                     .padding(.horizontal, 24)
