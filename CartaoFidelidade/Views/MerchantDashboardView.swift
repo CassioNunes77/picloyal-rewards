@@ -90,7 +90,21 @@ struct MerchantDashboardView: View {
                             .padding(.top, 24)
                         } else if !showStoreForm {
                             // Estado inicial
-                            if !isLoggedIn {
+                            if loadingStores {
+                                // Loading
+                                VStack(spacing: AppSpacing.lg) {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .primary))
+                                        .scaleEffect(1.5)
+                                        .padding(.top, 48)
+                                    
+                                    Text("Carregando lojas...")
+                                        .font(.system(size: 14, weight: .regular))
+                                        .foregroundColor(.mutedForeground)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 48)
+                            } else if !isLoggedIn {
                                 // Não está logado - mostrar opção de criar conta
                                 VStack(spacing: AppSpacing.lg) {
                                     Image(systemName: "person.badge.plus.fill")
