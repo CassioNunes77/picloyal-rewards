@@ -47,13 +47,12 @@ export default function MerchantBottomNav({ activeTab }: MerchantBottomNavProps)
     <nav 
       className="fixed bottom-0 left-0 right-0 z-[9999] border-t border-border bg-card shadow-lg"
       style={{ 
-        backdropFilter: 'blur(10px)', 
-        WebkitBackdropFilter: 'blur(10px)',
-        paddingBottom: 'env(safe-area-inset-bottom, 0)',
-        backgroundColor: 'hsl(var(--card))'
+        paddingBottom: 'max(env(safe-area-inset-bottom, 0), 8px)',
+        backgroundColor: 'hsl(var(--card))',
+        minHeight: '64px'
       }}
     >
-      <div className="mx-auto flex max-w-md items-center justify-around px-4 py-3">
+      <div className="mx-auto w-full max-w-md flex items-center justify-around px-4 py-3">
         {navItems.map((item) => {
           const isActive = currentActiveTab === item.id;
           const isPressed = pressedTab === item.id;
