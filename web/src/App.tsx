@@ -32,6 +32,7 @@ import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
 import MerchantLoginPage from "./pages/merchant/MerchantLoginPage";
 import MerchantSignUpPage from "./pages/merchant/MerchantSignUpPage";
 import MerchantDashboardPage from "./pages/merchant/MerchantDashboardPage";
+import StoreDetailsPage from "./pages/merchant/StoreDetailsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -122,6 +123,7 @@ const App = () => (
               <Route path="/merchant/login" element={<MerchantLoginPage />} />
               <Route path="/merchant/signup" element={<MerchantSignUpPage />} />
               <Route path="/merchant/dashboard" element={<MerchantDashboardPage />} />
+              <Route path="/merchant/store/:storeId" element={<StoreDetailsPage />} />
 
               {/* Rotas do app principal */}
               <Route

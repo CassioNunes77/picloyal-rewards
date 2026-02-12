@@ -98,11 +98,14 @@ struct StoreCardView: View {
                 
                 HStack(spacing: AppSpacing.sm) {
                     if let onEdit = onEdit {
-                        Button(action: onEdit) {
+                        Button(action: {
+                            onEdit()
+                        }) {
                             Image(systemName: "pencil.circle.fill")
                                 .font(.system(size: 20, weight: .medium))
                                 .foregroundColor(.primary)
                         }
+                        .buttonStyle(PlainButtonStyle())
                     }
                     
                     Image(systemName: "chevron.right")

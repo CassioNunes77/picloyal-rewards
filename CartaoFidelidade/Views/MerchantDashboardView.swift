@@ -17,11 +17,11 @@ struct MerchantDashboardView: View {
     @AppStorage("userPhotoURL") private var userPhotoURL = ""
     @State private var showStoreForm = false
     @State private var editingStore: FirebaseStore? = nil
+    @State private var selectedStore: FirebaseStore? = nil
     @State private var showSignUpForm = false
     @State private var showLogoutConfirmation = false
     @State private var stores: [FirebaseStore] = []
     @State private var loadingStores = false
-    @State private var editingStore: FirebaseStore? = nil
     
     var body: some View {
         ZStack {
@@ -228,9 +228,18 @@ struct MerchantDashboardView: View {
                                     VStack(spacing: AppSpacing.sm) {
                                         ForEach(stores) { store in
                                             StoreCardView(store: store) {
+                                                // Editar loja
                                                 withAnimation {
                                                     editingStore = store
                                                     showStoreForm = false
+                                                    selectedStore = nil
+                                                }
+                                            }
+                                            .onTapGesture {
+                                                withAnimation {
+                                                    selectedStore = store
+                                                    showStoreForm = false
+                                                    editingStore = nil
                                                 }
                                             }
                                         }
@@ -240,6 +249,14 @@ struct MerchantDashboardView: View {
                                 }
                                 .frame(maxWidth: .infinity)
                             }
+                        } else if let storeToView = selectedStore {
+                            // View de detalhes da loja
+                            MerchantStoreDetailsView(store: storeToView) {
+                                withAnimation {
+                                    selectedStore = nil
+                                }
+                            }
+                            .transition(.move(edge: .trailing))
                         } else if let storeToEdit = editingStore {
                             // Formulário de edição de loja
                             MerchantStoreEditView(
@@ -257,6 +274,7 @@ struct MerchantDashboardView: View {
                                 }
                             )
                             .padding(.top, 24)
+                            .transition(.move(edge: .trailing))
                         } else {
                             // Formulário de cadastro de loja
                             MerchantStoreFormView(
