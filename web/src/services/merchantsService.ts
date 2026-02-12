@@ -251,11 +251,15 @@ export async function createStore(merchantId: string, storeData: Omit<StoreData,
       city: storeData.city,
       phone: storeData.phone,
       hours: storeData.hours,
-      photoURL: storeData.photoURL,
       active: storeData.active ?? true,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
+
+    // Incluir photoURL apenas se estiver definido e não for undefined
+    if (storeData.photoURL !== undefined && storeData.photoURL !== null) {
+      storeFirestoreData.photoURL = storeData.photoURL;
+    }
 
     await setDoc(storeRef, storeFirestoreData);
 
