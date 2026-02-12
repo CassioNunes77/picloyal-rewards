@@ -22,10 +22,16 @@ struct CartaoFidelidadeApp: App {
         FirebaseApp.configure()
     }
 
+    @State private var splashDone = false
+    
     var body: some Scene {
         WindowGroup {
             Group {
-                if isLoggedIn {
+                if !splashDone {
+                    SplashScreenView {
+                        splashDone = true
+                    }
+                } else if isLoggedIn {
                     if isMerchant {
                         // Mostrar painel do lojista
                         MerchantDashboardView()

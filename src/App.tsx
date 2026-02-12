@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +9,7 @@ import { AdminAuthProvider, useAdminAuth } from "@/contexts/AdminAuthContext";
 import AppLayout from "./layouts/AppLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import MerchantLayout from "./layouts/merchant/MerchantLayout";
+import SplashScreen from "./components/SplashScreen";
 import Index from "./pages/Index";
 import StoresPage from "./pages/StoresPage";
 import OffersPage from "./pages/OffersPage";
@@ -85,15 +86,21 @@ function AdminGuard({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <AdminAuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
+const App = () => {
+  const [splashVisible, setSplashVisible] = useState(true);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <AdminAuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            {splashVisible && (
+              <SplashScreen onComplete={() => setSplashVisible(false)} />
+            )}
+            <BrowserRouter>
+              <Routes>
               {/* Rotas administrativas */}
               <Route
                 path="/sys-admin-panel-7x9k/login"
@@ -159,12 +166,14 @@ const App = () => (
                   </AuthGuard>
                 }
               />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AdminAuthProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AdminAuthProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
+};
 
 export default App;
