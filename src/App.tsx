@@ -35,6 +35,7 @@ import MerchantSignUpPage from "./pages/merchant/MerchantSignUpPage";
 import MerchantDashboardPage from "./pages/merchant/MerchantDashboardPage";
 import MerchantProfilePage from "./pages/merchant/MerchantProfilePage";
 import MerchantSettingsPage from "./pages/merchant/MerchantSettingsPage";
+import StoreDetailsPage from "./pages/merchant/StoreDetailsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -126,6 +127,7 @@ const App = () => (
               <Route path="/merchant/signup" element={<MerchantSignUpPage />} />
               <Route element={<MerchantLayout />}>
                 <Route path="/merchant/dashboard" element={<MerchantDashboardPage />} />
+                <Route path="/merchant/store/:storeId" element={<StoreDetailsPage />} />
                 <Route path="/merchant/profile" element={<MerchantProfilePage />} />
                 <Route path="/merchant/settings" element={<MerchantSettingsPage />} />
               </Route>

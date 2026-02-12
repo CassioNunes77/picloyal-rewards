@@ -141,6 +141,7 @@ export default function MerchantDashboardPage() {
                 {stores.map((store) => (
                   <div
                     key={store.id}
+                    onClick={() => navigate(`/merchant/store/${store.id}`)}
                     className="bg-background rounded-xl p-4 border border-border hover:shadow-md transition-shadow cursor-pointer"
                   >
                     <div className="flex items-start justify-between">
