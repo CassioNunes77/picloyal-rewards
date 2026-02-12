@@ -2,6 +2,16 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Store, Plus, LogOut, MapPin, Phone, Clock, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import MerchantStoreForm from "@/components/merchant/MerchantStoreForm";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,6 +25,7 @@ export default function MerchantDashboardPage() {
   const [showStoreForm, setShowStoreForm] = useState(false);
   const [stores, setStores] = useState<StoreData[]>([]);
   const [loadingStores, setLoadingStores] = useState(true);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   // Redirecionar se não estiver autenticado
   useEffect(() => {
@@ -45,7 +56,12 @@ export default function MerchantDashboardPage() {
     }
   };
 
+  const handleLogoutClick = () => {
+    setShowLogoutDialog(true);
+  };
+
   const handleLogout = async () => {
+    setShowLogoutDialog(false);
     try {
       await signOut(auth);
       navigate("/merchant/login", { replace: true });
@@ -81,7 +97,7 @@ export default function MerchantDashboardPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={handleLogout}
+            onClick={handleLogoutClick}
             className="text-white hover:bg-white/20"
           >
             <LogOut className="h-5 w-5" />
@@ -201,6 +217,27 @@ export default function MerchantDashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Dialog de confirmação de logout */}
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sair da conta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja realmente sair da sua conta de lojista? Você precisará fazer login novamente para acessar o painel.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLogout}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Sair
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
