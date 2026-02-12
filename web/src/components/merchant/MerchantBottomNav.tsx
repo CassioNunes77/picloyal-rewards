@@ -1,68 +1,85 @@
-import { LayoutDashboard, Store, User, Settings } from "lucide-react";
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { LayoutDashboard, Store, User, Settings } from "lucide-react";
 
-export default function MerchantBottomNav() {
+const navItems = [
+  { icon: LayoutDashboard, label: "Dashboard", id: "dashboard", path: "/merchant/dashboard" },
+  { icon: Store, label: "Lojas", id: "stores", path: "/merchant/dashboard" },
+  { icon: User, label: "Perfil", id: "profile", path: "/merchant/profile" },
+  { icon: Settings, label: "Configurações", id: "settings", path: "/merchant/settings" },
+];
+
+interface MerchantBottomNavProps {
+  activeTab?: string;
+}
+
+export default function MerchantBottomNav({ activeTab }: MerchantBottomNavProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const [pressedTab, setPressedTab] = useState<string | null>(null);
 
-  const navItems = [
-    {
-      id: "dashboard",
-      label: "Dashboard",
-      icon: LayoutDashboard,
-      path: "/merchant/dashboard",
-    },
-    {
-      id: "stores",
-      label: "Lojas",
-      icon: Store,
-      path: "/merchant/stores",
-    },
-    {
-      id: "profile",
-      label: "Perfil",
-      icon: User,
-      path: "/merchant/profile",
-    },
-    {
-      id: "settings",
-      label: "Configurações",
-      icon: Settings,
-      path: "/merchant/settings",
-    },
-  ];
+  // Determinar tab ativo baseado na rota atual
+  const getActiveTab = () => {
+    if (activeTab) return activeTab;
+    if (location.pathname.includes("/merchant/profile")) return "profile";
+    if (location.pathname.includes("/merchant/settings")) return "settings";
+    return "dashboard"; // Dashboard é o padrão
+  };
 
-  const isActive = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(path + "/");
+  const currentActiveTab = getActiveTab();
+
+  const handleTabPress = (id: string, path: string) => {
+    setPressedTab(id);
+    setTimeout(() => setPressedTab(null), 150);
+    
+    if (id === "stores") {
+      // Para "Lojas", apenas scroll para o topo ou recarrega a lista
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    
+    if (path) {
+      navigate(path);
+    }
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border shadow-lg">
-      <div className="flex items-center justify-around px-2 py-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-lg safe-area-inset">
+      <div className="mx-auto flex max-w-md items-center justify-around px-4 pb-2 pt-2">
         {navItems.map((item) => {
+          const isActive = currentActiveTab === item.id;
+          const isPressed = pressedTab === item.id;
           const Icon = item.icon;
-          const active = isActive(item.path);
           
           return (
             <button
               key={item.id}
-              onClick={() => navigate(item.path)}
-              className={cn(
-                "flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-xl transition-all",
-                active
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-card-foreground"
-              )}
+              onClick={() => handleTabPress(item.id, item.path)}
+              className={`
+                relative flex flex-col items-center gap-1 py-2 px-3
+                transition-all duration-200
+                ${isPressed ? 'scale-90' : ''}
+              `}
             >
-              <Icon className={cn("h-5 w-5", active && "text-primary")} />
-              <span className={cn("text-xs font-medium", active && "text-primary")}>
+              <div className="relative">
+                <Icon 
+                  className={`h-6 w-6 transition-all duration-200 ${
+                    isActive ? 'text-primary scale-110' : 'text-muted-foreground'
+                  } ${isPressed ? 'scale-90' : ''}`} 
+                />
+              </div>
+              <span className={`text-[10px] font-medium transition-colors duration-200 ${
+                isActive ? 'text-primary' : 'text-muted-foreground'
+              }`}>
                 {item.label}
               </span>
+              {isActive && (
+                <span className="absolute -bottom-1 h-1 w-1 rounded-full bg-primary animate-scale-in" />
+              )}
             </button>
           );
         })}
       </div>
-    </div>
+    </nav>
   );
 }

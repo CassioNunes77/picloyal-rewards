@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings, Bell, Shield, LogOut, ArrowLeft } from "lucide-react";
+import { ArrowLeft, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,15 +13,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import MerchantBottomNav from "@/components/merchant/MerchantBottomNav";
 
 export default function MerchantSettingsPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [notifications, setNotifications] = useState(true);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const handleLogout = async () => {
@@ -55,7 +51,7 @@ export default function MerchantSettingsPage() {
               Configurações
             </h1>
             <p className="text-white/90 text-sm mt-1">
-              Gerencie suas preferências
+              Ajustes e preferências
             </p>
           </div>
         </div>
@@ -63,58 +59,18 @@ export default function MerchantSettingsPage() {
 
       {/* Content */}
       <div className="px-6 -mt-6 pb-8">
-        <div className="space-y-4">
-          {/* Notificações */}
-          <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Bell className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="text-base font-semibold text-card-foreground">
-                    Notificações
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Receber alertas e notificações
-                  </p>
-                </div>
-              </div>
-              <Switch
-                checked={notifications}
-                onCheckedChange={setNotifications}
-              />
+        <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
+          <Button
+            variant="ghost"
+            onClick={() => setShowLogoutDialog(true)}
+            className="w-full justify-between text-red-600 hover:text-red-700 hover:bg-red-50"
+          >
+            <div className="flex items-center gap-3">
+              <LogOut className="h-5 w-5" />
+              <span>Sair da Conta</span>
             </div>
-          </div>
-
-          {/* Segurança */}
-          <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
-            <div className="flex items-center gap-4">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Shield className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-base font-semibold text-card-foreground">
-                  Segurança
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Alterar senha e configurações de segurança
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Logout */}
-          <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
-            <Button
-              variant="destructive"
-              className="w-full"
-              onClick={() => setShowLogoutDialog(true)}
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sair da Conta
-            </Button>
-          </div>
+            <ArrowLeft className="h-4 w-4 rotate-180" />
+          </Button>
         </div>
       </div>
 
@@ -140,7 +96,7 @@ export default function MerchantSettingsPage() {
       </AlertDialog>
 
       {/* Bottom Navigation */}
-      <MerchantBottomNav />
+      <MerchantBottomNav activeTab="settings" />
     </div>
   );
 }

@@ -9,9 +9,9 @@ import SwiftUI
 import FirebaseAuth
 
 struct MerchantSettingsView: View {
+    var onBack: (() -> Void)? = nil
+    
     @AppStorage("isLoggedIn") private var isLoggedIn = false
-    @AppStorage("isMerchant") private var isMerchant = false
-    @State private var notifications = true
     @State private var showLogoutConfirmation = false
     
     var body: some View {
@@ -24,6 +24,14 @@ struct MerchantSettingsView: View {
                     // Header
                     VStack(spacing: AppSpacing.md) {
                         HStack {
+                            Button(action: {
+                                onBack?()
+                            }) {
+                                Image(systemName: "arrow.left.circle.fill")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(.white)
+                            }
+                            
                             Spacer()
                         }
                         
@@ -32,7 +40,7 @@ struct MerchantSettingsView: View {
                                 .font(.system(size: 24, weight: .bold, design: .rounded))
                                 .foregroundColor(.white)
                             
-                            Text("Gerencie suas preferências")
+                            Text("Ajustes e preferências")
                                 .font(.system(size: 14, weight: .regular))
                                 .foregroundColor(.white.opacity(0.9))
                         }
@@ -42,101 +50,53 @@ struct MerchantSettingsView: View {
                     .padding(.bottom, AppSpacing.xl)
                     .background(AppGradients.primary)
                     
-                    // Configurações
+                    // Opções de configuração
                     VStack(spacing: AppSpacing.md) {
-                        // Notificações
-                        HStack(spacing: AppSpacing.md) {
-                            Image(systemName: "bell.fill")
-                                .font(.system(size: 20))
-                                .foregroundColor(.primary)
-                                .frame(width: 40, height: 40)
-                                .background(Color.primary.opacity(0.1))
-                                .clipShape(Circle())
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Notificações")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.cardForeground)
-                                
-                                Text("Receber alertas e notificações")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.mutedForeground)
+                        if isLoggedIn {
+                            Button(action: {
+                                showLogoutConfirmation = true
+                            }) {
+                                HStack {
+                                    Image(systemName: "arrow.right.square.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(.red)
+                                    
+                                    Text("Sair da Conta")
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundColor(.red)
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.mutedForeground)
+                                }
+                                .padding(AppSpacing.md)
+                                .background(Color.card)
+                                .cornerRadius(AppRadius.lg)
                             }
-                            
-                            Spacer()
-                            
-                            Toggle("", isOn: $notifications)
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        .padding(AppSpacing.md)
-                        .background(Color.card)
-                        .cornerRadius(AppRadius.lg)
-                        .appShadow(AppShadow.sm)
-                        
-                        // Segurança
-                        HStack(spacing: AppSpacing.md) {
-                            Image(systemName: "shield.fill")
-                                .font(.system(size: 20))
-                                .foregroundColor(.primary)
-                                .frame(width: 40, height: 40)
-                                .background(Color.primary.opacity(0.1))
-                                .clipShape(Circle())
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Segurança")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.cardForeground)
-                                
-                                Text("Alterar senha e configurações de segurança")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.mutedForeground)
-                            }
-                            
-                            Spacer()
-                        }
-                        .padding(AppSpacing.md)
-                        .background(Color.card)
-                        .cornerRadius(AppRadius.lg)
-                        .appShadow(AppShadow.sm)
-                        
-                        // Logout
-                        Button(action: {
-                            showLogoutConfirmation = true
-                        }) {
-                            HStack(spacing: AppSpacing.sm) {
-                                Image(systemName: "arrow.right.square.fill")
-                                    .font(.system(size: 20))
-                                
-                                Text("Sair da Conta")
-                                    .font(.system(size: 16, weight: .semibold))
-                            }
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 48)
-                        }
-                        .background(Color.red)
-                        .cornerRadius(AppRadius.lg)
-                        .appShadow(AppShadow.sm)
                     }
                     .padding(.horizontal, AppSpacing.lg)
-                    .padding(.top, -AppRadius.xl)
+                    .offset(y: -AppRadius.xl)
                 }
             }
         }
         .alert("Sair da conta?", isPresented: $showLogoutConfirmation) {
-            Button("Cancelar", role: .cancel) { }
+            Button("Cancelar", role: .cancel) {}
             Button("Sair", role: .destructive) {
-                handleLogout()
+                performLogout()
             }
         } message: {
-            Text("Deseja realmente sair da sua conta de lojista? Você precisará fazer login novamente para acessar o painel.")
+            Text("Deseja realmente sair da sua conta de lojista?")
         }
     }
     
-    private func handleLogout() {
+    private func performLogout() {
         do {
             try Auth.auth().signOut()
-            isLoggedIn = false
-            isMerchant = false
+            print("✅ [MerchantSettingsView] Logout realizado com sucesso")
         } catch {
             print("❌ [MerchantSettingsView] Erro ao fazer logout: \(error.localizedDescription)")
         }

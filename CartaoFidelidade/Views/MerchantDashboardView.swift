@@ -22,83 +22,89 @@ struct MerchantDashboardView: View {
     @State private var showLogoutConfirmation = false
     @State private var stores: [FirebaseStore] = []
     @State private var loadingStores = false
-    @State private var selectedTab: MerchantTab = .dashboard
+    @State private var activeTab = "dashboard"
     
     var body: some View {
         ZStack {
             Color.appBackground
                 .ignoresSafeArea()
             
-            VStack(spacing: 0) {
-                // Content based on selected tab
-                Group {
-                    switch selectedTab {
-                    case .dashboard:
-                        dashboardContent
-                    case .stores:
-                        storesContent
-                    case .profile:
-                        MerchantProfileView()
-                    case .settings:
-                        MerchantSettingsView()
-                    }
-                }
-                
-                // Bottom Navigation
-                if isLoggedIn {
-                    MerchantBottomNav(selectedTab: $selectedTab)
+            // Conteúdo baseado na tab ativa
+            Group {
+                switch activeTab {
+                case "dashboard":
+                    dashboardContent
+                case "stores":
+                    dashboardContent // Por enquanto, mesma view
+                case "profile":
+                    MerchantProfileView(onBack: {
+                        withAnimation {
+                            activeTab = "dashboard"
+                        }
+                    })
+                case "settings":
+                    MerchantSettingsView(onBack: {
+                        withAnimation {
+                            activeTab = "dashboard"
+                        }
+                    })
+                default:
+                    dashboardContent
                 }
             }
-        }
-        .alert("Sair da conta?", isPresented: $showLogoutConfirmation) {
-            Button("Cancelar", role: .cancel) {}
-            Button("Sair", role: .destructive) {
-                performLogout()
-            }
-        } message: {
-            Text("Deseja realmente sair da sua conta de lojista?")
-        }
-        .onAppear {
-            if isLoggedIn {
-                loadStores()
+            
+            // Bottom Navigation
+            VStack {
+                Spacer()
+                MerchantBottomNav(activeTab: $activeTab)
             }
         }
     }
     
-    @ViewBuilder
     private var dashboardContent: some View {
         VStack(spacing: 0) {
-            // Header
-            VStack(alignment: .leading, spacing: 0) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        if isLoggedIn {
-                            Text("Bem-vindo, \(userDisplayName.isEmpty ? (userEmail.isEmpty ? "Lojista" : String(userEmail.split(separator: "@").first ?? "Lojista")) : userDisplayName)")
+                // Header
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            if isLoggedIn {
+                                Text("Bem-vindo, \(userDisplayName.isEmpty ? (userEmail.isEmpty ? "Lojista" : String(userEmail.split(separator: "@").first ?? "Lojista")) : userDisplayName)")
+                                    .font(.system(size: 14, weight: .regular))
+                                    .foregroundColor(.white.opacity(0.9))
+                            }
+                            
+                            Text("Painel do Lojista")
+                                .font(.system(size: 24, weight: .bold, design: .rounded))
+                                .foregroundColor(.white)
+                            
+                            Text("Gerencie suas lojas")
                                 .font(.system(size: 14, weight: .regular))
                                 .foregroundColor(.white.opacity(0.9))
                         }
                         
-                        Text("Painel do Lojista")
-                            .font(.system(size: 24, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
+                        Spacer()
                         
-                        Text("Gerencie suas lojas")
-                            .font(.system(size: 14, weight: .regular))
-                            .foregroundColor(.white.opacity(0.9))
+                        // Botão Sair da Conta (se estiver logado)
+                        if isLoggedIn {
+                            Button(action: {
+                                showLogoutConfirmation = true
+                            }) {
+                                Image(systemName: "arrow.right.square.fill")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(.white.opacity(0.8))
+                            }
+                        }
                     }
-                    
-                    Spacer()
+                    .padding(.horizontal, 24)
+                    .padding(.top, 56)
+                    .padding(.bottom, 32)
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 56)
-                .padding(.bottom, 32)
-            }
-            .frame(maxWidth: .infinity)
-            .background(AppGradients.hero)
-            
-            // Content
-            ScrollView {
-                VStack(spacing: 0) {
+                .frame(maxWidth: .infinity)
+                .background(AppGradients.hero)
+                
+                // Content
+                ScrollView {
+                    VStack(spacing: 0) {
                         if showSignUpForm {
                             // Formulário de cadastro de conta
                             MerchantSignUpView(
@@ -281,9 +287,7 @@ struct MerchantDashboardView: View {
                                 }
                                 .frame(maxWidth: .infinity)
                             }
-                        }
-                        
-                        if let storeToView = selectedStore {
+                        } else if let storeToView = selectedStore {
                             // View de detalhes da loja
                             MerchantStoreDetailsView(store: storeToView) {
                                 withAnimation {
@@ -329,130 +333,21 @@ struct MerchantDashboardView: View {
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, -24)
+                    .padding(.bottom, 80) // Espaço para o bottom nav
                 }
             }
         }
-    }
-    
-    @ViewBuilder
-    private var storesContent: some View {
-        VStack(spacing: 0) {
-            // Header
-            VStack(alignment: .leading, spacing: 0) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Lojas")
-                            .font(.system(size: 24, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
-                        
-                        Text("Gerencie suas lojas cadastradas")
-                            .font(.system(size: 14, weight: .regular))
-                            .foregroundColor(.white.opacity(0.9))
-                    }
-                    
-                    Spacer()
-                }
-                .padding(.horizontal, 24)
-                .padding(.top, 56)
-                .padding(.bottom, 32)
+        .alert("Sair da conta?", isPresented: $showLogoutConfirmation) {
+            Button("Cancelar", role: .cancel) {}
+            Button("Sair", role: .destructive) {
+                performLogout()
             }
-            .frame(maxWidth: .infinity)
-            .background(AppGradients.hero)
-            
-            // Content
-            ScrollView {
-                VStack(spacing: 0) {
-                    if editingStore != nil {
-                        MerchantStoreEditView(
-                            store: editingStore!,
-                            onCancel: {
-                                withAnimation {
-                                    editingStore = nil
-                                }
-                            },
-                            onSuccess: {
-                                withAnimation {
-                                    editingStore = nil
-                                }
-                                loadStores()
-                            }
-                        )
-                        .padding(.top, 24)
-                    } else if loadingStores {
-                        VStack(spacing: AppSpacing.lg) {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .primary))
-                                .scaleEffect(1.5)
-                                .padding(.top, 48)
-                            
-                            Text("Carregando lojas...")
-                                .font(.system(size: 14, weight: .regular))
-                                .foregroundColor(.mutedForeground)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 48)
-                    } else if stores.isEmpty {
-                        VStack(spacing: AppSpacing.lg) {
-                            Image(systemName: "storefront.fill")
-                                .font(.system(size: 64))
-                                .foregroundColor(.mutedForeground)
-                                .padding(.top, 48)
-                            
-                            Text("Nenhuma loja cadastrada")
-                                .font(.system(size: 20, weight: .semibold, design: .rounded))
-                                .foregroundColor(.cardForeground)
-                            
-                            Text("Cadastre sua primeira loja no Dashboard")
-                                .font(.system(size: 14, weight: .regular))
-                                .foregroundColor(.mutedForeground)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, AppSpacing.lg)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 48)
-                    } else {
-                        VStack(spacing: AppSpacing.md) {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Suas Lojas")
-                                        .font(.system(size: 20, weight: .semibold, design: .rounded))
-                                        .foregroundColor(.cardForeground)
-                                    
-                                    Text("\(stores.count) \(stores.count == 1 ? "loja cadastrada" : "lojas cadastradas")")
-                                        .font(.system(size: 14, weight: .regular))
-                                        .foregroundColor(.mutedForeground)
-                                }
-                                
-                                Spacer()
-                            }
-                            .padding(.horizontal, AppSpacing.lg)
-                            .padding(.top, AppSpacing.md)
-                            
-                            VStack(spacing: AppSpacing.sm) {
-                                ForEach(stores) { store in
-                                    StoreCardView(
-                                        store: store,
-                                        onEdit: {
-                                            withAnimation {
-                                                editingStore = store
-                                            }
-                                        },
-                                        onTap: {
-                                            withAnimation {
-                                                selectedStore = store
-                                            }
-                                        }
-                                    )
-                                }
-                            }
-                            .padding(.horizontal, AppSpacing.lg)
-                            .padding(.bottom, AppSpacing.lg)
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                }
-                .padding(.horizontal, 24)
-                .padding(.top, -24)
+        } message: {
+            Text("Deseja realmente sair da sua conta de lojista?")
+        }
+        .onAppear {
+            if isLoggedIn {
+                loadStores()
             }
         }
     }

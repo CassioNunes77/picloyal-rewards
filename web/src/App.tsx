@@ -32,7 +32,6 @@ import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
 import MerchantLoginPage from "./pages/merchant/MerchantLoginPage";
 import MerchantSignUpPage from "./pages/merchant/MerchantSignUpPage";
 import MerchantDashboardPage from "./pages/merchant/MerchantDashboardPage";
-import MerchantStoresPage from "./pages/merchant/MerchantStoresPage";
 import MerchantProfilePage from "./pages/merchant/MerchantProfilePage";
 import MerchantSettingsPage from "./pages/merchant/MerchantSettingsPage";
 import StoreDetailsPage from "./pages/merchant/StoreDetailsPage";
@@ -126,7 +125,6 @@ const App = () => (
               <Route path="/merchant/login" element={<MerchantLoginPage />} />
               <Route path="/merchant/signup" element={<MerchantSignUpPage />} />
               <Route path="/merchant/dashboard" element={<MerchantDashboardPage />} />
-              <Route path="/merchant/stores" element={<MerchantStoresPage />} />
               <Route path="/merchant/profile" element={<MerchantProfilePage />} />
               <Route path="/merchant/settings" element={<MerchantSettingsPage />} />
               <Route path="/merchant/store/:storeId" element={<StoreDetailsPage />} />

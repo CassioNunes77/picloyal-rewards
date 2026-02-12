@@ -2,85 +2,97 @@
 //  MerchantBottomNav.swift
 //  CartaoFidelidade
 //
-//  Menu de navegação inferior para o painel do lojista
+//  Navegação inferior do painel do lojista
 //
 
 import SwiftUI
 
-enum MerchantTab: String, CaseIterable {
-    case dashboard = "dashboard"
-    case stores = "stores"
-    case profile = "profile"
-    case settings = "settings"
+struct MerchantBottomNav: View {
+    @Binding var activeTab: String
     
-    var icon: String {
-        switch self {
-        case .dashboard:
-            return "square.grid.2x2.fill"
-        case .stores:
-            return "storefront.fill"
-        case .profile:
-            return "person.fill"
-        case .settings:
-            return "gearshape.fill"
+    @State private var pressedTab: String? = nil
+    
+    let navItems = [
+        MerchantNavItem(icon: "square.grid.2x2.fill", label: "Dashboard", id: "dashboard"),
+        MerchantNavItem(icon: "storefront.fill", label: "Lojas", id: "stores"),
+        MerchantNavItem(icon: "person.fill", label: "Perfil", id: "profile"),
+        MerchantNavItem(icon: "gearshape.fill", label: "Configurações", id: "settings")
+    ]
+    
+    var body: some View {
+        VStack {
+            Spacer()
+            
+            HStack(spacing: 0) {
+                ForEach(navItems) { item in
+                    Button(action: {
+                        handleTabPress(item.id)
+                    }) {
+                        VStack(spacing: 4) {
+                            ZStack {
+                                Image(systemName: item.icon)
+                                    .foregroundColor(activeTab == item.id ? .primary : .mutedForeground)
+                                    .font(.system(size: 24))
+                                    .scaleEffect(activeTab == item.id ? 1.1 : 1.0)
+                                    .scaleEffect(pressedTab == item.id ? 0.9 : 1.0)
+                            }
+                            
+                            Text(item.label)
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(activeTab == item.id ? .primary : .mutedForeground)
+                            
+                            if activeTab == item.id {
+                                Circle()
+                                    .fill(Color.primary)
+                                    .frame(width: 4, height: 4)
+                                    .scaleEffect(pressedTab == item.id ? 0.9 : 1.0)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, AppSpacing.sm)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            }
+            .padding(.horizontal, AppSpacing.md)
+            .padding(.bottom, 8)
+            .background(
+                Color.card
+                    .opacity(0.95)
+                    .background(.ultraThinMaterial)
+            )
         }
+        .ignoresSafeArea(edges: .bottom)
     }
     
-    var label: String {
-        switch self {
-        case .dashboard:
-            return "Dashboard"
-        case .stores:
-            return "Lojas"
-        case .profile:
-            return "Perfil"
-        case .settings:
-            return "Configurações"
+    private func handleTabPress(_ id: String) {
+        withAnimation(.bounceSmall) {
+            pressedTab = id
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            pressedTab = nil
+            activeTab = id
         }
     }
 }
 
-struct MerchantBottomNav: View {
-    @Binding var selectedTab: MerchantTab
+struct MerchantNavItem: Identifiable {
+    let id: String
+    let icon: String
+    let label: String
     
-    var body: some View {
-        HStack(spacing: 0) {
-            ForEach(MerchantTab.allCases, id: \.self) { tab in
-                Button(action: {
-                    withAnimation {
-                        selectedTab = tab
-                    }
-                }) {
-                    VStack(spacing: 4) {
-                        Image(systemName: tab.icon)
-                            .font(.system(size: 20))
-                            .foregroundColor(selectedTab == tab ? .primary : .mutedForeground)
-                        
-                        Text(tab.label)
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(selectedTab == tab ? .primary : .mutedForeground)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, AppSpacing.sm)
-                }
-                .buttonStyle(PlainButtonStyle())
-            }
-        }
-        .background(Color.card)
-        .overlay(
-            Rectangle()
-                .frame(height: 1)
-                .foregroundColor(.border),
-            alignment: .top
-        )
-        .appShadow(AppShadow.md)
+    init(icon: String, label: String, id: String) {
+        self.icon = icon
+        self.label = label
+        self.id = id
     }
 }
 
 #Preview {
-    VStack {
-        Spacer()
-        MerchantBottomNav(selectedTab: .constant(.dashboard))
+    ZStack {
+        Color.appBackground
+            .ignoresSafeArea()
+        
+        MerchantBottomNav(activeTab: .constant("dashboard"))
     }
-    .background(Color.appBackground)
 }

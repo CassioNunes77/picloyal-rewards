@@ -274,7 +274,7 @@ export default function MerchantDashboardPage() {
       </AlertDialog>
 
       {/* Bottom Navigation */}
-      <MerchantBottomNav />
+      <MerchantBottomNav activeTab="dashboard" />
     </div>
   );
 }
