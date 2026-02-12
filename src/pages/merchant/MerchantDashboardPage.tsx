@@ -4,6 +4,7 @@ import { Store, Plus, LogOut, MapPin, Phone, Clock, ChevronRight, Loader2 } from
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import MerchantStoreForm from "@/components/merchant/MerchantStoreForm";
+import MerchantBottomNav from "@/components/merchant/MerchantBottomNav";
 import { useAuth } from "@/contexts/AuthContext";
 import { getMerchantStores, type StoreData } from "@/services/merchantsService";
 import { signOut } from "firebase/auth";
@@ -63,7 +64,7 @@ export default function MerchantDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <div className="gradient-hero pb-8 pt-12 px-6">
         <div className="flex items-center justify-between mb-4">
@@ -198,6 +199,9 @@ export default function MerchantDashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Bottom Navigation */}
+      <MerchantBottomNav activeTab="dashboard" />
     </div>
   );
 }
