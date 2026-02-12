@@ -131,30 +131,33 @@ export default function StoreDetailsPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="gradient-hero pb-8 pt-12 px-6">
-        <div className="flex items-center gap-4 mb-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/merchant/dashboard")}
-            className="text-white hover:bg-white/20"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-white tracking-tight">
-              {store.name}
-            </h1>
-            <p className="text-white/90 text-sm mt-1">
-              Gerencie suas ofertas
-            </p>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center gap-4 mb-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/merchant/dashboard")}
+              className="text-white hover:bg-white/20"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-white tracking-tight">
+                {store.name}
+              </h1>
+              <p className="text-white/90 text-sm mt-1">
+                Gerencie suas ofertas
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Content */}
       <div className="px-6 -mt-6 pb-8">
-        {/* Informações da Loja */}
-        <div className="bg-card rounded-2xl shadow-lg border border-border p-6 mb-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Informações da Loja */}
+          <div className="bg-card rounded-2xl shadow-lg border border-border p-6 mb-6">
           <div className="space-y-3">
             {store.address && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -182,8 +185,8 @@ export default function StoreDetailsPage() {
           </div>
         </div>
 
-        {/* Seção de Ofertas */}
-        <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
+          {/* Seção de Ofertas */}
+          <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-xl font-semibold text-card-foreground">
@@ -286,6 +289,7 @@ export default function StoreDetailsPage() {
               ))}
             </div>
           )}
+          </div>
         </div>
       </div>
 

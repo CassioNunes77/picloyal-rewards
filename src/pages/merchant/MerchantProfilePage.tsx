@@ -6,13 +6,16 @@ export default function MerchantProfilePage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="gradient-hero pb-8 pt-12 px-6">
-        <h1 className="text-2xl font-bold text-white tracking-tight">
-          Perfil
-        </h1>
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-2xl font-bold text-white tracking-tight">
+            Perfil
+          </h1>
+        </div>
       </div>
 
       <div className="px-6 -mt-6 pb-8">
-        <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-card rounded-2xl shadow-lg border border-border p-6 max-w-2xl">
           <div className="space-y-4">
             <div>
               <h2 className="text-lg font-semibold text-card-foreground mb-2">

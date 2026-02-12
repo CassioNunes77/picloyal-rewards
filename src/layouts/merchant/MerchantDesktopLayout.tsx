@@ -74,7 +74,7 @@ export default function MerchantDesktopLayout() {
 
       {/* Área principal */}
       <main className="flex-1 min-h-0 overflow-auto">
-        <div className="p-6">
+        <div className="p-6 max-w-7xl mx-auto w-full">
           <Outlet />
         </div>
       </main>

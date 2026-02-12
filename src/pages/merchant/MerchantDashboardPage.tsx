@@ -66,29 +66,32 @@ export default function MerchantDashboardPage() {
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <div className="gradient-hero pb-8 pt-12 px-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">
-              Painel do Lojista
-            </h1>
-            <p className="text-white/90 text-sm mt-1">
-              Gerencie suas lojas
-            </p>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight">
+                Painel do Lojista
+              </h1>
+              <p className="text-white/90 text-sm mt-1">
+                Gerencie suas lojas
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleLogout}
+              className="text-white hover:bg-white/20"
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleLogout}
-            className="text-white hover:bg-white/20"
-          >
-            <LogOut className="h-5 w-5" />
-          </Button>
         </div>
       </div>
 
       {/* Content */}
       <div className="px-6 -mt-6 pb-8">
-        <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
           {showStoreForm ? (
             <MerchantStoreForm
               onCancel={() => setShowStoreForm(false)}
@@ -137,7 +140,7 @@ export default function MerchantDashboardPage() {
                 </Button>
               </div>
 
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {stores.map((store) => (
                   <div
                     key={store.id}
@@ -197,6 +200,7 @@ export default function MerchantDashboardPage() {
               </div>
             </div>
           )}
+          </div>
         </div>
       </div>
     </div>
