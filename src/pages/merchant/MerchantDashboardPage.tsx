@@ -64,9 +64,9 @@ export default function MerchantDashboardPage() {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
-      <div className="gradient-hero pb-8 pt-12 px-6">
-        <div className="max-w-7xl mx-auto">
+      {/* Header - roxo edge-to-edge */}
+      <div className="gradient-hero pb-8 pt-12 w-full">
+        <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-2xl font-bold text-white tracking-tight">
@@ -89,8 +89,8 @@ export default function MerchantDashboardPage() {
       </div>
 
       {/* Content */}
-      <div className="px-6 -mt-6 pb-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="px-6 -mt-6 pb-8 max-w-7xl mx-auto w-full">
+        <div>
           <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
           {showStoreForm ? (
             <MerchantStoreForm
@@ -140,7 +140,7 @@ export default function MerchantDashboardPage() {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {stores.map((store) => (
                   <div
                     key={store.id}

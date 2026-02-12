@@ -130,8 +130,8 @@ export default function StoreDetailsPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="gradient-hero pb-8 pt-12 px-6">
-        <div className="max-w-7xl mx-auto">
+      <div className="gradient-hero pb-8 pt-12 w-full">
+        <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center gap-4 mb-4">
             <Button
               variant="ghost"
@@ -154,8 +154,8 @@ export default function StoreDetailsPage() {
       </div>
 
       {/* Content */}
-      <div className="px-6 -mt-6 pb-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="px-6 -mt-6 pb-8 max-w-7xl mx-auto w-full">
+        <div>
           {/* Informações da Loja */}
           <div className="bg-card rounded-2xl shadow-lg border border-border p-6 mb-6">
           <div className="space-y-3">

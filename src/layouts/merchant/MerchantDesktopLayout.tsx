@@ -72,11 +72,9 @@ export default function MerchantDesktopLayout() {
         </div>
       </header>
 
-      {/* Área principal */}
+      {/* Área principal - sem container para permitir hero edge-to-edge */}
       <main className="flex-1 min-h-0 overflow-auto">
-        <div className="p-6 max-w-7xl mx-auto w-full">
-          <Outlet />
-        </div>
+        <Outlet />
       </main>
     </div>
   );
