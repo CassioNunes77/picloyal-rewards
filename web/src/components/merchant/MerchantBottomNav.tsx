@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { LayoutDashboard, Store, User, Settings } from "lucide-react";
 
@@ -17,10 +18,12 @@ export default function MerchantBottomNav({ activeTab }: MerchantBottomNavProps)
   const navigate = useNavigate();
   const location = useLocation();
   const [pressedTab, setPressedTab] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  // Debug: garantir que o componente está sendo renderizado
+  // Garantir que o componente só renderize no cliente
   useEffect(() => {
-    console.log('MerchantBottomNav rendered');
+    setMounted(true);
+    console.log('MerchantBottomNav mounted');
   }, []);
 
   // Determinar tab ativo baseado na rota atual
@@ -48,7 +51,7 @@ export default function MerchantBottomNav({ activeTab }: MerchantBottomNavProps)
     }
   };
 
-  return (
+  const navContent = (
     <nav 
       className="fixed bottom-0 left-0 right-0 z-[9999] border-t border-border bg-card backdrop-blur-lg"
       style={{
@@ -104,4 +107,8 @@ export default function MerchantBottomNav({ activeTab }: MerchantBottomNavProps)
       </div>
     </nav>
   );
+
+  if (!mounted) return null;
+
+  return createPortal(navContent, document.body);
 }
