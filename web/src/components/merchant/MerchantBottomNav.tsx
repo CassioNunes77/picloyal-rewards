@@ -44,49 +44,63 @@ export default function MerchantBottomNav({ activeTab }: MerchantBottomNavProps)
   };
 
   return (
-    <nav 
-      className="fixed bottom-0 left-0 right-0 z-[9999] border-t border-border bg-card shadow-lg"
-      style={{ 
-        paddingBottom: 'max(env(safe-area-inset-bottom, 0), 8px)',
-        backgroundColor: 'hsl(var(--card))',
-        minHeight: '64px'
-      }}
-    >
-      <div className="mx-auto w-full max-w-md flex items-center justify-around px-4 py-3">
-        {navItems.map((item) => {
-          const isActive = currentActiveTab === item.id;
-          const isPressed = pressedTab === item.id;
-          const Icon = item.icon;
-          
-          return (
-            <button
-              key={item.id}
-              onClick={() => handleTabPress(item.id, item.path)}
-              className={`
-                relative flex flex-col items-center gap-1 py-2 px-3
-                transition-all duration-200
-                ${isPressed ? 'scale-90' : ''}
-              `}
-            >
-              <div className="relative">
-                <Icon 
-                  className={`h-6 w-6 transition-all duration-200 ${
-                    isActive ? 'text-primary scale-110' : 'text-muted-foreground'
-                  } ${isPressed ? 'scale-90' : ''}`} 
-                />
-              </div>
-              <span className={`text-[10px] font-medium transition-colors duration-200 ${
-                isActive ? 'text-primary' : 'text-muted-foreground'
-              }`}>
-                {item.label}
-              </span>
-              {isActive && (
-                <span className="absolute -bottom-1 h-1 w-1 rounded-full bg-primary animate-scale-in" />
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </nav>
+    <>
+      <nav 
+        className="fixed bottom-0 left-0 right-0 z-[9999] border-t border-border shadow-lg"
+        style={{ 
+          paddingBottom: 'max(env(safe-area-inset-bottom, 0), 8px)',
+          backgroundColor: 'hsl(var(--card))',
+          minHeight: '64px',
+          width: '100vw',
+          maxWidth: '100vw',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          paddingTop: '12px',
+          margin: 0,
+          position: 'fixed',
+          display: 'block',
+          visibility: 'visible',
+          opacity: 1,
+          pointerEvents: 'auto',
+          boxSizing: 'border-box'
+        }}
+      >
+        <div className="mx-auto w-full max-w-md flex items-center justify-around px-4 py-3">
+          {navItems.map((item) => {
+            const isActive = currentActiveTab === item.id;
+            const isPressed = pressedTab === item.id;
+            const Icon = item.icon;
+            
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleTabPress(item.id, item.path)}
+                className={`
+                  relative flex flex-col items-center gap-1 py-2 px-3
+                  transition-all duration-200
+                  ${isPressed ? 'scale-90' : ''}
+                `}
+              >
+                <div className="relative">
+                  <Icon 
+                    className={`h-6 w-6 transition-all duration-200 ${
+                      isActive ? 'text-primary scale-110' : 'text-muted-foreground'
+                    } ${isPressed ? 'scale-90' : ''}`} 
+                  />
+                </div>
+                <span className={`text-[10px] font-medium transition-colors duration-200 ${
+                  isActive ? 'text-primary' : 'text-muted-foreground'
+                }`}>
+                  {item.label}
+                </span>
+                {isActive && (
+                  <span className="absolute -bottom-1 h-1 w-1 rounded-full bg-primary animate-scale-in" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+    </>
   );
 }

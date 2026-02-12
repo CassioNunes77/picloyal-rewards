@@ -9,7 +9,7 @@ export default function MerchantProfilePage() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background" style={{ paddingBottom: '88px' }}>
       {/* Header */}
       <div className="gradient-hero pb-8 pt-12 px-6">
         <div className="flex items-center gap-4 mb-4">
