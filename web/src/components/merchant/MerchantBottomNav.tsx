@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { LayoutDashboard, Store, User, Settings } from "lucide-react";
 
@@ -18,23 +17,6 @@ export default function MerchantBottomNav({ activeTab }: MerchantBottomNavProps)
   const navigate = useNavigate();
   const location = useLocation();
   const [pressedTab, setPressedTab] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
-
-  // Garantir que o componente só renderize no cliente
-  useEffect(() => {
-    setMounted(true);
-    console.log('MerchantBottomNav mounted', { mounted: true, body: document.body });
-    
-    // Verificar se o elemento foi criado
-    setTimeout(() => {
-      const navElement = document.querySelector('nav[class*="fixed bottom-0"]');
-      console.log('Nav element found:', navElement);
-      if (navElement) {
-        console.log('Nav element styles:', window.getComputedStyle(navElement));
-        console.log('Nav element position:', navElement.getBoundingClientRect());
-      }
-    }, 100);
-  }, []);
 
   // Determinar tab ativo baseado na rota atual
   const getActiveTab = () => {
@@ -61,27 +43,8 @@ export default function MerchantBottomNav({ activeTab }: MerchantBottomNavProps)
     }
   };
 
-  const navContent = (
-    <nav 
-      className="fixed bottom-0 left-0 right-0 z-[9999] border-t border-border bg-card backdrop-blur-lg"
-      style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 99999,
-        width: '100vw',
-        maxWidth: '100vw',
-        backgroundColor: '#ffffff',
-        display: 'block',
-        visibility: 'visible',
-        opacity: 1,
-        boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.1)',
-        paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 8px)',
-        minHeight: '64px',
-      }}
-      data-testid="merchant-bottom-nav"
-    >
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-lg safe-area-inset">
       <div className="mx-auto flex max-w-md items-center justify-around px-4 pb-2 pt-2">
         {navItems.map((item) => {
           const isActive = currentActiveTab === item.id;
@@ -119,12 +82,4 @@ export default function MerchantBottomNav({ activeTab }: MerchantBottomNavProps)
       </div>
     </nav>
   );
-
-  if (!mounted) {
-    console.log('MerchantBottomNav not mounted yet');
-    return null;
-  }
-
-  console.log('MerchantBottomNav rendering portal', { body: document.body });
-  return createPortal(navContent, document.body);
 }
