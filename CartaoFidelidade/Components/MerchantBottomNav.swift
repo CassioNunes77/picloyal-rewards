@@ -36,16 +36,20 @@ struct MerchantBottomNav: View {
                                     .scaleEffect(activeTab == item.id ? 1.1 : 1.0)
                                     .scaleEffect(pressedTab == item.id ? 0.9 : 1.0)
                             }
+                            .animation(.bounceSmall, value: activeTab)
+                            .animation(.bounceSmall, value: pressedTab)
                             
                             Text(item.label)
                                 .font(.system(size: 10, weight: .medium))
                                 .foregroundColor(activeTab == item.id ? .primary : .mutedForeground)
+                                .animation(.bounceSmall, value: activeTab)
                             
                             if activeTab == item.id {
                                 Circle()
                                     .fill(Color.primary)
                                     .frame(width: 4, height: 4)
                                     .scaleEffect(pressedTab == item.id ? 0.9 : 1.0)
+                                    .animation(.bounceSmall, value: pressedTab)
                             }
                         }
                         .frame(maxWidth: .infinity)
