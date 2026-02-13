@@ -15,6 +15,7 @@ struct MerchantBottomNav: View {
     let navItems = [
         MerchantNavItem(icon: "square.grid.2x2.fill", label: "Dashboard", id: "dashboard"),
         MerchantNavItem(icon: "storefront.fill", label: "Lojas", id: "stores"),
+        MerchantNavItem(icon: "tag.fill", label: "Ofertas", id: "offers"),
         MerchantNavItem(icon: "person.fill", label: "Perfil", id: "profile"),
         MerchantNavItem(icon: "gearshape.fill", label: "Configurações", id: "settings")
     ]

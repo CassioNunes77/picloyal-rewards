@@ -9,7 +9,9 @@ export default function MerchantMobileLayout() {
   const getActiveTab = () => {
     if (pathname.includes("/merchant/profile")) return "profile";
     if (pathname.includes("/merchant/settings")) return "settings";
-    return "dashboard"; // Dashboard é o padrão
+    if (pathname.includes("/merchant/offers")) return "offers";
+    if (pathname.includes("/merchant/stores") || pathname.includes("/merchant/store/")) return "stores";
+    return "dashboard";
   };
 
   const activeTab = getActiveTab();

@@ -36,6 +36,8 @@ struct MerchantDashboardView: View {
                     dashboardOverviewContent
                 case "stores":
                     storesContent
+                case "offers":
+                    offersContent
                 case "profile":
                     MerchantProfileView(onBack: {
                         withAnimation {
@@ -74,20 +76,21 @@ struct MerchantDashboardView: View {
         }
     }
     
+    /// Área roxa do título — mesmo padrão visual da área do usuário (hero, padding 48, appTitle)
     private var merchantHeader: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     if isLoggedIn {
                         Text("Bem-vindo, \(userDisplayName.isEmpty ? (userEmail.isEmpty ? "Lojista" : String(userEmail.split(separator: "@").first ?? "Lojista")) : userDisplayName)")
-                            .font(.system(size: 14, weight: .regular))
+                            .font(.appCaption)
                             .foregroundColor(.white.opacity(0.9))
                     }
                     Text("Painel do Lojista")
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .font(.appTitle)
                         .foregroundColor(.white)
                     Text("Gerencie suas lojas")
-                        .font(.system(size: 14, weight: .regular))
+                        .font(.appCaption)
                         .foregroundColor(.white.opacity(0.9))
                 }
                 Spacer()
@@ -99,9 +102,9 @@ struct MerchantDashboardView: View {
                     }
                 }
             }
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            .padding(.bottom, 32)
+            .padding(.horizontal, AppSpacing.lg)
+            .padding(.top, 48)
+            .padding(.bottom, AppSpacing.md)
         }
         .frame(maxWidth: .infinity)
         .background(AppGradients.hero)
@@ -204,6 +207,88 @@ struct MerchantDashboardView: View {
             RoundedRectangle(cornerRadius: AppRadius.lg)
                 .stroke(Color.border, lineWidth: 1)
         )
+    }
+    
+    /// Tela Ofertas: acesso às ofertas por loja (mesmo padrão visual)
+    private var offersContent: some View {
+        ZStack(alignment: .top) {
+            VStack(spacing: 0) {
+                merchantHeader
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            
+            ScrollView {
+                VStack(spacing: AppSpacing.lg) {
+                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                        Text("Suas Ofertas")
+                            .font(.system(size: 18, weight: .semibold, design: .rounded))
+                            .foregroundColor(.cardForeground)
+                        Text("Toque em uma loja para criar e gerenciar ofertas.")
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundColor(.mutedForeground)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(AppSpacing.lg)
+                    .background(Color.card)
+                    .cornerRadius(AppRadius.xl)
+                    .appShadow(AppShadow.lg)
+                    .padding(.horizontal, 24)
+                    .padding(.top, 42)
+                    
+                    if loadingStores {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .primary))
+                            .padding(.top, 24)
+                    } else if stores.isEmpty {
+                        Text("Nenhuma loja cadastrada")
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundColor(.mutedForeground)
+                            .padding(.top, 24)
+                        Button(action: { withAnimation { activeTab = "stores" } }) {
+                            Text("Cadastrar loja")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.primary)
+                        }
+                        .padding(.top, AppSpacing.sm)
+                    } else {
+                        ForEach(stores) { store in
+                            Button(action: {
+                                selectedStore = store
+                                withAnimation { activeTab = "stores" }
+                            }) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(store.name)
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundColor(.cardForeground)
+                                        Text("Ver e gerenciar ofertas")
+                                            .font(.system(size: 12, weight: .regular))
+                                            .foregroundColor(.mutedForeground)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.mutedForeground)
+                                }
+                                .padding(AppSpacing.md)
+                                .background(Color.card)
+                                .cornerRadius(AppRadius.lg)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: AppRadius.lg)
+                                        .stroke(Color.border, lineWidth: 1)
+                                )
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                        .padding(.horizontal, 24)
+                    }
+                }
+                .padding(.bottom, 80)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.clear)
+        }
     }
     
     /// Tela Lojas: lista de lojas, cadastro e edição (card à frente da área roxa)
