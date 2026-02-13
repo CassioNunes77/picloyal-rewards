@@ -77,9 +77,7 @@ class OffersService {
         print("🔍 [OffersService] Buscando ofertas da loja: \(storeId)")
         
         let offersRef = db.collection(collectionName)
-        let query = offersRef
-            .whereField("storeId", isEqualTo: storeId)
-            .order(by: "createdAt", descending: true)
+        let query = offersRef.whereField("storeId", isEqualTo: storeId)
         
         do {
             let snapshot = try await query.getDocuments()
@@ -96,6 +94,7 @@ class OffersService {
                 }
             }
             
+            offers.sort { $0.createdAt > $1.createdAt }
             print("✅ [OffersService] \(offers.count) ofertas processadas com sucesso")
             return offers
         } catch {
@@ -189,37 +188,27 @@ class OffersService {
         }
     }
     
-    /// Parse de documento do Firestore para FirebaseOffer
+    /// Parse de documento do Firestore para FirebaseOffer (conversão defensiva)
     private func parseOffer(documentId: String, data: [String: Any]) throws -> FirebaseOffer {
-        guard let storeId = data["storeId"] as? String,
-              let merchantId = data["merchantId"] as? String,
-              let title = data["title"] as? String,
-              let description = data["description"] as? String,
-              let category = data["category"] as? String,
-              let active = data["active"] as? Bool else {
-            throw NSError(domain: "OffersService", code: 1, userInfo: [NSLocalizedDescriptionKey: "Campos obrigatórios faltando"])
-        }
-        
+        let storeId = (data["storeId"] as? String) ?? ""
+        let merchantId = (data["merchantId"] as? String) ?? ""
+        let title = (data["title"] as? String) ?? ""
+        let description = (data["description"] as? String) ?? ""
+        let category = (data["category"] as? String) ?? "geral"
+        let active = (data["active"] as? Bool) ?? true
+
         let discount = data["discount"] as? String
-        let pointsRequired = data["pointsRequired"] as? Int
-        
-        // Converter timestamps
-        var validUntil = Date()
-        var createdAt = Date()
-        var updatedAt = Date()
-        
-        if let validUntilTimestamp = data["validUntil"] as? Timestamp {
-            validUntil = validUntilTimestamp.dateValue()
-        }
-        
-        if let createdAtTimestamp = data["createdAt"] as? Timestamp {
-            createdAt = createdAtTimestamp.dateValue()
-        }
-        
-        if let updatedAtTimestamp = data["updatedAt"] as? Timestamp {
-            updatedAt = updatedAtTimestamp.dateValue()
-        }
-        
+        let pointsRequired: Int? = {
+            if let n = data["pointsRequired"] as? Int { return n }
+            if let n = data["pointsRequired"] as? Int64 { return Int(n) }
+            if let n = data["pointsRequired"] as? NSNumber { return n.intValue }
+            return nil
+        }()
+
+        let validUntil = dateFromFirestore(data["validUntil"])
+        let createdAt = dateFromFirestore(data["createdAt"])
+        let updatedAt = dateFromFirestore(data["updatedAt"])
+
         return FirebaseOffer(
             id: documentId,
             storeId: storeId,
@@ -234,6 +223,20 @@ class OffersService {
             createdAt: createdAt,
             updatedAt: updatedAt
         )
+    }
+
+    private func dateFromFirestore(_ value: Any?) -> Date {
+        guard let value = value else { return Date() }
+        if let ts = value as? Timestamp { return ts.dateValue() }
+        if let dict = value as? [String: Any],
+           let seconds = dict["seconds"] as? Int64 {
+            return Date(timeIntervalSince1970: TimeInterval(seconds))
+        }
+        if let dict = value as? [String: Any],
+           let seconds = dict["_seconds"] as? Int {
+            return Date(timeIntervalSince1970: TimeInterval(seconds))
+        }
+        return Date()
     }
 }
 

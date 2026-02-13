@@ -49,7 +49,7 @@ struct MerchantDashboardView: View {
                         }
                     })
                 default:
-                    dashboardContent
+                    dashboardOverviewContent
                 }
             }
             
@@ -221,8 +221,50 @@ struct MerchantDashboardView: View {
                                 }
                             )
                             .padding(.top, 24)
-                        } else if !showStoreForm {
-                            // Estado inicial
+                        } else if let storeToView = selectedStore {
+                            // Tela de detalhes da loja (ofertas + descrição) — prioridade ao toque na loja
+                            MerchantStoreDetailsView(store: storeToView) {
+                                withAnimation {
+                                    selectedStore = nil
+                                }
+                            }
+                            .transition(.move(edge: .trailing))
+                        } else if let storeToEdit = editingStore {
+                            // Formulário de edição de loja
+                            MerchantStoreEditView(
+                                store: storeToEdit,
+                                onCancel: {
+                                    withAnimation {
+                                        editingStore = nil
+                                    }
+                                },
+                                onSuccess: {
+                                    withAnimation {
+                                        editingStore = nil
+                                    }
+                                    loadStores()
+                                }
+                            )
+                            .padding(.top, 24)
+                            .transition(.move(edge: .trailing))
+                        } else if showStoreForm {
+                            // Formulário de cadastro de nova loja
+                            MerchantStoreFormView(
+                                onCancel: {
+                                    withAnimation {
+                                        showStoreForm = false
+                                    }
+                                },
+                                onSuccess: {
+                                    withAnimation {
+                                        showStoreForm = false
+                                    }
+                                    loadStores()
+                                }
+                            )
+                            .padding(.top, 24)
+                        } else {
+                            // Lista / estados iniciais
                             if loadingStores {
                                 // Loading
                                 VStack(spacing: AppSpacing.lg) {
@@ -390,48 +432,6 @@ struct MerchantDashboardView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: AppRadius.xl))
                                 .appShadow(AppShadow.lg)
                             }
-                        } else if let storeToView = selectedStore {
-                            // View de detalhes da loja
-                            MerchantStoreDetailsView(store: storeToView) {
-                                withAnimation {
-                                    selectedStore = nil
-                                }
-                            }
-                            .transition(.move(edge: .trailing))
-                        } else if let storeToEdit = editingStore {
-                            // Formulário de edição de loja
-                            MerchantStoreEditView(
-                                store: storeToEdit,
-                                onCancel: {
-                                    withAnimation {
-                                        editingStore = nil
-                                    }
-                                },
-                                onSuccess: {
-                                    withAnimation {
-                                        editingStore = nil
-                                    }
-                                    loadStores() // Recarregar lista de lojas
-                                }
-                            )
-                            .padding(.top, 24)
-                            .transition(.move(edge: .trailing))
-                        } else {
-                            // Formulário de cadastro de loja
-                            MerchantStoreFormView(
-                                onCancel: {
-                                    withAnimation {
-                                        showStoreForm = false
-                                    }
-                                },
-                                onSuccess: {
-                                    withAnimation {
-                                        showStoreForm = false
-                                    }
-                                    loadStores() // Recarregar lista de lojas
-                                }
-                            )
-                            .padding(.top, 24)
                         }
                     }
                     .padding(.horizontal, 24)
@@ -440,7 +440,6 @@ struct MerchantDashboardView: View {
                 }
             }
         }
-    }
     
     private func loadStores() {
         guard let currentUser = Auth.auth().currentUser else {

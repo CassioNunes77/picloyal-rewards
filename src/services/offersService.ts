@@ -1,4 +1,4 @@
-import { doc, collection, getDocs, addDoc, updateDoc, deleteDoc, query, where, Timestamp, orderBy } from "firebase/firestore";
+import { doc, collection, getDocs, addDoc, updateDoc, deleteDoc, query, where, Timestamp } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 
 const OFFERS_COLLECTION = "offers";
@@ -32,23 +32,34 @@ export interface OfferDataFirestore {
   updatedAt: Timestamp;
 }
 
+/** Converte valor do Firestore (Timestamp ou objeto) para Date */
+function toDate(value: any): Date {
+  if (!value) return new Date();
+  if (typeof value?.toDate === "function") return value.toDate();
+  if (typeof value?.seconds === "number") return new Date(value.seconds * 1000);
+  if (typeof value?.toMillis === "function") return new Date(value.toMillis());
+  if (value instanceof Date) return value;
+  const t = new Date(value);
+  return isNaN(t.getTime()) ? new Date() : t;
+}
+
 /**
- * Converte dados do Firestore para OfferData
+ * Converte dados do Firestore para OfferData (conversão defensiva)
  */
 function firestoreToOfferData(docId: string, data: any): OfferData {
   return {
     id: docId,
-    storeId: data.storeId || "",
-    merchantId: data.merchantId || "",
-    title: data.title || "",
-    description: data.description || "",
-    discount: data.discount,
-    category: data.category || "",
-    validUntil: data.validUntil?.toDate() || new Date(),
-    pointsRequired: data.pointsRequired,
-    active: data.active ?? true,
-    createdAt: data.createdAt?.toDate() || new Date(),
-    updatedAt: data.updatedAt?.toDate() || new Date(),
+    storeId: String(data?.storeId ?? ""),
+    merchantId: String(data?.merchantId ?? ""),
+    title: String(data?.title ?? ""),
+    description: String(data?.description ?? ""),
+    discount: data?.discount != null ? String(data.discount) : undefined,
+    category: String(data?.category ?? "geral"),
+    validUntil: toDate(data?.validUntil),
+    pointsRequired: typeof data?.pointsRequired === "number" ? data.pointsRequired : undefined,
+    active: data?.active !== false,
+    createdAt: toDate(data?.createdAt),
+    updatedAt: toDate(data?.updatedAt),
   };
 }
 
@@ -105,16 +116,12 @@ export async function getStoreOffers(storeId: string): Promise<OfferData[]> {
 
   try {
     const offersRef = collection(firestore, OFFERS_COLLECTION);
-    const q = query(
-      offersRef,
-      where("storeId", "==", storeId),
-      orderBy("createdAt", "desc")
-    );
+    const q = query(offersRef, where("storeId", "==", String(storeId)));
     const querySnapshot = await getDocs(q);
-    
-    return querySnapshot.docs.map((doc) => 
-      firestoreToOfferData(doc.id, doc.data())
-    );
+
+    const offers = querySnapshot.docs.map((d) => firestoreToOfferData(d.id, d.data()));
+    offers.sort((a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0));
+    return offers;
   } catch (error: any) {
     console.error("❌ [offersService] Erro ao buscar ofertas da loja:", error);
     return [];
