@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { Store, MapPin, Phone, Clock, Building2, X } from "lucide-react";
+import { Store, MapPin, Phone, Building2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { createStore } from "@/services/merchantsService";
+import { formatBusinessHours, DEFAULT_SCHEDULE } from "@/lib/businessHours";
 import CityAutocomplete from "./CityAutocomplete";
+import BusinessHoursPicker from "./BusinessHoursPicker";
 
 interface MerchantStoreFormProps {
   onCancel: () => void;
@@ -22,7 +23,7 @@ export default function MerchantStoreForm({ onCancel, onSuccess }: MerchantStore
     address: "",
     city: "",
     phone: "",
-    hours: "",
+    hours: formatBusinessHours(DEFAULT_SCHEDULE),
   });
   const [loading, setLoading] = useState(false);
 
@@ -202,21 +203,12 @@ export default function MerchantStoreForm({ onCancel, onSuccess }: MerchantStore
         </div>
 
         {/* Horário de Funcionamento */}
-        <div className="space-y-2">
-          <Label htmlFor="hours" className="text-card-foreground flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Horário de Funcionamento *
-          </Label>
-          <Textarea
-            id="hours"
-            placeholder="Ex: Segunda a Sexta: 9h às 18h&#10;Sábado: 9h às 13h&#10;Domingo: Fechado"
-            value={formData.hours}
-            onChange={(e) => setFormData({ ...formData, hours: e.target.value })}
-            className="rounded-xl border-border bg-background min-h-[100px]"
-            required
-            disabled={loading}
-          />
-        </div>
+        <BusinessHoursPicker
+          value={formData.hours}
+          onChange={(hours) => setFormData({ ...formData, hours })}
+          disabled={loading}
+          required
+        />
 
         {/* Logo - Placeholder para futuro */}
         <div className="space-y-2">

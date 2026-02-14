@@ -113,19 +113,7 @@ struct MerchantStoreEditView: View {
                     )
                     
                     // Horário de Funcionamento
-                    FormField(
-                        label: "Horário de Funcionamento",
-                        icon: "clock.fill",
-                        isRequired: true,
-                        content: {
-                            TextEditor(text: $hours)
-                                .foregroundColor(.cardForeground)
-                                .frame(minHeight: 100)
-                                .scrollContentBackground(.hidden)
-                                .background(Color.appBackground)
-                                .disabled(loading)
-                        }
-                    )
+                    BusinessHoursPicker(hours: $hours, disabled: loading)
                     
                     // Status Ativo/Inativo
                     VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -238,11 +226,16 @@ struct MerchantStoreEditView: View {
             active = store.active
             loadValidCities()
         }
-        .alert("Erro", isPresented: $showError) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(errorMessage ?? "Erro desconhecido ao atualizar loja")
-        }
+        .appConfirmation(
+            isPresented: $showError,
+            title: "Erro",
+            message: errorMessage ?? "Erro desconhecido ao atualizar loja",
+            primaryTitle: "OK",
+            primaryStyle: .default,
+            primaryAction: { showError = false },
+            secondaryTitle: nil,
+            secondaryAction: nil
+        )
     }
     
     private var isFormValid: Bool {

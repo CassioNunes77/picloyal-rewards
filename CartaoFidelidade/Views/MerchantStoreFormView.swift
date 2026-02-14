@@ -111,19 +111,7 @@ struct MerchantStoreFormView: View {
                     )
                     
                     // Horário de Funcionamento
-                    FormField(
-                        label: "Horário de Funcionamento",
-                        icon: "clock.fill",
-                        isRequired: true,
-                        content: {
-                            TextEditor(text: $hours)
-                                .foregroundColor(.cardForeground)
-                                .frame(minHeight: 100)
-                                .scrollContentBackground(.hidden)
-                                .background(Color.appBackground)
-                                .disabled(loading)
-                        }
-                    )
+                    BusinessHoursPicker(hours: $hours, disabled: loading)
                     
                     // Logo - Placeholder
                     VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -196,11 +184,16 @@ struct MerchantStoreFormView: View {
         .onAppear {
             loadValidCities()
         }
-        .alert("Erro", isPresented: $showError) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(errorMessage ?? "Erro desconhecido ao cadastrar loja")
-        }
+        .appConfirmation(
+            isPresented: $showError,
+            title: "Erro",
+            message: errorMessage ?? "Erro desconhecido ao cadastrar loja",
+            primaryTitle: "OK",
+            primaryStyle: .default,
+            primaryAction: { showError = false },
+            secondaryTitle: nil,
+            secondaryAction: nil
+        )
     }
     
     private var isFormValid: Bool {

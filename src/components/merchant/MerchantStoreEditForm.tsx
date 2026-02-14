@@ -1,14 +1,15 @@
-import { useState, useEffect } from "react";
-import { Store, MapPin, Phone, Clock, Building2, X, Power } from "lucide-react";
+import { useState } from "react";
+import { Store, MapPin, Phone, Building2, X, Power } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { updateStore, type StoreData } from "@/services/merchantsService";
+import { formatBusinessHours, DEFAULT_SCHEDULE } from "@/lib/businessHours";
 import CityAutocomplete from "./CityAutocomplete";
+import BusinessHoursPicker from "./BusinessHoursPicker";
 
 interface MerchantStoreEditFormProps {
   store: StoreData;
@@ -24,7 +25,9 @@ export default function MerchantStoreEditForm({ store, onCancel, onSuccess }: Me
     address: store.address || "",
     city: store.city || "",
     phone: store.phone || "",
-    hours: store.hours || "",
+    hours: store.hours?.trim()
+      ? store.hours
+      : formatBusinessHours(DEFAULT_SCHEDULE),
     active: store.active ?? true,
   });
   const [loading, setLoading] = useState(false);
@@ -205,21 +208,12 @@ export default function MerchantStoreEditForm({ store, onCancel, onSuccess }: Me
         </div>
 
         {/* Horário de Funcionamento */}
-        <div className="space-y-2">
-          <Label htmlFor="hours" className="text-card-foreground flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Horário de Funcionamento *
-          </Label>
-          <Textarea
-            id="hours"
-            placeholder="Ex: Segunda a Sexta: 9h às 18h&#10;Sábado: 9h às 13h&#10;Domingo: Fechado"
-            value={formData.hours}
-            onChange={(e) => setFormData({ ...formData, hours: e.target.value })}
-            className="rounded-xl border-border bg-background min-h-[100px]"
-            required
-            disabled={loading}
-          />
-        </div>
+        <BusinessHoursPicker
+          value={formData.hours}
+          onChange={(hours) => setFormData({ ...formData, hours })}
+          disabled={loading}
+          required
+        />
 
         {/* Status Ativo/Inativo */}
         <div className="flex items-center justify-between p-4 bg-background rounded-xl border border-border">
