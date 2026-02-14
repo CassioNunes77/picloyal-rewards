@@ -11,6 +11,7 @@ import FirebaseAuth
 struct MerchantStoreDetailsView: View {
     let store: FirebaseStore
     var onBack: (() -> Void)? = nil
+    var onEdit: (() -> Void)? = nil
     
     @State private var offers: [FirebaseOffer] = []
     @State private var loadingOffers = false
@@ -18,120 +19,134 @@ struct MerchantStoreDetailsView: View {
     @State private var errorMessage: String? = nil
     @State private var showError = false
     
+    /// Header roxo — 120pt altura, texto 15pt do topo (padrão painel lojista)
+    private var storeDetailsHeader: some View {
+        ZStack(alignment: .topLeading) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(store.name)
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                Text("Gerencie suas ofertas")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(.white.opacity(0.9))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, AppSpacing.lg)
+            .padding(.top, 15)
+            
+            HStack {
+                Button(action: {
+                    if let onBack = onBack { onBack() }
+                }) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+                Spacer()
+            }
+            .padding(.horizontal, AppSpacing.lg)
+            .padding(.top, 15)
+        }
+        .padding(.bottom, AppSpacing.md)
+        .frame(maxWidth: .infinity)
+        .frame(minHeight: 120)
+        .background(AppGradients.hero)
+    }
+    
     var body: some View {
-        ZStack {
+        ZStack(alignment: .top) {
             Color.appBackground
                 .ignoresSafeArea()
             
+            // Camada roxa do topo (header)
+            VStack(spacing: 0) {
+                storeDetailsHeader
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            
+            // Conteúdo: cards à frente do roxo
             ScrollView {
                 VStack(spacing: AppSpacing.lg) {
-                    // Header
-                    VStack(spacing: AppSpacing.md) {
-                        HStack {
-                            Button(action: {
-                                if let onBack = onBack {
-                                    withAnimation {
-                                        onBack()
-                                    }
-                                }
-                            }) {
-                                Image(systemName: "arrow.left.circle.fill")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(.white)
-                            }
-                            
-                            Spacer()
-                        }
-                        
-                        VStack(spacing: AppSpacing.xs) {
-                            Text(store.name)
-                                .font(.system(size: 24, weight: .bold, design: .rounded))
-                                .foregroundColor(.white)
-                            
-                            Text("Gerencie suas ofertas")
-                                .font(.system(size: 14, weight: .regular))
-                                .foregroundColor(.white.opacity(0.9))
-                        }
-                    }
-                    .padding(.horizontal, AppSpacing.lg)
-                    .padding(.top, AppSpacing.lg)
-                    .padding(.bottom, AppSpacing.xl)
-                    .background(AppGradients.primary)
-                    
-                    // Informações da Loja
+                    // Card Informações da Loja — conforme imagem
                     VStack(alignment: .leading, spacing: AppSpacing.md) {
-                        if !store.address.isEmpty {
-                            HStack(spacing: AppSpacing.sm) {
+                        if !store.address.isEmpty || !store.city.isEmpty {
+                            HStack(alignment: .top, spacing: AppSpacing.sm) {
                                 Image(systemName: "mappin.circle.fill")
                                     .font(.system(size: 16))
-                                    .foregroundColor(.primary)
-                                Text(store.address)
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundColor(.cardForeground)
+                                    .foregroundColor(.mutedForeground)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    if !store.address.isEmpty {
+                                        Text(store.address)
+                                            .font(.system(size: 14, weight: .regular))
+                                            .foregroundColor(.cardForeground)
+                                    }
+                                    if !store.city.isEmpty {
+                                        Text(store.city)
+                                            .font(.system(size: 14, weight: .regular))
+                                            .foregroundColor(.cardForeground)
+                                    }
+                                }
                             }
                         }
-                        
-                        if !store.city.isEmpty {
-                            HStack(spacing: AppSpacing.sm) {
-                                Text(store.city)
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundColor(.cardForeground)
-                            }
-                            .padding(.leading, 24) // Alinhar com endereço
-                        }
-                        
                         if !store.phone.isEmpty {
                             HStack(spacing: AppSpacing.sm) {
                                 Image(systemName: "phone.fill")
                                     .font(.system(size: 16))
-                                    .foregroundColor(.primary)
+                                    .foregroundColor(.mutedForeground)
                                 Text(store.phone)
                                     .font(.system(size: 14, weight: .regular))
                                     .foregroundColor(.cardForeground)
                             }
                         }
-                        
                         if !store.hours.isEmpty {
-                            HStack(alignment: .top, spacing: AppSpacing.sm) {
+                            HStack(spacing: AppSpacing.sm) {
                                 Image(systemName: "clock.fill")
                                     .font(.system(size: 16))
-                                    .foregroundColor(.primary)
-                                    .padding(.top, 2)
+                                    .foregroundColor(.mutedForeground)
                                 Text(store.hours)
                                     .font(.system(size: 14, weight: .regular))
                                     .foregroundColor(.cardForeground)
-                                    .lineLimit(nil)
                             }
                         }
+                        
+                        Button(action: { onEdit?() }) {
+                            HStack(spacing: AppSpacing.sm) {
+                                Image(systemName: "pencil")
+                                    .font(.system(size: 16))
+                                Text("Editar loja")
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
+                            .foregroundColor(.primary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, AppSpacing.sm)
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(AppSpacing.lg)
                     .background(Color.card)
                     .cornerRadius(AppRadius.xl)
                     .appShadow(AppShadow.lg)
                     .padding(.horizontal, AppSpacing.lg)
-                    .offset(y: -AppRadius.xl)
+                    .padding(.top, 75)
                     
-                    // Seção de Ofertas
+                    // Card Ofertas — conforme imagem
                     VStack(alignment: .leading, spacing: AppSpacing.md) {
-                        HStack {
+                        HStack(alignment: .top) {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Ofertas")
-                                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                                    .font(.system(size: 18, weight: .semibold, design: .rounded))
                                     .foregroundColor(.cardForeground)
-                                
                                 Text("\(offers.count) \(offers.count == 1 ? "oferta cadastrada" : "ofertas cadastradas")")
                                     .font(.system(size: 14, weight: .regular))
                                     .foregroundColor(.mutedForeground)
                             }
-                            
                             Spacer()
-                            
-                            Button(action: {
-                                showOfferForm = true
-                            }) {
+                            Button(action: { showOfferForm = true }) {
                                 HStack(spacing: AppSpacing.xs) {
-                                    Image(systemName: "plus.circle.fill")
-                                        .font(.system(size: 16))
+                                    Image(systemName: "plus")
+                                        .font(.system(size: 14, weight: .semibold))
                                     Text("Nova Oferta")
                                         .font(.system(size: 14, weight: .semibold))
                                 }
@@ -141,7 +156,6 @@ struct MerchantStoreDetailsView: View {
                             }
                             .background(AppGradients.primary)
                             .cornerRadius(AppRadius.md)
-                            .appShadow(AppShadow.sm)
                         }
                         .padding(.horizontal, AppSpacing.lg)
                         .padding(.top, AppSpacing.lg)
@@ -150,9 +164,7 @@ struct MerchantStoreDetailsView: View {
                             MerchantOfferFormView(
                                 storeId: store.id,
                                 merchantId: store.merchantId,
-                                onCancel: {
-                                    showOfferForm = false
-                                },
+                                onCancel: { showOfferForm = false },
                                 onSuccess: {
                                     showOfferForm = false
                                     loadOffers()
@@ -170,26 +182,22 @@ struct MerchantStoreDetailsView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, AppSpacing.xl * 2)
                         } else if offers.isEmpty {
-                            VStack(spacing: AppSpacing.md) {
+                            VStack(spacing: AppSpacing.lg) {
                                 Image(systemName: "tag.fill")
-                                    .font(.system(size: 48))
-                                    .foregroundColor(.mutedForeground.opacity(0.5))
-                                
+                                    .font(.system(size: 56))
+                                    .foregroundColor(.mutedForeground)
                                 Text("Nenhuma oferta cadastrada")
                                     .font(.system(size: 18, weight: .semibold))
                                     .foregroundColor(.cardForeground)
-                                
                                 Text("Crie sua primeira oferta para atrair mais clientes")
-                                    .font(.system(size: 14))
+                                    .font(.system(size: 14, weight: .regular))
                                     .foregroundColor(.mutedForeground)
                                     .multilineTextAlignment(.center)
-                                
-                                Button(action: {
-                                    showOfferForm = true
-                                }) {
+                                    .padding(.horizontal)
+                                Button(action: { showOfferForm = true }) {
                                     HStack(spacing: AppSpacing.xs) {
-                                        Image(systemName: "plus.circle.fill")
-                                            .font(.system(size: 16))
+                                        Image(systemName: "plus")
+                                            .font(.system(size: 14, weight: .semibold))
                                         Text("Criar Oferta")
                                             .font(.system(size: 14, weight: .semibold))
                                     }
@@ -199,7 +207,6 @@ struct MerchantStoreDetailsView: View {
                                 }
                                 .background(AppGradients.primary)
                                 .cornerRadius(AppRadius.md)
-                                .appShadow(AppShadow.sm)
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, AppSpacing.xl * 2)
@@ -207,26 +214,36 @@ struct MerchantStoreDetailsView: View {
                         } else {
                             VStack(spacing: AppSpacing.sm) {
                                 ForEach(offers) { offer in
-                                    OfferCardView(offer: offer) {
-                                        deleteOffer(offer)
-                                    }
+                                    OfferCardView(offer: offer) { deleteOffer(offer) }
                                 }
                             }
                             .padding(.horizontal, AppSpacing.lg)
+                            .padding(.bottom, AppSpacing.lg)
                         }
                     }
-                    .padding(.top, AppSpacing.md)
+                    .background(Color.card)
+                    .cornerRadius(AppRadius.xl)
+                    .appShadow(AppShadow.lg)
+                    .padding(.horizontal, AppSpacing.lg)
                 }
+                .padding(.bottom, 80)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.clear)
         }
         .onAppear {
             loadOffers()
         }
-        .alert("Erro", isPresented: $showError) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(errorMessage ?? "Erro desconhecido")
-        }
+        .appConfirmation(
+            isPresented: $showError,
+            title: "Erro",
+            message: errorMessage ?? "Erro desconhecido",
+            primaryTitle: "OK",
+            primaryStyle: .default,
+            primaryAction: { showError = false },
+            secondaryTitle: nil,
+            secondaryAction: nil
+        )
     }
     
     private func loadOffers() {
@@ -357,14 +374,16 @@ struct OfferCardView: View {
                 .stroke(Color.border, lineWidth: 1)
         )
         .appShadow(AppShadow.sm)
-        .alert("Excluir Oferta", isPresented: $showDeleteConfirmation) {
-            Button("Cancelar", role: .cancel) { }
-            Button("Excluir", role: .destructive) {
-                onDelete()
-            }
-        } message: {
-            Text("Tem certeza que deseja excluir esta oferta?")
-        }
+        .appConfirmation(
+            isPresented: $showDeleteConfirmation,
+            title: "Excluir Oferta",
+            message: "Tem certeza que deseja excluir esta oferta?",
+            primaryTitle: "Excluir",
+            primaryStyle: .destructive,
+            primaryAction: onDelete,
+            secondaryTitle: "Cancelar",
+            secondaryAction: nil
+        )
     }
     
     private func getCategoryEmoji(_ category: String) -> String {

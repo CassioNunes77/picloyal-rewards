@@ -12,6 +12,7 @@ struct MerchantDashboardView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("isLoggedIn") private var isLoggedIn = false
     @AppStorage("isMerchant") private var isMerchant = false
+    @AppStorage("showMerchantLogin") private var showMerchantLogin = false
     @AppStorage("userDisplayName") private var userDisplayName = ""
     @AppStorage("userEmail") private var userEmail = ""
     @AppStorage("userPhotoURL") private var userPhotoURL = ""
@@ -29,13 +30,28 @@ struct MerchantDashboardView: View {
             Color.appBackground
                 .ignoresSafeArea()
             
-            // Conteúdo baseado na tab ativa
+            // Conteúdo baseado na tab ativa (sem animação ao abrir detalhes da loja)
             Group {
                 switch activeTab {
                 case "dashboard":
                     dashboardOverviewContent
                 case "stores":
-                    storesContent
+                    if let store = selectedStore {
+                        MerchantStoreDetailsView(store: store, onBack: {
+                            var t = Transaction()
+                            t.disablesAnimations = true
+                            withTransaction(t) { selectedStore = nil }
+                        }, onEdit: {
+                            var t = Transaction()
+                            t.disablesAnimations = true
+                            withTransaction(t) {
+                                editingStore = store
+                                selectedStore = nil
+                            }
+                        })
+                    } else {
+                        storesContent
+                    }
                 case "offers":
                     offersContent
                 case "profile":
@@ -61,14 +77,16 @@ struct MerchantDashboardView: View {
                 MerchantBottomNav(activeTab: $activeTab)
             }
         }
-        .alert("Sair da conta?", isPresented: $showLogoutConfirmation) {
-            Button("Cancelar", role: .cancel) {}
-            Button("Sair", role: .destructive) {
-                performLogout()
-            }
-        } message: {
-            Text("Deseja realmente sair da sua conta de lojista?")
-        }
+        .appConfirmation(
+            isPresented: $showLogoutConfirmation,
+            title: "Sair da conta?",
+            message: "Deseja realmente sair da sua conta de lojista?",
+            primaryTitle: "Sair",
+            primaryStyle: .destructive,
+            primaryAction: { performLogout() },
+            secondaryTitle: "Cancelar",
+            secondaryAction: nil
+        )
         .onAppear {
             if isLoggedIn {
                 loadStores()
@@ -76,7 +94,37 @@ struct MerchantDashboardView: View {
         }
     }
     
-    /// Área roxa do título — mesmo padrão visual da área do usuário (hero, padding 48, appTitle)
+    /// Header do Dashboard — área roxa até 120pt do topo
+    private var dashboardHeader: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Painel do Lojista")
+                        .font(.appTitle)
+                        .foregroundColor(.white)
+                    Text("Visão geral do seu negócio")
+                        .font(.appCaption)
+                        .foregroundColor(.white.opacity(0.9))
+                }
+                Spacer()
+                if isLoggedIn {
+                    Button(action: { showLogoutConfirmation = true }) {
+                        Image(systemName: "arrow.right.square.fill")
+                            .font(.system(size: 24))
+                            .foregroundColor(.white.opacity(0.8))
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, AppSpacing.lg)
+        .padding(.top, 15)
+        .padding(.bottom, AppSpacing.md)
+        .frame(minHeight: 120)
+        .background(AppGradients.hero)
+    }
+    
+    /// Área roxa — 120pt altura, texto 15pt do topo (padrão painel lojista)
     private var merchantHeader: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
@@ -103,33 +151,52 @@ struct MerchantDashboardView: View {
                 }
             }
             .padding(.horizontal, AppSpacing.lg)
-            .padding(.top, 48)
+            .padding(.top, 15)
             .padding(.bottom, AppSpacing.md)
         }
         .frame(maxWidth: .infinity)
+        .frame(minHeight: 120)
         .background(AppGradients.hero)
     }
     
-    /// Dashboard: resumo e acesso rápido (campos exemplo) — mesmo layout da tela Lojas (roxo atrás, conteúdo à frente)
+    /// Header da tela Suas Lojas — 120pt altura, texto 15pt do topo (padrão painel lojista)
+    private var storesHeader: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Suas Lojas")
+                .font(.appTitle)
+                .foregroundColor(.white)
+            Text("Gerencie e cadastre suas lojas")
+                .font(.appCaption)
+                .foregroundColor(.white.opacity(0.9))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, AppSpacing.lg)
+        .padding(.top, 15)
+        .padding(.bottom, AppSpacing.md)
+        .frame(minHeight: 120)
+        .background(AppGradients.hero)
+    }
+    
+    /// Dashboard: resumo e acesso rápido — conforme imagem de referência
     private var dashboardOverviewContent: some View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
-                merchantHeader
+                dashboardHeader
                 Spacer(minLength: 0)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
             ScrollView {
                 VStack(spacing: AppSpacing.lg) {
-                    // Card Resumo
+                    // Card Resumo — itens empilhados verticalmente, cada um em retângulo cinza claro
                     VStack(alignment: .leading, spacing: AppSpacing.md) {
                         Text("Resumo")
                             .font(.system(size: 18, weight: .semibold, design: .rounded))
                             .foregroundColor(.cardForeground)
-                        HStack(spacing: AppSpacing.md) {
-                            summaryCard(icon: "storefront.fill", value: "\(stores.count)", label: "Lojas cadastradas")
-                            summaryCard(icon: "tag.fill", value: "—", label: "Ofertas ativas")
-                            summaryCard(icon: "chart.line.uptrend.xyaxis", value: "—", label: "Visualizações (30 dias)")
+                        VStack(spacing: AppSpacing.sm) {
+                            summaryRow(icon: "storefront.fill", iconBg: Color(red: 0.85, green: 0.95, blue: 0.88), iconColor: .primary, value: "\(stores.count)", label: "Lojas cadastradas")
+                            summaryRow(icon: "tag.fill", iconBg: Color(red: 0.92, green: 0.88, blue: 0.98), iconColor: .secondary, value: "—", label: "Ofertas ativas")
+                            summaryRow(icon: "chart.line.uptrend.xyaxis", iconBg: Color(red: 0.88, green: 0.96, blue: 0.92), iconColor: .primary, value: "—", label: "Visualizações (30 dias)")
                         }
                     }
                     .padding(AppSpacing.lg)
@@ -138,26 +205,26 @@ struct MerchantDashboardView: View {
                     .cornerRadius(AppRadius.xl)
                     .appShadow(AppShadow.lg)
                     .padding(.horizontal, 24)
-                    .padding(.top, 42)
+                    .padding(.top, 75)
                     
-                    // Acesso rápido
+                    // Card Acesso rápido — conforme imagem
                     VStack(alignment: .leading, spacing: AppSpacing.md) {
                         Text("Acesso rápido")
                             .font(.system(size: 18, weight: .semibold, design: .rounded))
                             .foregroundColor(.cardForeground)
                         Button(action: { withAnimation { activeTab = "stores" } }) {
-                            HStack {
+                            HStack(spacing: AppSpacing.md) {
                                 ZStack {
                                     RoundedRectangle(cornerRadius: AppRadius.md)
-                                        .fill(Color.primary.opacity(0.1))
-                                        .frame(width: 40, height: 40)
+                                        .fill(Color(red: 0.85, green: 0.95, blue: 0.88))
+                                        .frame(width: 44, height: 44)
                                     Image(systemName: "storefront.fill")
                                         .font(.system(size: 20))
                                         .foregroundColor(.primary)
                                 }
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text("Suas Lojas")
-                                        .font(.system(size: 16, weight: .medium))
+                                        .font(.system(size: 16, weight: .semibold))
                                         .foregroundColor(.cardForeground)
                                     Text("Cadastrar e gerenciar lojas")
                                         .font(.system(size: 12, weight: .regular))
@@ -169,7 +236,7 @@ struct MerchantDashboardView: View {
                                     .foregroundColor(.mutedForeground)
                             }
                             .padding(AppSpacing.md)
-                            .background(Color.card)
+                            .background(Color.muted.opacity(0.5))
                             .cornerRadius(AppRadius.lg)
                             .overlay(
                                 RoundedRectangle(cornerRadius: AppRadius.lg)
@@ -187,19 +254,27 @@ struct MerchantDashboardView: View {
         }
     }
     
-    private func summaryCard(icon: String, value: String, label: String) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            Image(systemName: icon)
-                .font(.system(size: 22))
-                .foregroundColor(.primary)
-            Text(value)
-                .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundColor(.cardForeground)
-            Text(label)
-                .font(.system(size: 12, weight: .regular))
-                .foregroundColor(.mutedForeground)
+    /// Linha do Resumo — ícone em quadrado colorido (esq), valor + label (dir)
+    private func summaryRow(icon: String, iconBg: Color, iconColor: Color = .primary, value: String, label: String) -> some View {
+        HStack(spacing: AppSpacing.md) {
+            ZStack {
+                RoundedRectangle(cornerRadius: AppRadius.md)
+                    .fill(iconBg)
+                    .frame(width: 44, height: 44)
+                Image(systemName: icon)
+                    .font(.system(size: 20))
+                    .foregroundColor(iconColor)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(value)
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundColor(.cardForeground)
+                Text(label)
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundColor(.mutedForeground)
+            }
+            Spacer()
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(AppSpacing.md)
         .background(Color.muted.opacity(0.5))
         .cornerRadius(AppRadius.lg)
@@ -234,7 +309,7 @@ struct MerchantDashboardView: View {
                     .cornerRadius(AppRadius.xl)
                     .appShadow(AppShadow.lg)
                     .padding(.horizontal, 24)
-                    .padding(.top, 42)
+                    .padding(.top, 75)
                     
                     if loadingStores {
                         ProgressView()
@@ -254,7 +329,9 @@ struct MerchantDashboardView: View {
                     } else {
                         ForEach(stores) { store in
                             Button(action: {
-                                selectedStore = store
+                                var t = Transaction()
+                                t.disablesAnimations = true
+                                withTransaction(t) { selectedStore = store }
                                 withAnimation { activeTab = "stores" }
                             }) {
                                 HStack {
@@ -291,12 +368,12 @@ struct MerchantDashboardView: View {
         }
     }
     
-    /// Tela Lojas: lista de lojas, cadastro e edição (card à frente da área roxa)
+    /// Tela Lojas: lista de lojas, cadastro e edição (card à frente da área roxa) — conforme imagem de referência
     private var storesContent: some View {
         ZStack(alignment: .top) {
-            // Camada de trás: área roxa no topo
+            // Camada de trás: área roxa no topo (header Suas Lojas)
             VStack(spacing: 0) {
-                merchantHeader
+                storesHeader
                 Spacer(minLength: 0)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -320,14 +397,6 @@ struct MerchantDashboardView: View {
                                 }
                             )
                             .padding(.top, 24)
-                        } else if let storeToView = selectedStore {
-                            // Tela de detalhes da loja (ofertas + descrição) — prioridade ao toque na loja
-                            MerchantStoreDetailsView(store: storeToView) {
-                                withAnimation {
-                                    selectedStore = nil
-                                }
-                            }
-                            .transition(.move(edge: .trailing))
                         } else if let storeToEdit = editingStore {
                             // Formulário de edição de loja
                             MerchantStoreEditView(
@@ -461,27 +530,27 @@ struct MerchantDashboardView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 48)
                             } else {
-                                // Card que engloba "Suas Lojas" e todas as lojas (como na referência visual)
+                                // Card que engloba lojas cadastradas (conforme imagem de referência)
                                 VStack(spacing: 0) {
-                                    // Cabeçalho do card: título + botão Nova Loja
+                                    // Cabeçalho do card: Lojas cadastradas + X lojas + botão Nova Loja
                                     HStack(alignment: .top) {
                                         VStack(alignment: .leading, spacing: 4) {
-                                            Text("Suas Lojas")
-                                                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                                            Text("Lojas cadastradas")
+                                                .font(.system(size: 20, weight: .bold, design: .rounded))
                                                 .foregroundColor(.cardForeground)
-                                            Text("\(stores.count) \(stores.count == 1 ? "loja cadastrada" : "lojas cadastradas")")
+                                            Text("\(stores.count) \(stores.count == 1 ? "loja" : "lojas")")
                                                 .font(.system(size: 14, weight: .regular))
-                                                .foregroundColor(.mutedForeground)
+                                                .foregroundColor(.cardForeground)
                                         }
                                         Spacer()
                                         Button(action: {
                                             withAnimation { showStoreForm = true }
                                         }) {
                                             HStack(spacing: AppSpacing.xs) {
-                                                Image(systemName: "plus.circle.fill")
-                                                    .font(.system(size: 16))
-                                                Text("Nova Loja")
+                                                Image(systemName: "plus")
                                                     .font(.system(size: 14, weight: .semibold))
+                                                Text("Nova Loja")
+                                                    .font(.system(size: 14, weight: .medium))
                                             }
                                             .foregroundColor(.primaryForeground)
                                             .padding(.horizontal, AppSpacing.md)
@@ -489,7 +558,6 @@ struct MerchantDashboardView: View {
                                         }
                                         .background(AppGradients.primary)
                                         .cornerRadius(AppRadius.md)
-                                        .appShadow(AppShadow.sm)
                                     }
                                     .padding(.horizontal, AppSpacing.lg)
                                     .padding(.top, AppSpacing.lg)
@@ -500,16 +568,11 @@ struct MerchantDashboardView: View {
                                         ForEach(stores) { store in
                                             StoreCardView(
                                                 store: store,
-                                                onEdit: {
-                                                    withAnimation {
-                                                        editingStore = store
-                                                        showStoreForm = false
-                                                        selectedStore = nil
-                                                    }
-                                                },
                                                 onTap: {
+                                                    var t = Transaction()
+                                                    t.disablesAnimations = true
+                                                    withTransaction(t) { selectedStore = store }
                                                     withAnimation {
-                                                        selectedStore = store
                                                         showStoreForm = false
                                                         editingStore = nil
                                                     }
@@ -532,7 +595,7 @@ struct MerchantDashboardView: View {
                         }
                     }
                     .padding(.horizontal, 24)
-                    .padding(.top, 42)
+                    .padding(.top, 75)
                     .padding(.bottom, 80)
                 }
             }
@@ -573,14 +636,15 @@ struct MerchantDashboardView: View {
             print("❌ [MerchantDashboardView] Erro ao fazer logout: \(error.localizedDescription)")
         }
         
-        // Limpar dados do usuário
+        // Limpar dados e redirecionar para login do lojista
         userDisplayName = ""
         userEmail = ""
         userPhotoURL = ""
         isLoggedIn = false
         isMerchant = false
+        showMerchantLogin = true
         
-        print("✅ [MerchantDashboardView] Dados do usuário limpos, redirecionando para login")
+        print("✅ [MerchantDashboardView] Redirecionando para tela de login do lojista")
     }
 }
 

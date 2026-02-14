@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Store, Plus, MapPin, Phone, Clock, Tag, Calendar, Gift, Trash2, ArrowLeft, Loader2 } from "lucide-react";
+import { Store, Plus, MapPin, Phone, Clock, Tag, Calendar, Gift, Trash2, ArrowLeft, Loader2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -17,6 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getMerchantStores, type StoreData } from "@/services/merchantsService";
 import { getStoreOffers, createOffer, deleteOffer, type OfferData } from "@/services/offersService";
 import OfferForm from "@/components/merchant/OfferForm";
+import MerchantStoreEditForm from "@/components/merchant/MerchantStoreEditForm";
 
 export default function StoreDetailsPage() {
   const { storeId } = useParams<{ storeId: string }>();
@@ -27,6 +28,7 @@ export default function StoreDetailsPage() {
   const [loadingStore, setLoadingStore] = useState(true);
   const [loadingOffers, setLoadingOffers] = useState(true);
   const [showOfferForm, setShowOfferForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
   const [offerToDelete, setOfferToDelete] = useState<string | null>(null);
 
   useEffect(() => {
@@ -158,31 +160,53 @@ export default function StoreDetailsPage() {
         <div>
           {/* Informações da Loja */}
           <div className="bg-card rounded-2xl shadow-lg border border-border p-6 mb-6">
-          <div className="space-y-3">
-            {store.address && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4" />
-                <span>{store.address}</span>
+          {showEditForm ? (
+            <MerchantStoreEditForm
+              store={store}
+              onCancel={() => setShowEditForm(false)}
+              onSuccess={() => {
+                setShowEditForm(false);
+                loadStore();
+              }}
+            />
+          ) : (
+            <>
+              <div className="space-y-3">
+                {store.address && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    <span>{store.address}</span>
+                  </div>
+                )}
+                {store.city && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>{store.city}</span>
+                  </div>
+                )}
+                {store.phone && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Phone className="h-4 w-4" />
+                    <span>{store.phone}</span>
+                  </div>
+                )}
+                {store.hours && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <span>{store.hours}</span>
+                  </div>
+                )}
               </div>
-            )}
-            {store.city && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>{store.city}</span>
-              </div>
-            )}
-            {store.phone && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Phone className="h-4 w-4" />
-                <span>{store.phone}</span>
-              </div>
-            )}
-            {store.hours && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                <span>{store.hours}</span>
-              </div>
-            )}
-          </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowEditForm(true)}
+                className="mt-4"
+              >
+                <Pencil className="h-4 w-4 mr-2" />
+                Editar loja
+              </Button>
+            </>
+          )}
         </div>
 
           {/* Seção de Ofertas */}
