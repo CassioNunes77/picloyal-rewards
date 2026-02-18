@@ -14,6 +14,7 @@ import FirebaseFirestore
 struct CartaoFidelidadeApp: App {
     @AppStorage("isLoggedIn") private var isLoggedIn = false
     @AppStorage("isMerchant") private var isMerchant = false
+    @AppStorage("showMerchantLogin") private var showMerchantLogin = false
     @AppStorage("userDisplayName") private var userDisplayName = ""
     @AppStorage("userEmail") private var userEmail = ""
     @AppStorage("userPhotoURL") private var userPhotoURL = ""
@@ -42,6 +43,11 @@ struct CartaoFidelidadeApp: App {
                         // Mostrar painel do usuário
                         ContentView()
                     }
+                } else if showMerchantLogin {
+                    MerchantLoginView(
+                        onSuccess: { showMerchantLogin = false },
+                        onBack: { showMerchantLogin = false }
+                    )
                 } else {
                     LoginView(
                         onLogin: { email, _, _ in

@@ -115,7 +115,7 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
   const handleToggleDarkMode = async (checked: boolean) => {
     try {
       await toggleDarkMode(checked);
-      toast.success(checked ? "Modo escuro ativado" : "Modo claro ativado");
+    toast.success(checked ? "Modo escuro ativado" : "Modo claro ativado");
     } catch (error) {
       toast.error("Erro ao salvar preferência. Tente novamente.");
     }
@@ -129,7 +129,7 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
     if (!window.confirm("Deseja realmente sair da sua conta?")) return;
     try {
       await signOut();
-      toast.success("Até logo! 👋");
+    toast.success("Até logo! 👋");
       onBack();
     } catch {
       toast.error("Erro ao sair.");
@@ -202,7 +202,7 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <User className="h-8 w-8 text-primary-foreground" />
+              <User className="h-8 w-8 text-primary-foreground" />
               )}
             </div>
             <div className="flex-1 text-left">

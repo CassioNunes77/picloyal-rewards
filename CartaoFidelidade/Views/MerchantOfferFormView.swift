@@ -208,11 +208,16 @@ struct MerchantOfferFormView: View {
         .background(Color.card)
         .cornerRadius(AppRadius.xl)
         .appShadow(AppShadow.lg)
-        .alert("Erro", isPresented: $showError) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(errorMessage ?? "Erro desconhecido ao criar oferta")
-        }
+        .appConfirmation(
+            isPresented: $showError,
+            title: "Erro",
+            message: errorMessage ?? "Erro desconhecido ao criar oferta",
+            primaryTitle: "OK",
+            primaryStyle: .default,
+            primaryAction: { showError = false },
+            secondaryTitle: nil,
+            secondaryAction: nil
+        )
     }
     
     private var isFormValid: Bool {

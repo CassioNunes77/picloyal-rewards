@@ -118,7 +118,7 @@ struct MerchantDashboardView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, AppSpacing.lg)
-        .padding(.top, 15)
+        .padding(.top, 0)
         .padding(.bottom, AppSpacing.md)
         .frame(minHeight: 120)
         .background(AppGradients.hero)
@@ -151,7 +151,7 @@ struct MerchantDashboardView: View {
                 }
             }
             .padding(.horizontal, AppSpacing.lg)
-            .padding(.top, 15)
+            .padding(.top, 0)
             .padding(.bottom, AppSpacing.md)
         }
         .frame(maxWidth: .infinity)
@@ -171,7 +171,7 @@ struct MerchantDashboardView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, AppSpacing.lg)
-        .padding(.top, 15)
+        .padding(.top, 0)
         .padding(.bottom, AppSpacing.md)
         .frame(minHeight: 120)
         .background(AppGradients.hero)

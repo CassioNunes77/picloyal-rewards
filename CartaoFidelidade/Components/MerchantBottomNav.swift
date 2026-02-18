@@ -33,7 +33,7 @@ struct MerchantBottomNav: View {
                             ZStack {
                                 Image(systemName: item.icon)
                                     .foregroundColor(activeTab == item.id ? .primary : .mutedForeground)
-                                    .font(.system(size: 24))
+                                    .font(.system(size: 20))
                                     .scaleEffect(activeTab == item.id ? 1.1 : 1.0)
                                     .scaleEffect(pressedTab == item.id ? 0.9 : 1.0)
                             }
@@ -41,7 +41,7 @@ struct MerchantBottomNav: View {
                             .animation(.bounceSmall, value: pressedTab)
                             
                             Text(item.label)
-                                .font(.system(size: 10, weight: .medium))
+                                .font(.system(size: 8, weight: .medium))
                                 .foregroundColor(activeTab == item.id ? .primary : .mutedForeground)
                                 .animation(.bounceSmall, value: activeTab)
                             

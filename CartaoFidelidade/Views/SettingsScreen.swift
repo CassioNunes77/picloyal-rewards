@@ -241,32 +241,43 @@ struct SettingsScreen: View {
         .ignoresSafeArea(edges: .top)
         }
         .transition(.move(edge: .trailing))
-        .alert("Sair da conta?", isPresented: $showLogoutConfirmation) {
-            Button("Cancelar", role: .cancel) {}
-            Button("Sair", role: .destructive) {
+        .appConfirmation(
+            isPresented: $showLogoutConfirmation,
+            title: "Sair da conta?",
+            message: "Deseja realmente sair da sua conta?",
+            primaryTitle: "Sair",
+            primaryStyle: .destructive,
+            primaryAction: {
                 try? Auth.auth().signOut()
                 userDisplayName = ""
                 userEmail = ""
                 userPhotoURL = ""
                 isLoggedIn = false
                 onBack()
-            }
-        } message: {
-            Text("Deseja realmente sair da sua conta?")
-        }
-        .alert("Excluir conta?", isPresented: $showDeleteAccountConfirmation) {
-            Button("Cancelar", role: .cancel) {}
-            Button("Excluir", role: .destructive) {
-                performDeleteAccount()
-            }
-        } message: {
-            Text("Esta ação é definitiva. Todos os dados do usuário serão perdidos. Deseja continuar?")
-        }
-        .alert("Erro ao excluir conta", isPresented: $showDeleteAccountError) {
-            Button("OK") { showDeleteAccountError = false }
-        } message: {
-            Text(deleteAccountErrorMessage)
-        }
+            },
+            secondaryTitle: "Cancelar",
+            secondaryAction: nil
+        )
+        .appConfirmation(
+            isPresented: $showDeleteAccountConfirmation,
+            title: "Excluir conta?",
+            message: "Esta ação é definitiva. Todos os dados do usuário serão perdidos. Deseja continuar?",
+            primaryTitle: "Excluir",
+            primaryStyle: .destructive,
+            primaryAction: { performDeleteAccount() },
+            secondaryTitle: "Cancelar",
+            secondaryAction: nil
+        )
+        .appConfirmation(
+            isPresented: $showDeleteAccountError,
+            title: "Erro ao excluir conta",
+            message: deleteAccountErrorMessage,
+            primaryTitle: "OK",
+            primaryStyle: .default,
+            primaryAction: { showDeleteAccountError = false },
+            secondaryTitle: nil,
+            secondaryAction: nil
+        )
         .fullScreenCover(isPresented: $showPrivacyPolicy) {
             PrivacyPolicyView(onBack: { showPrivacyPolicy = false })
         }

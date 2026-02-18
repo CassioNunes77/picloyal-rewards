@@ -352,26 +352,35 @@ struct ProfileView: View {
                 .animation(.easeInOut, value: showToast)
             }
         }
-        .alert("Sair da conta?", isPresented: $showLogoutConfirmation) {
-            Button("Cancelar", role: .cancel) {}
-            Button("Sair", role: .destructive) {
+        .appConfirmation(
+            isPresented: $showLogoutConfirmation,
+            title: "Sair da conta?",
+            message: "Deseja realmente sair da sua conta?",
+            primaryTitle: "Sair",
+            primaryStyle: .destructive,
+            primaryAction: {
                 performLogout()
                 showToast(message: "Até logo! 👋")
-            }
-        } message: {
-            Text("Deseja realmente sair da sua conta?")
-        }
+            },
+            secondaryTitle: "Cancelar",
+            secondaryAction: nil
+        )
         .sheet(isPresented: $showEmailSheet) {
             editEmailSheet
         }
         .sheet(isPresented: $showPhoneSheet) {
             editPhoneSheet
         }
-        .alert("Erro", isPresented: .init(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
-            Button("OK", role: .cancel) { errorMessage = nil }
-        } message: {
-            if let msg = errorMessage { Text(msg) }
-        }
+        .appConfirmation(
+            isPresented: .init(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } }),
+            title: "Erro",
+            message: errorMessage ?? "",
+            primaryTitle: "OK",
+            primaryStyle: .default,
+            primaryAction: { errorMessage = nil },
+            secondaryTitle: nil,
+            secondaryAction: nil
+        )
         .ignoresSafeArea(edges: .top)
     }
 

@@ -11,10 +11,13 @@ import FirebaseAuth
 import FirebaseFirestore
 
 struct MerchantLoginView: View {
+    @AppStorage("userDisplayName") private var userDisplayName = ""
+    @AppStorage("userEmail") private var userEmail = ""
     @Environment(\.dismiss) private var dismiss
     @AppStorage("isLoggedIn") private var isLoggedIn = false
     @AppStorage("isMerchant") private var isMerchant = false
     var onSuccess: (() -> Void)?
+    var onBack: (() -> Void)?
     
     @State private var email = ""
     @State private var password = ""
@@ -234,7 +237,11 @@ struct MerchantLoginView: View {
                             
                             // Botão Voltar
                             Button(action: {
-                                dismiss()
+                                if let onBack = onBack {
+                                    onBack()
+                                } else {
+                                    dismiss()
+                                }
                             }) {
                                 Text("Voltar para o app")
                                     .font(.system(size: 14, weight: .medium))
@@ -293,6 +300,17 @@ struct MerchantLoginView: View {
                 }
                 
                 print("✅ [MerchantLoginView] Usuário \(userId) confirmado como lojista na coleção 'merchants'. Login permitido.")
+                
+                // Resgatar nome e email do usuário
+                let user = result.user
+                if let email = user.email, !email.isEmpty {
+                    userEmail = email
+                }
+                if let name = user.displayName, !name.isEmpty {
+                    userDisplayName = name
+                } else {
+                    userDisplayName = user.email?.components(separatedBy: "@").first ?? "Lojista"
+                }
                 
                 // Marcar como logado e como lojista
                 isLoggedIn = true

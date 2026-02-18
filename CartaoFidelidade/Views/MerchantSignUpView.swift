@@ -14,6 +14,8 @@ struct MerchantSignUpView: View {
     var onSuccess: () -> Void
     var onCancel: () -> Void
     
+    @AppStorage("userDisplayName") private var userDisplayName = ""
+    @AppStorage("userEmail") private var userEmail = ""
     @AppStorage("isLoggedIn") private var isLoggedIn = false
     @AppStorage("isMerchant") private var isMerchant = false
     @State private var email = ""
@@ -236,6 +238,10 @@ struct MerchantSignUpView: View {
                 
                 print("✅ [MerchantSignUpView] Todos os documentos foram criados com sucesso no Firestore")
                 print("✅ [MerchantSignUpView] UID do lojista: \(user.uid)")
+                
+                // Resgatar nome e email do usuário
+                self.userEmail = userEmail
+                self.userDisplayName = !userName.isEmpty ? userName : (userEmail.components(separatedBy: "@").first ?? "Lojista")
                 
                 // Marcar como logado e como lojista
                 isLoggedIn = true

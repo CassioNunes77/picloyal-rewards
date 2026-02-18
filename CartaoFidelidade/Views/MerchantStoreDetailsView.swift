@@ -32,7 +32,7 @@ struct MerchantStoreDetailsView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, AppSpacing.lg)
-            .padding(.top, 15)
+            .padding(.top, 0)
             
             HStack {
                 Button(action: {
@@ -45,7 +45,7 @@ struct MerchantStoreDetailsView: View {
                 Spacer()
             }
             .padding(.horizontal, AppSpacing.lg)
-            .padding(.top, 15)
+            .padding(.top, 0)
         }
         .padding(.bottom, AppSpacing.md)
         .frame(maxWidth: .infinity)
