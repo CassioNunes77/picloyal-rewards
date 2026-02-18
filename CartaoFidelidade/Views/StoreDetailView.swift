@@ -18,7 +18,7 @@ struct StoreDetailView: View {
     
     let storeOffers = [
         Offer(
-            id: 1,
+            id: "1",
             title: "20% OFF em Bebidas",
             description: "Desconto em todas as bebidas do cardápio",
             discount: "20%",
@@ -31,7 +31,7 @@ struct StoreDetailView: View {
             isNew: true
         ),
         Offer(
-            id: 2,
+            id: "2",
             title: "Café Expresso Grátis",
             description: "Um café expresso grátis com qualquer compra",
             discount: "100%",

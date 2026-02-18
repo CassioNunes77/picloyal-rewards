@@ -15,6 +15,7 @@ struct HomeView: View {
     @AppStorage("userEmail") private var userEmail = ""
     @State private var showToast = false
     @State private var toastMessage = ""
+    @State private var stampRewards: [FirebaseStampReward] = []
     
     let rewards = [
         Reward(
@@ -191,13 +192,23 @@ struct HomeView: View {
                         .padding(.horizontal, AppSpacing.lg)
                         .fadeIn(delay: 0.2)
                         
-                        // Stamp Card
-                        StampGrid(
-                            currentStamps: 7,
-                            totalStamps: 10,
-                            reward: "1 Café Grátis"
-                        )
-                        .padding(.horizontal, AppSpacing.lg)
+                        // Stamp Carousel (carimbos do Firebase)
+                        if !stampRewards.isEmpty {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: AppSpacing.md) {
+                                    ForEach(stampRewards) { sr in
+                                        StampGrid(
+                                            currentStamps: 0,
+                                            totalStamps: sr.totalStamps,
+                                            reward: sr.rewardTitle
+                                        )
+                                        .frame(width: UIScreen.main.bounds.width - AppSpacing.lg * 2)
+                                    }
+                                }
+                                .padding(.horizontal, AppSpacing.lg)
+                            }
+                            .fadeIn(delay: 0.25)
+                        }
                         
                         // Rewards Section
                         VStack(alignment: .leading, spacing: AppSpacing.md) {
@@ -293,6 +304,13 @@ struct HomeView: View {
                 }
             }
             .ignoresSafeArea(edges: .top)
+            .task {
+                do {
+                    stampRewards = try await StampRewardsService.shared.getAllStampRewards()
+                } catch {
+                    stampRewards = []
+                }
+            }
             
             // Toast
             if showToast {

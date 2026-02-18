@@ -49,6 +49,17 @@ class StampRewardsService {
         return ref.documentID
     }
     
+    /// Busca todos os programas de carimbo ativos (para exibição na home do usuário)
+    func getAllStampRewards() async throws -> [FirebaseStampReward] {
+        let snapshot = try await db.collection(collectionName)
+            .whereField("active", isEqualTo: true)
+            .getDocuments()
+        
+        return snapshot.documents.compactMap { doc in
+            try? parseStampReward(doc.documentID, doc.data())
+        }
+    }
+    
     /// Busca programas de carimbo de uma loja
     func getStoreStampRewards(storeId: String) async throws -> [FirebaseStampReward] {
         let snapshot = try await db.collection(collectionName)

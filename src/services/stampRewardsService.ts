@@ -70,6 +70,39 @@ export async function createStampReward(
 }
 
 /**
+ * Busca todos os programas de carimbo ativos (para exibição na home do usuário)
+ */
+export async function getAllStampRewards(): Promise<StampRewardData[]> {
+  if (!firestore) {
+    console.error("❌ [stampRewardsService] Firestore não está configurado!");
+    return [];
+  }
+
+  try {
+    const ref = collection(firestore, STAMP_REWARDS_COLLECTION);
+    const q = query(ref, where("active", "==", true));
+    const snapshot = await getDocs(q);
+
+    return snapshot.docs.map((d) => {
+      const data = d.data();
+      return {
+        id: d.id,
+        storeId: String(data?.storeId ?? ""),
+        merchantId: String(data?.merchantId ?? ""),
+        totalStamps: Number(data?.totalStamps ?? 0),
+        rewardTitle: String(data?.rewardTitle ?? ""),
+        active: data?.active !== false,
+        createdAt: toDate(data?.createdAt),
+        updatedAt: toDate(data?.updatedAt),
+      };
+    });
+  } catch (error: any) {
+    console.error("❌ [stampRewardsService] Erro ao buscar carimbos:", error);
+    return [];
+  }
+}
+
+/**
  * Busca programas de carimbo de uma loja
  */
 export async function getStoreStampRewards(storeId: string): Promise<StampRewardData[]> {

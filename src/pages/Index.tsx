@@ -11,12 +11,14 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQR } from "@/contexts/QRContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { getAllStampRewards, type StampRewardData } from "@/services/stampRewardsService";
 
 const Index = () => {
   const navigate = useNavigate();
   const { openQR } = useQR();
   const { user, loading: authLoading } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
+  const [stampRewards, setStampRewards] = useState<StampRewardData[]>([]);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -24,6 +26,10 @@ const Index = () => {
       navigate("/", { replace: true });
     }
   }, [authLoading, user, navigate]);
+
+  useEffect(() => {
+    getAllStampRewards().then(setStampRewards);
+  }, []);
 
   if (authLoading || !user) {
     return (
@@ -120,7 +126,19 @@ const Index = () => {
           {/* Linha 2: Carimbos + Recompensas */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             <div className="md:col-span-5">
-              <StampGrid currentStamps={7} totalStamps={10} reward="1 Café Grátis" />
+              {stampRewards.length > 0 ? (
+                <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin">
+                  {stampRewards.map((sr) => (
+                    <div key={sr.id} className="flex-shrink-0 min-w-[260px] w-[min(100%,320px)] snap-center">
+                      <StampGrid
+                        currentStamps={0}
+                        totalStamps={sr.totalStamps}
+                        reward={sr.rewardTitle}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </div>
             <div className="md:col-span-7">
               <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
@@ -210,9 +228,24 @@ const Index = () => {
           <QuickAction icon={Sparkles} label="Recompensas" onClick={() => navigate("/rewards")} />
           <QuickAction icon={Store} label="Lojas" onClick={() => navigate("/stores")} />
         </div>
-        <div className="mb-6 animate-fade-in" style={{ animationDelay: "250ms" }}>
-          <StampGrid currentStamps={7} totalStamps={10} reward="1 Café Grátis" />
-        </div>
+        {stampRewards.length > 0 && (
+          <div className="mb-6 animate-fade-in" style={{ animationDelay: "250ms" }}>
+            <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory -mx-6 px-6 scrollbar-thin">
+              {stampRewards.map((sr) => (
+                <div
+                  key={sr.id}
+                  className="flex-shrink-0 w-[min(calc(100vw-48px),320px)] snap-center"
+                >
+                  <StampGrid
+                    currentStamps={0}
+                    totalStamps={sr.totalStamps}
+                    reward={sr.rewardTitle}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="mb-6">
           <div className="mb-4 flex items-center justify-between animate-fade-in" style={{ animationDelay: "300ms" }}>
             <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">

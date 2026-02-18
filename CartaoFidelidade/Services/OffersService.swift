@@ -87,7 +87,7 @@ class OffersService {
                 print("❌ [OffersService] Erro ao buscar ofertas da loja \(store.id): \(error.localizedDescription)")
             }
         }
-        result.sort { $0.offer.createdAt > $1.offer.createdAt }
+        result.sort { $0.0.createdAt > $1.0.createdAt }
         return result
     }
     
