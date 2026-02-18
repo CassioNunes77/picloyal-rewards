@@ -1,12 +1,13 @@
-import { useState } from "react";
-import { Tag, Clock, MapPin, Percent, Gift, Coffee, Pizza, Sparkles, ChevronRight, Search } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Tag, Clock, MapPin, Percent, Gift, Coffee, Pizza, Sparkles, ChevronRight, Search, Loader2 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { OfferDetailData } from "./OfferDetailPage";
+import { getOffersByCity } from "@/services/offersService";
 
 interface Offer {
-  id: number;
+  id: string;
   title: string;
   description: string;
   discount: string;
@@ -19,83 +20,70 @@ interface Offer {
   isNew?: boolean;
 }
 
+function iconForCategory(category: string): "percent" | "gift" | "coffee" | "pizza" {
+  const c = (category || "").toLowerCase();
+  if (c === "bebidas") return "coffee";
+  if (c === "comida") return "pizza";
+  if (c === "brinde") return "gift";
+  return "percent";
+}
+
 const OffersPage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const [loadingOffers, setLoadingOffers] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState("");
 
-  const offers: Offer[] = [
-    {
-      id: 1,
-      title: "20% OFF em Bebidas",
-      description: "Desconto em todas as bebidas do cardápio",
-      discount: "20%",
-      storeName: "Café Central",
-      storeAddress: "Rua das Flores, 123",
-      validUntil: "31/12/2024",
-      icon: "coffee",
-      category: "bebidas",
-      isNew: true,
-    },
-    {
-      id: 2,
-      title: "Compre 2, Leve 3",
-      description: "Na compra de 2 pizzas, ganhe 1 grátis",
-      discount: "33%",
-      storeName: "Restaurante Sabor",
-      storeAddress: "Av. Principal, 456",
-      validUntil: "25/12/2024",
-      icon: "pizza",
-      category: "comida",
-    },
-    {
-      id: 3,
-      title: "10% OFF em Tudo",
-      description: "Desconto em qualquer produto da loja",
-      discount: "10%",
-      storeName: "Supermercado Bom Preço",
-      storeAddress: "Av. Shopping, 321",
-      validUntil: "30/12/2024",
-      icon: "percent",
-      category: "geral",
-      pointsRequired: 50,
-    },
-    {
-      id: 4,
-      title: "Brinde Especial",
-      description: "Ganhe um brinde na compra acima de R$ 50",
-      discount: "Grátis",
-      storeName: "Padaria Doce Vida",
-      storeAddress: "Rua Comercial, 789",
-      validUntil: "28/12/2024",
-      icon: "gift",
-      category: "brinde",
-      isNew: true,
-    },
-    {
-      id: 5,
-      title: "15% OFF em Medicamentos",
-      description: "Desconto em toda a farmácia",
-      discount: "15%",
-      storeName: "Farmácia Saúde",
-      storeAddress: "Rua da Saúde, 654",
-      validUntil: "29/12/2024",
-      icon: "percent",
-      category: "saude",
-    },
-    {
-      id: 6,
-      title: "Café Expresso Grátis",
-      description: "Um café expresso grátis com qualquer compra",
-      discount: "100%",
-      storeName: "Café Central",
-      storeAddress: "Rua das Flores, 123",
-      validUntil: "27/12/2024",
-      icon: "coffee",
-      category: "bebidas",
-    },
-  ];
+  useEffect(() => {
+    setSelectedLocation(localStorage.getItem("selectedLocation") || "");
+  }, []);
+
+  useEffect(() => {
+    if (!selectedLocation) {
+      setOffers([]);
+      return;
+    }
+    let cancelled = false;
+    setLoadingOffers(true);
+    getOffersByCity(selectedLocation)
+      .then((items) => {
+        if (!cancelled) {
+          setOffers(
+            items.map(({ offer, storeName, storeAddress }) => {
+              const validUntil = offer.validUntil
+                ? new Date(offer.validUntil).toLocaleDateString("pt-BR")
+                : "—";
+              return {
+                id: offer.id!,
+                title: offer.title,
+                description: offer.description,
+                discount: offer.discount ?? "—",
+                storeName,
+                storeAddress,
+                validUntil,
+                icon: iconForCategory(offer.category),
+                category: offer.category,
+                pointsRequired: offer.pointsRequired,
+                isNew: false,
+              };
+            })
+          );
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error("Erro ao carregar ofertas:", err);
+          setOffers([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingOffers(false);
+      });
+    return () => { cancelled = true; };
+  }, [selectedLocation]);
 
   const categories = [
     { id: "all", label: "Todas", icon: Tag },
@@ -105,21 +93,21 @@ const OffersPage = () => {
     { id: "geral", label: "Geral", icon: Percent },
   ];
 
-  const iconMap = {
+  const iconMap: Record<string, typeof Percent> = {
     percent: Percent,
     gift: Gift,
     coffee: Coffee,
     pizza: Pizza,
   };
 
-  const filteredOffers = offers.filter((offer) => {
+  const filteredOffers = useMemo(() => offers.filter((offer) => {
     const matchesSearch =
       offer.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       offer.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       offer.storeName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "all" || offer.category === selectedCategory;
     return matchesSearch && matchesCategory;
-  });
+  }), [offers, searchQuery, selectedCategory]);
 
   const handleOfferClick = (offer: Offer) => {
     navigate("/offer", { state: { offer: offer as OfferDetailData } });
@@ -169,10 +157,22 @@ const OffersPage = () => {
             );
           })}
         </div>
-        {filteredOffers.length === 0 ? (
+        {loadingOffers ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-2" />
+            <p className="text-muted-foreground">Carregando ofertas...</p>
+          </div>
+        ) : !selectedLocation ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <MapPin className="h-12 w-12 text-muted-foreground mb-2" />
+            <p className="text-muted-foreground mb-2">Selecione uma cidade</p>
+            <p className="text-sm text-muted-foreground text-center">Escolha sua localidade na tela inicial para ver as ofertas</p>
+          </div>
+        ) : filteredOffers.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
             <Tag className="h-12 w-12 text-muted-foreground mb-4" />
             <p className="text-muted-foreground mb-2">Nenhuma oferta encontrada</p>
+            <p className="text-sm text-muted-foreground">{searchQuery ? "Tente buscar com outros termos" : `Não há ofertas em ${selectedLocation}`}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
@@ -262,11 +262,22 @@ const OffersPage = () => {
         </div>
 
         {/* Offers List */}
-        {filteredOffers.length === 0 ? (
+        {loadingOffers ? (
+          <div className="flex flex-col items-center justify-center py-12 animate-fade-in">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-2" />
+            <p className="text-muted-foreground">Carregando ofertas...</p>
+          </div>
+        ) : !selectedLocation ? (
+          <div className="flex flex-col items-center justify-center py-12 animate-fade-in">
+            <MapPin className="h-12 w-12 text-muted-foreground mb-2" />
+            <p className="text-muted-foreground mb-2">Selecione uma cidade</p>
+            <p className="text-sm text-muted-foreground text-center">Escolha sua localidade na tela inicial para ver as ofertas</p>
+          </div>
+        ) : filteredOffers.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 animate-fade-in">
             <Tag className="h-12 w-12 text-muted-foreground mb-4" />
             <p className="text-muted-foreground mb-2">Nenhuma oferta encontrada</p>
-            <p className="text-sm text-muted-foreground">Tente buscar com outros termos</p>
+            <p className="text-sm text-muted-foreground">{searchQuery ? "Tente buscar com outros termos" : `Não há ofertas em ${selectedLocation}`}</p>
           </div>
         ) : (
           <div className="space-y-4">

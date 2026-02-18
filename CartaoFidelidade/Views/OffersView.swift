@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct Offer: Identifiable, Hashable {
-    let id: Int
+    let id: String
     let title: String
     let description: String
     let discount: String
@@ -27,96 +27,45 @@ struct Offer: Identifiable, Hashable {
     static func == (lhs: Offer, rhs: Offer) -> Bool {
         lhs.id == rhs.id
     }
+    
+    static func iconForCategory(_ category: String) -> String {
+        switch category.lowercased() {
+        case "bebidas": return "cup.and.saucer.fill"
+        case "comida": return "birthday.cake.fill"
+        case "brinde": return "gift.fill"
+        default: return "percent"
+        }
+    }
+    
+    static func fromFirebase(_ fb: FirebaseOffer, storeName: String, storeAddress: String) -> Offer {
+        let df = DateFormatter()
+        df.dateFormat = "dd/MM/yyyy"
+        return Offer(
+            id: fb.id,
+            title: fb.title,
+            description: fb.description,
+            discount: fb.discount ?? "—",
+            storeName: storeName,
+            storeAddress: storeAddress,
+            validUntil: df.string(from: fb.validUntil),
+            icon: iconForCategory(fb.category),
+            category: fb.category,
+            pointsRequired: fb.pointsRequired,
+            isNew: false
+        )
+    }
 }
 
 struct OffersView: View {
     @Binding var activeTab: String
+    @AppStorage("selectedLocation") private var selectedLocation = ""
     @State private var searchQuery = ""
     @State private var selectedCategory = "all"
     @State private var showToast = false
     @State private var toastMessage = ""
     @State private var navigationPath = NavigationPath()
-    
-    let offers = [
-        Offer(
-            id: 1,
-            title: "20% OFF em Bebidas",
-            description: "Desconto em todas as bebidas do cardápio",
-            discount: "20%",
-            storeName: "Café Central",
-            storeAddress: "Rua das Flores, 123",
-            validUntil: "31/12/2024",
-            icon: "cup.and.saucer.fill",
-            category: "bebidas",
-            pointsRequired: nil,
-            isNew: true
-        ),
-        Offer(
-            id: 2,
-            title: "Compre 2, Leve 3",
-            description: "Na compra de 2 pizzas, ganhe 1 grátis",
-            discount: "33%",
-            storeName: "Restaurante Sabor",
-            storeAddress: "Av. Principal, 456",
-            validUntil: "25/12/2024",
-            icon: "birthday.cake.fill",
-            category: "comida",
-            pointsRequired: nil,
-            isNew: false
-        ),
-        Offer(
-            id: 3,
-            title: "10% OFF em Tudo",
-            description: "Desconto em qualquer produto da loja",
-            discount: "10%",
-            storeName: "Supermercado Bom Preço",
-            storeAddress: "Av. Shopping, 321",
-            validUntil: "30/12/2024",
-            icon: "percent",
-            category: "geral",
-            pointsRequired: 50,
-            isNew: false
-        ),
-        Offer(
-            id: 4,
-            title: "Brinde Especial",
-            description: "Ganhe um brinde na compra acima de R$ 50",
-            discount: "Grátis",
-            storeName: "Padaria Doce Vida",
-            storeAddress: "Rua Comercial, 789",
-            validUntil: "28/12/2024",
-            icon: "gift.fill",
-            category: "brinde",
-            pointsRequired: nil,
-            isNew: true
-        ),
-        Offer(
-            id: 5,
-            title: "15% OFF em Medicamentos",
-            description: "Desconto em toda a farmácia",
-            discount: "15%",
-            storeName: "Farmácia Saúde",
-            storeAddress: "Rua da Saúde, 654",
-            validUntil: "29/12/2024",
-            icon: "percent",
-            category: "saude",
-            pointsRequired: nil,
-            isNew: false
-        ),
-        Offer(
-            id: 6,
-            title: "Café Expresso Grátis",
-            description: "Um café expresso grátis com qualquer compra",
-            discount: "100%",
-            storeName: "Café Central",
-            storeAddress: "Rua das Flores, 123",
-            validUntil: "27/12/2024",
-            icon: "cup.and.saucer.fill",
-            category: "bebidas",
-            pointsRequired: nil,
-            isNew: false
-        )
-    ]
+    @State private var offers: [Offer] = []
+    @State private var loadingOffers = false
     
     let categories = [
         ("all", "Todas", "tag.fill"),
@@ -233,7 +182,30 @@ struct OffersView: View {
                             .fadeIn(delay: 0.15)
                             
                             // Offers List
-                            if filteredOffers.isEmpty {
+                            if loadingOffers {
+                                VStack(spacing: AppSpacing.md) {
+                                    ProgressView()
+                                        .scaleEffect(1.5)
+                                        .padding(.top, AppSpacing.xl * 2)
+                                    Text("Carregando ofertas...")
+                                        .font(.appBody)
+                                        .foregroundColor(.mutedForeground)
+                                }
+                            } else if selectedLocation.isEmpty {
+                                VStack(spacing: AppSpacing.md) {
+                                    Image(systemName: "mappin.circle")
+                                        .font(.system(size: 48))
+                                        .foregroundColor(.mutedForeground)
+                                    Text("Selecione uma cidade")
+                                        .font(.appBody)
+                                        .foregroundColor(.mutedForeground)
+                                    Text("Escolha sua localidade na tela inicial para ver as ofertas")
+                                        .font(.appCaption)
+                                        .foregroundColor(.mutedForeground)
+                                        .multilineTextAlignment(.center)
+                                }
+                                .padding(.top, AppSpacing.xl * 2)
+                            } else if filteredOffers.isEmpty {
                                 VStack(spacing: AppSpacing.md) {
                                     Image(systemName: "tag")
                                         .font(.system(size: 48))
@@ -243,7 +215,7 @@ struct OffersView: View {
                                         .font(.appBody)
                                         .foregroundColor(.mutedForeground)
                                     
-                                    Text("Tente buscar com outros termos")
+                                    Text(searchQuery.isEmpty ? "Não há ofertas em \(selectedLocation)" : "Tente buscar com outros termos")
                                         .font(.appCaption)
                                         .foregroundColor(.mutedForeground)
                                 }
@@ -289,6 +261,8 @@ struct OffersView: View {
                     .animation(.easeInOut, value: showToast)
                 }
             }
+            .onAppear { loadOffers() }
+            .onChange(of: selectedLocation) { _, _ in loadOffers() }
             .navigationDestination(for: Offer.self) { offer in
                 OfferDetailView(
                     offer: offer,
@@ -304,6 +278,29 @@ struct OffersView: View {
                 )
             }
             .ignoresSafeArea(edges: .top)
+        }
+    }
+    
+    private func loadOffers() {
+        guard !selectedLocation.isEmpty else {
+            offers = []
+            return
+        }
+        loadingOffers = true
+        Task {
+            do {
+                let items = try await OffersService.shared.getOffersByCity(cityFilter: selectedLocation)
+                await MainActor.run {
+                    offers = items.map { Offer.fromFirebase($0.offer, storeName: $0.storeName, storeAddress: $0.storeAddress) }
+                    loadingOffers = false
+                }
+            } catch {
+                print("❌ [OffersView] Erro ao carregar ofertas: \(error.localizedDescription)")
+                await MainActor.run {
+                    offers = []
+                    loadingOffers = false
+                }
+            }
         }
     }
     

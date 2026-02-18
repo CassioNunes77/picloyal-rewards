@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export interface OfferDetailData {
-  id: number;
+  id: string | number;
   title: string;
   description: string;
   discount: string;

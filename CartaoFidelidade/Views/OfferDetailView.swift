@@ -181,7 +181,7 @@ struct OfferDetailView: View {
 #Preview {
     OfferDetailView(
         offer: Offer(
-            id: 1,
+            id: "1",
             title: "20% OFF em Bebidas",
             description: "Desconto em todas as bebidas do cardápio",
             discount: "20%",

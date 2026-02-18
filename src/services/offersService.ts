@@ -1,5 +1,6 @@
 import { doc, collection, getDocs, addDoc, updateDoc, deleteDoc, query, where, Timestamp } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
+import { getStoresByCity } from "./merchantsService";
 
 const OFFERS_COLLECTION = "offers";
 
@@ -102,6 +103,45 @@ export async function createOffer(
   } catch (error: any) {
     console.error("❌ [offersService] Erro ao criar oferta:", error);
     throw error;
+  }
+}
+
+/**
+ * Busca ofertas ativas por cidade (para app do usuário)
+ * cityFilter: formato "Cidade, UF" (LocationSelector) ou "Cidade - UF" (store.city)
+ */
+export async function getOffersByCity(
+  cityFilter: string
+): Promise<Array<{ offer: OfferData; storeName: string; storeAddress: string }>> {
+  if (!firestore) {
+    console.error("❌ [offersService] Firestore não está configurado!");
+    return [];
+  }
+
+  try {
+    const stores = await getStoresByCity(cityFilter);
+    const result: Array<{ offer: OfferData; storeName: string; storeAddress: string }> = [];
+
+    for (const store of stores) {
+      const storeId = store.id;
+      if (!storeId) continue;
+      const offers = await getStoreOffers(storeId);
+      for (const offer of offers) {
+        if (offer.active) {
+          result.push({
+            offer,
+            storeName: store.name,
+            storeAddress: store.address,
+          });
+        }
+      }
+    }
+
+    result.sort((a, b) => (b.offer.createdAt?.getTime() ?? 0) - (a.offer.createdAt?.getTime() ?? 0));
+    return result;
+  } catch (error: any) {
+    console.error("❌ [offersService] Erro ao buscar ofertas por cidade:", error);
+    return [];
   }
 }
 
