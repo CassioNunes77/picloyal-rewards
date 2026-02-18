@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Store, Plus, MapPin, Phone, Clock, Tag, Calendar, Gift, Trash2, ArrowLeft, Loader2, Pencil } from "lucide-react";
+import { Store, Plus, MapPin, Phone, Clock, Tag, Calendar, Gift, Trash2, ArrowLeft, Loader2, Pencil, ChevronDown, Stamp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -12,11 +12,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { getMerchantStores, type StoreData } from "@/services/merchantsService";
 import { getStoreOffers, createOffer, deleteOffer, type OfferData } from "@/services/offersService";
 import OfferForm from "@/components/merchant/OfferForm";
+import StampForm from "@/components/merchant/StampForm";
 import MerchantStoreEditForm from "@/components/merchant/MerchantStoreEditForm";
 
 export default function StoreDetailsPage() {
@@ -28,6 +35,7 @@ export default function StoreDetailsPage() {
   const [loadingStore, setLoadingStore] = useState(true);
   const [loadingOffers, setLoadingOffers] = useState(true);
   const [showOfferForm, setShowOfferForm] = useState(false);
+  const [showStampForm, setShowStampForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [offerToDelete, setOfferToDelete] = useState<string | null>(null);
 
@@ -78,6 +86,12 @@ export default function StoreDetailsPage() {
     setShowOfferForm(false);
     loadOffers();
     toast.success("Oferta cadastrada com sucesso!");
+  };
+
+  const handleStampSuccess = () => {
+    setShowStampForm(false);
+    loadOffers();
+    toast.success("Carimbo cadastrado com sucesso!");
   };
 
   const handleDeleteOffer = async () => {
@@ -220,14 +234,28 @@ export default function StoreDetailsPage() {
                 {offers.length} {offers.length === 1 ? "oferta cadastrada" : "ofertas cadastradas"}
               </p>
             </div>
-            <Button
-              onClick={() => setShowOfferForm(true)}
-              size="sm"
-              className="gradient-primary text-primary-foreground hover:opacity-95 transition-opacity shadow-md"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Oferta
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  className="gradient-primary text-primary-foreground hover:opacity-95 transition-opacity shadow-md"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Oferta
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setShowOfferForm(true)}>
+                  <Tag className="h-4 w-4 mr-2" />
+                  Ofertas
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowStampForm(true)}>
+                  <Stamp className="h-4 w-4 mr-2" />
+                  Carimbo
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {showOfferForm ? (
@@ -236,6 +264,13 @@ export default function StoreDetailsPage() {
               merchantId={user?.uid || ""}
               onCancel={() => setShowOfferForm(false)}
               onSuccess={handleOfferSuccess}
+            />
+          ) : showStampForm ? (
+            <StampForm
+              storeId={store.id}
+              merchantId={user?.uid || ""}
+              onCancel={() => setShowStampForm(false)}
+              onSuccess={handleStampSuccess}
             />
           ) : loadingOffers ? (
             <div className="flex flex-col items-center justify-center py-12">
@@ -251,13 +286,25 @@ export default function StoreDetailsPage() {
               <p className="text-sm text-muted-foreground mb-6">
                 Crie sua primeira oferta para atrair mais clientes
               </p>
-              <Button
-                onClick={() => setShowOfferForm(true)}
-                className="gradient-primary text-primary-foreground hover:opacity-95 transition-opacity shadow-md"
-              >
-                <Plus className="h-5 w-5 mr-2" />
-                Criar Oferta
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="gradient-primary text-primary-foreground hover:opacity-95 transition-opacity shadow-md">
+                    <Plus className="h-5 w-5 mr-2" />
+                    Criar Oferta
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center">
+                  <DropdownMenuItem onClick={() => setShowOfferForm(true)}>
+                    <Tag className="h-4 w-4 mr-2" />
+                    Ofertas
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowStampForm(true)}>
+                    <Stamp className="h-4 w-4 mr-2" />
+                    Carimbo
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           ) : (
             <div className="space-y-3">

@@ -186,6 +186,29 @@ service cloud.firestore {
     }
 
     // ============================================
+    // CARIMBOS (STAMP REWARDS)
+    // ============================================
+    match /stampRewards/{stampId} {
+      allow read: if true;
+      allow create: if request.auth != null
+                       && request.resource.data.merchantId == request.auth.uid
+                       && exists(/databases/$(database)/documents/merchants/$(request.auth.uid))
+                       && request.resource.data.keys().hasAll(['storeId', 'merchantId', 'totalStamps', 'rewardTitle', 'active', 'createdAt', 'updatedAt'])
+                       && request.resource.data.storeId is string
+                       && request.resource.data.merchantId is string
+                       && request.resource.data.totalStamps is int
+                       && request.resource.data.totalStamps >= 2
+                       && request.resource.data.totalStamps <= 100
+                       && request.resource.data.rewardTitle is string
+                       && request.resource.data.rewardTitle.size() > 0
+                       && request.resource.data.active is bool
+                       && request.resource.data.createdAt is timestamp
+                       && request.resource.data.updatedAt is timestamp;
+      allow update, delete: if request.auth != null
+                               && resource.data.merchantId == request.auth.uid;
+    }
+
+    // ============================================
     // CONTEÚDO DO APP (ex.: Política de Privacidade)
     // ============================================
     // Documento único editável no painel admin; leitura pública para exibir em todas as telas

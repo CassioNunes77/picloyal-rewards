@@ -16,6 +16,8 @@ struct MerchantStoreDetailsView: View {
     @State private var offers: [FirebaseOffer] = []
     @State private var loadingOffers = false
     @State private var showOfferForm = false
+    @State private var showStampForm = false
+    @State private var showOfferTypeMenu = false
     @State private var errorMessage: String? = nil
     @State private var showError = false
     
@@ -143,7 +145,7 @@ struct MerchantStoreDetailsView: View {
                                     .foregroundColor(.mutedForeground)
                             }
                             Spacer()
-                            Button(action: { showOfferForm = true }) {
+                            Button(action: { showOfferTypeMenu = true }) {
                                 HStack(spacing: AppSpacing.xs) {
                                     Image(systemName: "plus")
                                         .font(.system(size: 14, weight: .semibold))
@@ -156,6 +158,13 @@ struct MerchantStoreDetailsView: View {
                             }
                             .background(AppGradients.primary)
                             .cornerRadius(AppRadius.md)
+                            .confirmationDialog("Tipo de oferta", isPresented: $showOfferTypeMenu) {
+                                Button("Ofertas") { showOfferForm = true }
+                                Button("Carimbo") { showStampForm = true }
+                                Button("Cancelar", role: .cancel) { }
+                            } message: {
+                                Text("Escolha o tipo de oferta")
+                            }
                         }
                         .padding(.horizontal, AppSpacing.lg)
                         .padding(.top, AppSpacing.lg)
@@ -167,6 +176,17 @@ struct MerchantStoreDetailsView: View {
                                 onCancel: { showOfferForm = false },
                                 onSuccess: {
                                     showOfferForm = false
+                                    loadOffers()
+                                }
+                            )
+                            .padding(.horizontal, AppSpacing.lg)
+                        } else if showStampForm {
+                            MerchantStampFormView(
+                                storeId: store.id,
+                                merchantId: store.merchantId,
+                                onCancel: { showStampForm = false },
+                                onSuccess: {
+                                    showStampForm = false
                                     loadOffers()
                                 }
                             )
@@ -194,7 +214,7 @@ struct MerchantStoreDetailsView: View {
                                     .foregroundColor(.mutedForeground)
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal)
-                                Button(action: { showOfferForm = true }) {
+                                Button(action: { showOfferTypeMenu = true }) {
                                     HStack(spacing: AppSpacing.xs) {
                                         Image(systemName: "plus")
                                             .font(.system(size: 14, weight: .semibold))
