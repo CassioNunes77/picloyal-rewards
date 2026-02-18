@@ -1,12 +1,13 @@
-import { useState } from "react";
-import { MapPin, Star, Clock, Phone, ChevronRight, Search, Filter, Store } from "lucide-react";
+import { useState, useEffect } from "react";
+import { MapPin, Star, Clock, Phone, ChevronRight, Search, Filter, Store, Loader2 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { getStoresByCity } from "@/services/merchantsService";
 
-interface Store {
-  id: number;
+interface StoreItem {
+  id: string;
   name: string;
   address: string;
   distance: string;
@@ -23,71 +24,60 @@ const StoresPage = () => {
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [stores, setStores] = useState<StoreItem[]>([]);
+  const [loadingStores, setLoadingStores] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState("");
 
-  const stores: Store[] = [
-    {
-      id: 1,
-      name: "Café Central",
-      address: "Rua das Flores, 123 - Centro",
-      distance: "0.8 km",
-      rating: 4.8,
-      openUntil: "22:00",
-      phone: "(11) 3456-7890",
-      isOpen: true,
-      offers: 5,
-    },
-    {
-      id: 2,
-      name: "Restaurante Sabor",
-      address: "Av. Principal, 456 - Jardim",
-      distance: "1.2 km",
-      rating: 4.6,
-      openUntil: "23:30",
-      phone: "(11) 3456-7891",
-      isOpen: true,
-      offers: 3,
-    },
-    {
-      id: 3,
-      name: "Padaria Doce Vida",
-      address: "Rua Comercial, 789 - Vila Nova",
-      distance: "2.5 km",
-      rating: 4.9,
-      openUntil: "20:00",
-      phone: "(11) 3456-7892",
-      isOpen: true,
-      offers: 8,
-    },
-    {
-      id: 4,
-      name: "Supermercado Bom Preço",
-      address: "Av. Shopping, 321 - Centro",
-      distance: "3.1 km",
-      rating: 4.5,
-      openUntil: "23:00",
-      phone: "(11) 3456-7893",
-      isOpen: false,
-      offers: 12,
-    },
-    {
-      id: 5,
-      name: "Farmácia Saúde",
-      address: "Rua da Saúde, 654 - Centro",
-      distance: "1.8 km",
-      rating: 4.7,
-      openUntil: "24:00",
-      phone: "(11) 3456-7894",
-      isOpen: true,
-      offers: 2,
-    },
-  ];
+  useEffect(() => {
+    setSelectedLocation(localStorage.getItem("selectedLocation") || "");
+  }, []);
 
-  const filteredStores = stores.filter((store) =>
-    store.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    store.address.toLowerCase().includes(searchQuery.toLowerCase())
+  useEffect(() => {
+    if (!selectedLocation) {
+      setStores([]);
+      return;
+    }
+    let cancelled = false;
+    setLoadingStores(true);
+    getStoresByCity(selectedLocation)
+      .then((fbStores) => {
+        if (!cancelled) {
+          setStores(
+            fbStores.map((s) => ({
+              id: s.id!,
+              name: s.name,
+              address: s.address,
+              distance: "-",
+              rating: 0,
+              openUntil: "-",
+              phone: s.phone,
+              isOpen: true,
+              offers: 0,
+            }))
+          );
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          console.error("Erro ao carregar lojas:", error);
+          setStores([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingStores(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedLocation]);
+
+  const filteredStores = stores.filter(
+    (store) =>
+      store.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      store.address.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleStoreClick = (store: Store) => {
+  const handleStoreClick = (store: StoreItem) => {
     navigate(`/store/${store.id}`);
   };
 
@@ -120,10 +110,23 @@ const StoresPage = () => {
 
   const contentArea = (
     <>
-      {filteredStores.length === 0 ? (
+      {loadingStores ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-2" />
+          <p className="text-muted-foreground">Carregando lojas...</p>
+        </div>
+      ) : !selectedLocation ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <MapPin className="h-12 w-12 text-muted-foreground mb-2" />
+          <p className="text-muted-foreground mb-2">Selecione uma cidade</p>
+          <p className="text-sm text-muted-foreground text-center">Escolha sua localidade na tela inicial para ver as lojas</p>
+        </div>
+      ) : filteredStores.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12">
           <p className="text-muted-foreground mb-2">Nenhuma loja encontrada</p>
-          <p className="text-sm text-muted-foreground">Tente buscar com outros termos</p>
+          <p className="text-sm text-muted-foreground">
+            {searchQuery ? "Tente buscar com outros termos" : `Não há lojas em ${selectedLocation}`}
+          </p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -197,10 +200,23 @@ const StoresPage = () => {
         </div>
         <div className="mb-4">{searchBar}</div>
         <div className="pt-2">
-          {filteredStores.length === 0 ? (
+          {loadingStores ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-2" />
+              <p className="text-muted-foreground">Carregando lojas...</p>
+            </div>
+          ) : !selectedLocation ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <MapPin className="h-12 w-12 text-muted-foreground mb-2" />
+              <p className="text-muted-foreground mb-2">Selecione uma cidade</p>
+              <p className="text-sm text-muted-foreground text-center">Escolha sua localidade na tela inicial para ver as lojas</p>
+            </div>
+          ) : filteredStores.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
               <p className="text-muted-foreground mb-2">Nenhuma loja encontrada</p>
-              <p className="text-sm text-muted-foreground">Tente buscar com outros termos</p>
+              <p className="text-sm text-muted-foreground">
+                {searchQuery ? "Tente buscar com outros termos" : `Não há lojas em ${selectedLocation}`}
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-4">

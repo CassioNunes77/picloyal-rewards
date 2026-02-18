@@ -146,6 +146,35 @@ class StoresService {
         }
     }
     
+    /// Busca lojas ativas por cidade (para app do usuário)
+    /// cityFilter: formato "Cidade, UF" (LocationSelector) ou "Cidade - UF" (store.city)
+    func getStoresByCity(cityFilter: String) async throws -> [FirebaseStore] {
+        let normalizedCity = cityFilter.replacingOccurrences(of: ", ", with: " - ")
+        
+        let storesRef = db.collection(collectionName)
+        let query = storesRef
+            .whereField("city", isEqualTo: normalizedCity)
+            .whereField("active", isEqualTo: true)
+        
+        do {
+            let snapshot = try await query.getDocuments()
+            var stores: [FirebaseStore] = []
+            for document in snapshot.documents {
+                do {
+                    let store = try parseStore(documentId: document.documentID, data: document.data())
+                    stores.append(store)
+                } catch {
+                    print("❌ [StoresService] Erro ao parsear loja \(document.documentID): \(error.localizedDescription)")
+                }
+            }
+            stores.sort { $0.name.localizedCompare($1.name) == .orderedAscending }
+            return stores
+        } catch {
+            print("❌ [StoresService] Erro ao buscar lojas por cidade: \(error.localizedDescription)")
+            throw error
+        }
+    }
+    
     /// Busca todas as lojas de um lojista
     func getMerchantStores(merchantId: String) async throws -> [FirebaseStore] {
         print("🔍 [StoresService] Buscando lojas do merchant: \(merchantId)")

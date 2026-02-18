@@ -332,7 +332,7 @@ struct InfoTab: View {
             InfoCard(
                 icon: "clock.fill",
                 title: "Horário de Funcionamento",
-                content: store.isOpen ? "Aberto até \(store.openUntil)" : "Fechado",
+                content: (store.hours.flatMap { !$0.isEmpty ? $0 : nil } ?? (store.isOpen ? "Aberto até \(store.openUntil)" : "Fechado")),
                 color: store.isOpen ? Color.green : Color.red
             )
             
@@ -513,7 +513,7 @@ struct ReviewCard: View {
 #Preview {
     StoreDetailView(
         store: Store(
-            id: 1,
+            id: "1",
             name: "Café Central",
             address: "Rua das Flores, 123 - Centro",
             distance: "0.8 km",
@@ -521,7 +521,8 @@ struct ReviewCard: View {
             openUntil: "22:00",
             phone: "(11) 3456-7890",
             isOpen: true,
-            offers: 5
+            offers: 5,
+            hours: nil
         ),
         activeTab: .constant("stores"),
         isPresented: .constant(true)

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   ChevronRight, 
   MapPin, 
@@ -8,33 +8,26 @@ import {
   Share2, 
   Store,
   Tag,
-  MessageSquare
+  Loader2
 } from "lucide-react";
 import { useNavigate, Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { OfferDetailData } from "./OfferDetailPage";
+import { getStoreById } from "@/services/merchantsService";
+import { getStoreOffers, type OfferData } from "@/services/offersService";
 
-interface Store {
-  id: number;
+interface StoreDisplay {
+  id: string;
   name: string;
   address: string;
   distance: string;
   rating: number;
   openUntil: string;
   phone: string;
+  hours?: string;
   isOpen: boolean;
   offers: number;
-}
-
-interface Offer {
-  id: number;
-  title: string;
-  description: string;
-  discount: string;
-  validUntil: string;
-  icon: string;
-  category: string;
 }
 
 const StoreDetailPage = () => {
@@ -42,40 +35,45 @@ const StoreDetailPage = () => {
   const isMobile = useIsMobile();
   const { id } = useParams<{ id: string }>();
   const [selectedTab, setSelectedTab] = useState<"info" | "offers" | "reviews">("offers");
+  const [store, setStore] = useState<StoreDisplay | null>(null);
+  const [storeOffers, setStoreOffers] = useState<OfferData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - em produção, buscar pelo ID
-  const store: Store = {
-    id: parseInt(id || "1"),
-    name: "Café Central",
-    address: "Rua das Flores, 123 - Centro",
-    distance: "0.8 km",
-    rating: 4.8,
-    openUntil: "22:00",
-    phone: "(11) 3456-7890",
-    isOpen: true,
-    offers: 5,
-  };
-
-  const storeOffers: Offer[] = [
-    {
-      id: 1,
-      title: "20% OFF em Bebidas",
-      description: "Desconto em todas as bebidas do cardápio",
-      discount: "20%",
-      validUntil: "31/12/2024",
-      icon: "coffee",
-      category: "bebidas",
-    },
-    {
-      id: 2,
-      title: "Café Expresso Grátis",
-      description: "Um café expresso grátis com qualquer compra",
-      discount: "100%",
-      validUntil: "27/12/2024",
-      icon: "coffee",
-      category: "bebidas",
-    },
-  ];
+  useEffect(() => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    Promise.all([getStoreById(id), getStoreOffers(id)])
+      .then(([storeData, offers]) => {
+        if (!cancelled && storeData) {
+          setStore({
+            id: storeData.id!,
+            name: storeData.name,
+            address: storeData.address,
+            distance: "-",
+            rating: 0,
+            openUntil: "-",
+            phone: storeData.phone,
+            hours: storeData.hours,
+            isOpen: true,
+            offers: offers.filter((o) => o.active).length,
+          });
+          setStoreOffers(offers.filter((o) => o.active));
+        } else if (!cancelled) {
+          setStore(null);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setStore(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [id]);
 
   const reviews = [
     { name: "João Silva", comment: "Ótimo atendimento e produtos de qualidade!", rating: 5, date: "Há 2 dias" },
@@ -84,10 +82,11 @@ const StoreDetailPage = () => {
   ];
 
   const handlePhoneClick = () => {
-    window.location.href = `tel:${store.phone.replace(/[^0-9]/g, "")}`;
+    if (store) window.location.href = `tel:${store.phone.replace(/[^0-9]/g, "")}`;
   };
 
   const handleShare = () => {
+    if (!store) return;
     if (navigator.share) {
       navigator.share({
         title: store.name,
@@ -98,6 +97,30 @@ const StoreDetailPage = () => {
       toast.success("Link copiado para a área de transferência!");
     }
   };
+
+  const formatValidUntil = (date: Date) => {
+    return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  };
+
+  const hoursContent = store?.hours && store.hours.trim() ? store.hours : (store?.isOpen ? `Aberto até ${store?.openUntil}` : "Fechado");
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!store) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
+        <Store className="h-16 w-16 text-muted-foreground mb-4" />
+        <p className="text-muted-foreground text-center mb-4">Loja não encontrada</p>
+        <Link to="/stores" className="text-primary font-medium">Voltar para lojas</Link>
+      </div>
+    );
+  }
 
   const tabsAndContent = (
     <>
@@ -110,9 +133,9 @@ const StoreDetailPage = () => {
             }`}
           >
             Ofertas
-            {store.offers > 0 && (
+            {storeOffers.length > 0 && (
               <span className="absolute -top-1 -right-1 flex h-4 w-4 min-w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
-                {store.offers}
+                {storeOffers.length}
               </span>
             )}
           </button>
@@ -138,8 +161,10 @@ const StoreDetailPage = () => {
         <div className="space-y-3">
           <InfoCard icon={MapPin} title="Endereço" content={store.address} color="text-primary" />
           <InfoCard icon={Phone} title="Telefone" content={store.phone} color="text-secondary" onClick={handlePhoneClick} />
-          <InfoCard icon={Clock} title="Horário de Funcionamento" content={store.isOpen ? `Aberto até ${store.openUntil}` : "Fechado"} color={store.isOpen ? "text-green-500" : "text-red-500"} />
-          <InfoCard icon={Star} title="Avaliação" content={`${store.rating.toFixed(1)} de 5.0`} color="text-yellow-500" />
+          <InfoCard icon={Clock} title="Horário de Funcionamento" content={hoursContent} color={store.isOpen ? "text-green-500" : "text-red-500"} />
+          {store.rating > 0 && (
+            <InfoCard icon={Star} title="Avaliação" content={`${store.rating.toFixed(1)} de 5.0`} color="text-yellow-500" />
+          )}
         </div>
       )}
       {selectedTab === "offers" && (
@@ -150,13 +175,23 @@ const StoreDetailPage = () => {
               <p className="text-sm text-muted-foreground">Nenhuma oferta disponível</p>
             </div>
           ) : (
-            storeOffers.map((offer, index) => (
+            storeOffers.map((offer) => (
               <div key={offer.id}>
                 <button
                   onClick={() => {
                     navigate("/offer", {
                       state: {
-                        offer: { ...offer, storeName: store.name } as OfferDetailData,
+                        offer: {
+                          id: offer.id!,
+                          title: offer.title,
+                          description: offer.description,
+                          discount: offer.discount ?? "-",
+                          storeName: store.name,
+                          storeAddress: store.address,
+                          validUntil: formatValidUntil(offer.validUntil),
+                          icon: offer.category === "bebidas" ? "coffee" : "percent",
+                          category: offer.category,
+                        } as OfferDetailData,
                         storeName: store.name,
                       },
                     });
@@ -174,12 +209,12 @@ const StoreDetailPage = () => {
                           <p className="text-xs text-muted-foreground line-clamp-2">{offer.description}</p>
                         </div>
                         <div className="gradient-secondary text-secondary-foreground font-bold text-sm px-2.5 py-1.5 rounded-lg shrink-0">
-                          {offer.discount}
+                          {offer.discount ?? "-"}
                         </div>
                       </div>
                       <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                         <Clock className="h-3 w-3 shrink-0" />
-                        <span>Válido até {offer.validUntil}</span>
+                        <span>Válido até {formatValidUntil(offer.validUntil)}</span>
                       </div>
                     </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 self-center" />

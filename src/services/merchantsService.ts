@@ -320,6 +320,57 @@ export async function updateStore(
 }
 
 /**
+ * Busca uma loja pelo ID
+ */
+export async function getStoreById(storeId: string): Promise<StoreData | null> {
+  if (!firestore) {
+    console.error("❌ [merchantsService] Firestore não está configurado!");
+    return null;
+  }
+
+  try {
+    const storeRef = doc(firestore, STORES_COLLECTION, storeId);
+    const storeSnap = await getDoc(storeRef);
+    if (!storeSnap.exists()) return null;
+    return firestoreToStoreData(storeSnap.id, storeSnap.data());
+  } catch (error: any) {
+    console.error("❌ [merchantsService] Erro ao buscar loja:", error);
+    return null;
+  }
+}
+
+/**
+ * Busca lojas ativas por cidade (para app do usuário)
+ * cityFilter: formato "Cidade, UF" (LocationSelector) ou "Cidade - UF" (store.city)
+ */
+export async function getStoresByCity(cityFilter: string): Promise<StoreData[]> {
+  if (!firestore) {
+    console.error("❌ [merchantsService] Firestore não está configurado!");
+    return [];
+  }
+
+  try {
+    const normalizedCity = cityFilter.replace(", ", " - ");
+    const storesRef = collection(firestore, STORES_COLLECTION);
+    const q = query(
+      storesRef,
+      where("city", "==", normalizedCity),
+      where("active", "==", true)
+    );
+    const querySnapshot = await getDocs(q);
+
+    const stores = querySnapshot.docs
+      .map((doc) => firestoreToStoreData(doc.id, doc.data()))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    return stores;
+  } catch (error: any) {
+    console.error("❌ [merchantsService] Erro ao buscar lojas por cidade:", error);
+    return [];
+  }
+}
+
+/**
  * Busca todas as lojas de um lojista
  */
 export async function getMerchantStores(merchantId: string): Promise<StoreData[]> {

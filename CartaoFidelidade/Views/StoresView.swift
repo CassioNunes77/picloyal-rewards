@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct Store: Identifiable, Equatable {
-    let id: Int
+    let id: String
     let name: String
     let address: String
     let distance: String
@@ -17,77 +17,38 @@ struct Store: Identifiable, Equatable {
     let phone: String
     let isOpen: Bool
     let offers: Int
+    let hours: String?
     
     static func == (lhs: Store, rhs: Store) -> Bool {
         lhs.id == rhs.id
+    }
+    
+    static func fromFirebase(_ fb: FirebaseStore) -> Store {
+        Store(
+            id: fb.id,
+            name: fb.name,
+            address: fb.address,
+            distance: "-",
+            rating: 0,
+            openUntil: "-",
+            phone: fb.phone,
+            isOpen: true,
+            offers: 0,
+            hours: fb.hours
+        )
     }
 }
 
 struct StoresView: View {
     @Binding var activeTab: String
+    @AppStorage("selectedLocation") private var selectedLocation = ""
     @State private var searchQuery = ""
     @State private var showFilters = false
     @State private var showToast = false
     @State private var toastMessage = ""
     @State private var selectedStore: Store? = nil
-    
-    let stores = [
-        Store(
-            id: 1,
-            name: "Café Central",
-            address: "Rua das Flores, 123 - Centro",
-            distance: "0.8 km",
-            rating: 4.8,
-            openUntil: "22:00",
-            phone: "(11) 3456-7890",
-            isOpen: true,
-            offers: 5
-        ),
-        Store(
-            id: 2,
-            name: "Restaurante Sabor",
-            address: "Av. Principal, 456 - Jardim",
-            distance: "1.2 km",
-            rating: 4.6,
-            openUntil: "23:30",
-            phone: "(11) 3456-7891",
-            isOpen: true,
-            offers: 3
-        ),
-        Store(
-            id: 3,
-            name: "Padaria Doce Vida",
-            address: "Rua Comercial, 789 - Vila Nova",
-            distance: "2.5 km",
-            rating: 4.9,
-            openUntil: "20:00",
-            phone: "(11) 3456-7892",
-            isOpen: true,
-            offers: 8
-        ),
-        Store(
-            id: 4,
-            name: "Supermercado Bom Preço",
-            address: "Av. Shopping, 321 - Centro",
-            distance: "3.1 km",
-            rating: 4.5,
-            openUntil: "23:00",
-            phone: "(11) 3456-7893",
-            isOpen: false,
-            offers: 12
-        ),
-        Store(
-            id: 5,
-            name: "Farmácia Saúde",
-            address: "Rua da Saúde, 654 - Centro",
-            distance: "1.8 km",
-            rating: 4.7,
-            openUntil: "24:00",
-            phone: "(11) 3456-7894",
-            isOpen: true,
-            offers: 2
-        )
-    ]
+    @State private var stores: [Store] = []
+    @State private var loadingStores = false
     
     var filteredStores: [Store] {
         if searchQuery.isEmpty {
@@ -179,17 +140,38 @@ struct StoresView: View {
                 // Content
                 ScrollView {
                     VStack(spacing: AppSpacing.md) {
-                        if filteredStores.isEmpty {
+                        if loadingStores {
+                            VStack(spacing: AppSpacing.md) {
+                                ProgressView()
+                                    .scaleEffect(1.5)
+                                    .padding(.top, AppSpacing.xl * 2)
+                                Text("Carregando lojas...")
+                                    .font(.appBody)
+                                    .foregroundColor(.mutedForeground)
+                            }
+                        } else if selectedLocation.isEmpty {
+                            VStack(spacing: AppSpacing.md) {
+                                Image(systemName: "mappin.circle")
+                                    .font(.system(size: 48))
+                                    .foregroundColor(.mutedForeground)
+                                Text("Selecione uma cidade")
+                                    .font(.appBody)
+                                    .foregroundColor(.mutedForeground)
+                                Text("Escolha sua localidade na tela inicial para ver as lojas")
+                                    .font(.appCaption)
+                                    .foregroundColor(.mutedForeground)
+                                    .multilineTextAlignment(.center)
+                            }
+                            .padding(.top, AppSpacing.xl * 2)
+                        } else if filteredStores.isEmpty {
                             VStack(spacing: AppSpacing.md) {
                                 Image(systemName: "storefront")
                                     .font(.system(size: 48))
                                     .foregroundColor(.mutedForeground)
-                                
                                 Text("Nenhuma loja encontrada")
                                     .font(.appBody)
                                     .foregroundColor(.mutedForeground)
-                                
-                                Text("Tente buscar com outros termos")
+                                Text(searchQuery.isEmpty ? "Não há lojas em \(selectedLocation)" : "Tente buscar com outros termos")
                                     .font(.appCaption)
                                     .foregroundColor(.mutedForeground)
                             }
@@ -248,6 +230,35 @@ struct StoresView: View {
         }
         .ignoresSafeArea(edges: .top)
         .animation(.easeInOut(duration: 0.3), value: selectedStore)
+        .onAppear {
+            loadStores()
+        }
+        .onChange(of: selectedLocation) { _, _ in
+            loadStores()
+        }
+    }
+    
+    private func loadStores() {
+        guard !selectedLocation.isEmpty else {
+            stores = []
+            return
+        }
+        loadingStores = true
+        Task {
+            do {
+                let fbStores = try await StoresService.shared.getStoresByCity(cityFilter: selectedLocation)
+                await MainActor.run {
+                    stores = fbStores.map { Store.fromFirebase($0) }
+                    loadingStores = false
+                }
+            } catch {
+                print("❌ [StoresView] Erro ao carregar lojas: \(error.localizedDescription)")
+                await MainActor.run {
+                    stores = []
+                    loadingStores = false
+                }
+            }
+        }
     }
     
     private func showToast(message: String) {
