@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { QrCode, History, Sparkles, Store, Settings } from "lucide-react";
 import LoyaltyCard from "@/components/LoyaltyCard";
 import StampGrid from "@/components/StampGrid";
@@ -19,7 +19,19 @@ const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
   const [stampRewards, setStampRewards] = useState<StampRewardData[]>([]);
+  const [stampCarouselIndex, setStampCarouselIndex] = useState(0);
+  const stampCarouselRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+
+  const updateStampCarouselIndex = useCallback(() => {
+    const el = stampCarouselRef.current;
+    if (!el || stampRewards.length === 0) return;
+    const card = el.querySelector("[data-stamp-card]") as HTMLElement | null;
+    const gap = 16;
+    const cardWidth = card?.offsetWidth ?? 280;
+    const index = Math.round(el.scrollLeft / (cardWidth + gap));
+    setStampCarouselIndex(Math.min(Math.max(0, index), stampRewards.length - 1));
+  }, [stampRewards.length]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -30,6 +42,13 @@ const Index = () => {
   useEffect(() => {
     getAllStampRewards().then(setStampRewards);
   }, []);
+
+  useEffect(() => {
+    const el = stampCarouselRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", updateStampCarouselIndex);
+    return () => el.removeEventListener("scroll", updateStampCarouselIndex);
+  }, [updateStampCarouselIndex]);
 
   if (authLoading || !user) {
     return (
@@ -127,17 +146,34 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             <div className="md:col-span-5">
               {stampRewards.length > 0 ? (
-                <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin">
-                  {stampRewards.map((sr) => (
-                    <div key={sr.id} className="flex-shrink-0 min-w-[260px] w-[min(100%,320px)] snap-center">
-                      <StampGrid
+                <div className="space-y-2">
+                  <div
+                    ref={stampCarouselRef}
+                    className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
+                  >
+                    {stampRewards.map((sr) => (
+                      <div key={sr.id} data-stamp-card className="flex-shrink-0 min-w-[260px] w-[min(100%,320px)] snap-center">
+                        <StampGrid
                         currentStamps={0}
                         totalStamps={sr.totalStamps}
                         reward={sr.rewardTitle}
                         storeName={sr.storeName}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-center gap-1">
+                    {stampRewards.map((_, i) => (
+                      <div
+                        key={i}
+                        className="h-[3px] w-[3px] rounded-full transition-opacity"
+                        style={{
+                          backgroundColor: "hsl(var(--muted-foreground))",
+                          opacity: i === stampCarouselIndex ? 0.6 : 0.2,
+                        }}
                       />
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               ) : null}
             </div>
@@ -231,20 +267,38 @@ const Index = () => {
         </div>
         {stampRewards.length > 0 && (
           <div className="mb-6 animate-fade-in" style={{ animationDelay: "250ms" }}>
-            <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory -mx-6 px-6 scrollbar-thin">
-              {stampRewards.map((sr) => (
-                <div
-                  key={sr.id}
-                  className="flex-shrink-0 w-[min(calc(100vw-48px),320px)] snap-center"
-                >
-                  <StampGrid
+            <div className="space-y-2">
+              <div
+                ref={stampCarouselRef}
+                className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory -mx-6 px-6 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
+              >
+                {stampRewards.map((sr) => (
+                  <div
+                    key={sr.id}
+                    data-stamp-card
+                    className="flex-shrink-0 w-[min(calc(100vw-48px),320px)] snap-center"
+                  >
+                    <StampGrid
                     currentStamps={0}
                     totalStamps={sr.totalStamps}
                     reward={sr.rewardTitle}
                     storeName={sr.storeName}
                   />
-                </div>
-              ))}
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-center gap-1">
+                {stampRewards.map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-[3px] w-[3px] rounded-full transition-opacity"
+                    style={{
+                      backgroundColor: "hsl(var(--muted-foreground))",
+                      opacity: i === stampCarouselIndex ? 0.6 : 0.2,
+                    }}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         )}

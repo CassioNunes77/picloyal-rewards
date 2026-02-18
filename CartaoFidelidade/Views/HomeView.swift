@@ -16,6 +16,7 @@ struct HomeView: View {
     @State private var showToast = false
     @State private var toastMessage = ""
     @State private var stampRewards: [FirebaseStampReward] = []
+    @State private var stampCarouselIndex: Int = 0
     
     let rewards = [
         Reward(
@@ -76,11 +77,11 @@ struct HomeView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Bem-vindo de volta,")
                                     .font(.appCaption)
-                                    .foregroundColor(.white.opacity(0.8))
+                                    .foregroundColor(.heroForegroundMuted)
                                 
                                 Text(userDisplayName.isEmpty ? "Usuário" : String(userDisplayName.split(separator: " ").first ?? Substring(userDisplayName)))
                                     .font(.appTitle)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.heroForeground)
                             }
                             .fadeIn()
                             
@@ -95,11 +96,11 @@ struct HomeView: View {
                                     }) {
                                         ZStack {
                                             Circle()
-                                                .fill(Color.white.opacity(0.2))
+                                                .fill(Color.heroOverlay)
                                                 .frame(width: 40, height: 40)
                                             
                                             Image(systemName: "bell.fill")
-                                                .foregroundColor(.white)
+                                                .foregroundColor(.heroForeground)
                                                 .font(.system(size: 20))
                                             
                                             ZStack {
@@ -122,13 +123,13 @@ struct HomeView: View {
                                         showSettings = true
                                     }
                                 }) {
-                                    ZStack {
-                                        Circle()
-                                            .fill(Color.white.opacity(0.2))
-                                            .frame(width: 40, height: 40)
+                                        ZStack {
+                                            Circle()
+                                                .fill(Color.heroOverlay)
+                                                .frame(width: 40, height: 40)
                                         
                                         Image(systemName: "gearshape.fill")
-                                            .foregroundColor(.white)
+                                            .foregroundColor(.heroForeground)
                                             .font(.system(size: 20))
                                     }
                                 }
@@ -194,9 +195,9 @@ struct HomeView: View {
                         
                         // Stamp Carousel (carimbos do Firebase)
                         if !stampRewards.isEmpty {
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: AppSpacing.md) {
-                                    ForEach(stampRewards) { sr in
+                            VStack(spacing: AppSpacing.sm) {
+                                TabView(selection: $stampCarouselIndex) {
+                                    ForEach(Array(stampRewards.enumerated()), id: \.element.id) { index, sr in
                                         StampGrid(
                                             currentStamps: 0,
                                             totalStamps: sr.totalStamps,
@@ -204,9 +205,21 @@ struct HomeView: View {
                                             storeName: sr.storeName
                                         )
                                         .frame(width: UIScreen.main.bounds.width - AppSpacing.lg * 2)
+                                        .tag(index)
                                     }
                                 }
-                                .padding(.horizontal, AppSpacing.lg)
+                                .tabViewStyle(.page(indexDisplayMode: .never))
+                                .frame(height: 220)
+                                
+                                // Indicadores em pontinhos ultra discretos
+                                HStack(spacing: 3) {
+                                    ForEach(Array(stampRewards.enumerated()), id: \.element.id) { index, _ in
+                                        Circle()
+                                            .fill(index == stampCarouselIndex ? Color.mutedForeground.opacity(0.6) : Color.mutedForeground.opacity(0.2))
+                                            .frame(width: 3, height: 3)
+                                    }
+                                }
+                                .padding(.top, 2)
                             }
                             .fadeIn(delay: 0.25)
                         }
@@ -264,27 +277,27 @@ struct HomeView: View {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("Oferta Especial")
                                         .font(.system(size: 14, weight: .medium))
-                                        .foregroundColor(.white.opacity(0.8))
+                                        .foregroundColor(.heroForegroundMuted)
                                     
                                     Text("Pontos em Dobro!")
                                         .font(.appHeadline)
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.heroForeground)
                                     
                                     Text("Válido até domingo, 23:59")
                                         .font(.appCaption)
-                                        .foregroundColor(.white.opacity(0.8))
+                                        .foregroundColor(.heroForegroundMuted)
                                 }
                                 
                                 Spacer()
                                 
                                 ZStack {
                                     Circle()
-                                        .fill(Color.white.opacity(0.2))
+                                        .fill(Color.heroOverlay)
                                         .frame(width: 64, height: 64)
                                     
                                     Text("2x")
                                         .font(.system(size: 24, weight: .bold))
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.heroForeground)
                                 }
                             }
                             .padding(AppSpacing.lg)
@@ -320,10 +333,10 @@ struct HomeView: View {
                     
                     Text(toastMessage)
                         .font(.appBody)
-                        .foregroundColor(.white)
+                        .foregroundColor(.cardForeground)
                         .padding(.horizontal, AppSpacing.lg)
                         .padding(.vertical, AppSpacing.md)
-                        .background(Color.appForeground.opacity(0.9))
+                        .background(Color.card)
                         .cornerRadius(AppRadius.md)
                         .padding(.bottom, 100)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
