@@ -340,6 +340,64 @@ export async function getStoreById(storeId: string): Promise<StoreData | null> {
 }
 
 /**
+ * Busca cidades distintas com lojas ativas (para o seletor de localidade)
+ * Retorna cidades no formato { city, state, displayName } para exibição
+ */
+export interface CityOption {
+  city: string;
+  state: string;
+  displayName: string; // "Cidade, UF" para LocationSelector
+  storesCount: number;
+}
+
+export async function getCitiesFromStores(): Promise<CityOption[]> {
+  if (!firestore) {
+    console.error("❌ [merchantsService] Firestore não está configurado!");
+    return [];
+  }
+
+  try {
+    const storesRef = collection(firestore, STORES_COLLECTION);
+    const q = query(storesRef, where("active", "==", true));
+    const querySnapshot = await getDocs(q);
+
+    const cityMap = new Map<string, { city: string; state: string; count: number }>();
+
+    querySnapshot.docs.forEach((docSnap) => {
+      const data = docSnap.data();
+      const cityStr = data.city as string;
+      if (!cityStr?.trim()) return;
+
+      // store.city formato: "Cidade - UF"
+      const parts = cityStr.split(" - ").map((s) => s.trim());
+      const city = parts[0] || "";
+      const state = parts[1] || "";
+      if (!city || !state) return;
+
+      const key = `${city}|${state}`;
+      const existing = cityMap.get(key);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        cityMap.set(key, { city, state, count: 1 });
+      }
+    });
+
+    return Array.from(cityMap.entries())
+      .map(([, v]) => ({
+        city: v.city,
+        state: v.state,
+        displayName: `${v.city}, ${v.state}`,
+        storesCount: v.count,
+      }))
+      .sort((a, b) => a.displayName.localeCompare(b.displayName));
+  } catch (error: any) {
+    console.error("❌ [merchantsService] Erro ao buscar cidades das lojas:", error);
+    return [];
+  }
+}
+
+/**
  * Busca lojas ativas por cidade (para app do usuário)
  * cityFilter: formato "Cidade, UF" (LocationSelector) ou "Cidade - UF" (store.city)
  */
