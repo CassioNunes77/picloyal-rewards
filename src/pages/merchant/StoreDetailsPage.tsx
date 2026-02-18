@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { getMerchantStores, type StoreData } from "@/services/merchantsService";
 import { getStoreOffers, createOffer, deleteOffer, type OfferData } from "@/services/offersService";
+import { getStoreStampRewards, type StampRewardData } from "@/services/stampRewardsService";
 import OfferForm from "@/components/merchant/OfferForm";
 import StampForm from "@/components/merchant/StampForm";
 import MerchantStoreEditForm from "@/components/merchant/MerchantStoreEditForm";
@@ -32,6 +33,7 @@ export default function StoreDetailsPage() {
   const { user } = useAuth();
   const [store, setStore] = useState<StoreData | null>(null);
   const [offers, setOffers] = useState<OfferData[]>([]);
+  const [stampRewards, setStampRewards] = useState<StampRewardData[]>([]);
   const [loadingStore, setLoadingStore] = useState(true);
   const [loadingOffers, setLoadingOffers] = useState(true);
   const [showOfferForm, setShowOfferForm] = useState(false);
@@ -72,8 +74,12 @@ export default function StoreDetailsPage() {
     
     setLoadingOffers(true);
     try {
-      const storeOffers = await getStoreOffers(storeId);
+      const [storeOffers, stamps] = await Promise.all([
+        getStoreOffers(storeId),
+        getStoreStampRewards(storeId),
+      ]);
       setOffers(storeOffers);
+      setStampRewards(stamps);
     } catch (error) {
       console.error("Erro ao carregar ofertas:", error);
       toast.error("Erro ao carregar ofertas");
@@ -277,7 +283,7 @@ export default function StoreDetailsPage() {
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
               <p className="text-sm text-muted-foreground">Carregando ofertas...</p>
             </div>
-          ) : offers.length === 0 ? (
+          ) : offers.length === 0 && stampRewards.length === 0 ? (
             <div className="text-center py-12">
               <Tag className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-card-foreground mb-2">
@@ -307,7 +313,46 @@ export default function StoreDetailsPage() {
               </DropdownMenu>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-6">
+              {/* Carimbos cadastrados - acima das ofertas */}
+              {stampRewards.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                    <Stamp className="h-4 w-4" />
+                    Carimbos ({stampRewards.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {stampRewards.map((sr) => (
+                      <div
+                        key={sr.id}
+                        className="bg-background rounded-xl p-4 border border-border flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                            <Stamp className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-card-foreground">
+                              {sr.totalStamps} carimbos = {sr.rewardTitle}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Programa ativo
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* Ofertas */}
+              {offers.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                    <Tag className="h-4 w-4" />
+                    Ofertas ({offers.length})
+                  </h3>
+                  <div className="space-y-3">
               {offers.map((offer) => (
                 <div
                   key={offer.id}
@@ -358,6 +403,9 @@ export default function StoreDetailsPage() {
                   </div>
                 </div>
               ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
           </div>

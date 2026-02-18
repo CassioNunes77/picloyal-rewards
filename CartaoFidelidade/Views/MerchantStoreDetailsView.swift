@@ -14,6 +14,7 @@ struct MerchantStoreDetailsView: View {
     var onEdit: (() -> Void)? = nil
     
     @State private var offers: [FirebaseOffer] = []
+    @State private var stampRewards: [FirebaseStampReward] = []
     @State private var loadingOffers = false
     @State private var showOfferForm = false
     @State private var showStampForm = false
@@ -201,7 +202,7 @@ struct MerchantStoreDetailsView: View {
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, AppSpacing.xl * 2)
-                        } else if offers.isEmpty {
+                        } else if offers.isEmpty && stampRewards.isEmpty {
                             VStack(spacing: AppSpacing.lg) {
                                 Image(systemName: "tag.fill")
                                     .font(.system(size: 56))
@@ -232,9 +233,38 @@ struct MerchantStoreDetailsView: View {
                             .padding(.vertical, AppSpacing.xl * 2)
                             .padding(.horizontal, AppSpacing.lg)
                         } else {
-                            VStack(spacing: AppSpacing.sm) {
-                                ForEach(offers) { offer in
-                                    OfferCardView(offer: offer) { deleteOffer(offer) }
+                            VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                                // Carimbos cadastrados - acima das ofertas
+                                if !stampRewards.isEmpty {
+                                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                                        HStack(spacing: AppSpacing.xs) {
+                                            Image(systemName: "stamp")
+                                                .font(.system(size: 14))
+                                                .foregroundColor(.mutedForeground)
+                                            Text("Carimbos (\(stampRewards.count))")
+                                                .font(.system(size: 14, weight: .semibold))
+                                                .foregroundColor(.mutedForeground)
+                                        }
+                                        ForEach(stampRewards) { sr in
+                                            StampRewardCardView(stampReward: sr)
+                                        }
+                                    }
+                                }
+                                // Ofertas
+                                if !offers.isEmpty {
+                                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                                        HStack(spacing: AppSpacing.xs) {
+                                            Image(systemName: "tag.fill")
+                                                .font(.system(size: 14))
+                                                .foregroundColor(.mutedForeground)
+                                            Text("Ofertas (\(offers.count))")
+                                                .font(.system(size: 14, weight: .semibold))
+                                                .foregroundColor(.mutedForeground)
+                                        }
+                                        ForEach(offers) { offer in
+                                            OfferCardView(offer: offer) { deleteOffer(offer) }
+                                        }
+                                    }
                                 }
                             }
                             .padding(.horizontal, AppSpacing.lg)
@@ -272,9 +302,12 @@ struct MerchantStoreDetailsView: View {
         
         Task {
             do {
-                let storeOffers = try await OffersService.shared.getStoreOffers(storeId: store.id)
+                async let storeOffersTask = OffersService.shared.getStoreOffers(storeId: store.id)
+                async let stampRewardsTask = StampRewardsService.shared.getStoreStampRewards(storeId: store.id)
+                let (storeOffers, stamps) = try await (storeOffersTask, stampRewardsTask)
                 await MainActor.run {
                     self.offers = storeOffers
+                    self.stampRewards = stamps
                     self.loadingOffers = false
                 }
             } catch {
@@ -305,6 +338,38 @@ struct MerchantStoreDetailsView: View {
                 }
             }
         }
+    }
+}
+
+struct StampRewardCardView: View {
+    let stampReward: FirebaseStampReward
+    
+    var body: some View {
+        HStack(spacing: AppSpacing.sm) {
+            Image(systemName: "stamp")
+                .font(.system(size: 20))
+                .foregroundColor(.primary)
+                .frame(width: 40, height: 40)
+                .background(Color.primary.opacity(0.1))
+                .cornerRadius(AppRadius.md)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(stampReward.totalStamps) carimbos = \(stampReward.rewardTitle)")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(.cardForeground)
+                Text("Programa ativo")
+                    .font(.system(size: 12))
+                    .foregroundColor(.mutedForeground)
+            }
+            Spacer()
+        }
+        .padding(AppSpacing.md)
+        .background(Color.card)
+        .cornerRadius(AppRadius.lg)
+        .overlay(
+            RoundedRectangle(cornerRadius: AppRadius.lg)
+                .stroke(Color.border, lineWidth: 1)
+        )
+        .appShadow(AppShadow.sm)
     }
 }
 

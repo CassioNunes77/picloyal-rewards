@@ -5,15 +5,16 @@ interface StampGridProps {
   currentStamps: number;
   totalStamps: number;
   reward: string;
+  storeName?: string;
 }
 
-const StampGrid = ({ currentStamps, totalStamps, reward }: StampGridProps) => {
+const StampGrid = ({ currentStamps, totalStamps, reward, storeName }: StampGridProps) => {
   const [pressedIndex, setPressedIndex] = useState<number | null>(null);
 
   return (
     <div className="rounded-2xl bg-card p-5 shadow-lg transition-all duration-300 hover:shadow-xl">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="font-semibold text-card-foreground">Seus Carimbos</h3>
+        <h3 className="font-semibold text-card-foreground truncate pr-2">{storeName || "Seus Carimbos"}</h3>
         <span className="text-sm text-muted-foreground">{currentStamps}/{totalStamps}</span>
       </div>
       

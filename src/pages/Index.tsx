@@ -134,6 +134,7 @@ const Index = () => {
                         currentStamps={0}
                         totalStamps={sr.totalStamps}
                         reward={sr.rewardTitle}
+                        storeName={sr.storeName}
                       />
                     </div>
                   ))}
@@ -240,6 +241,7 @@ const Index = () => {
                     currentStamps={0}
                     totalStamps={sr.totalStamps}
                     reward={sr.rewardTitle}
+                    storeName={sr.storeName}
                   />
                 </div>
               ))}

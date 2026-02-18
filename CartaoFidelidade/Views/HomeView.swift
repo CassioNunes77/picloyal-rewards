@@ -200,7 +200,8 @@ struct HomeView: View {
                                         StampGrid(
                                             currentStamps: 0,
                                             totalStamps: sr.totalStamps,
-                                            reward: sr.rewardTitle
+                                            reward: sr.rewardTitle,
+                                            storeName: sr.storeName
                                         )
                                         .frame(width: UIScreen.main.bounds.width - AppSpacing.lg * 2)
                                     }

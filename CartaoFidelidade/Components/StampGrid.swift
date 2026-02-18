@@ -11,15 +11,17 @@ struct StampGrid: View {
     let currentStamps: Int
     let totalStamps: Int
     let reward: String
+    var storeName: String? = nil
     
     @State private var pressedIndex: Int? = nil
     
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             HStack {
-                Text("Seus Carimbos")
+                Text(storeName ?? "Seus Carimbos")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.cardForeground)
+                    .lineLimit(1)
                 
                 Spacer()
                 

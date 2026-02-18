@@ -1,11 +1,13 @@
 import { doc, collection, getDocs, addDoc, query, where, Timestamp } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
+import { getStoreById } from "./merchantsService";
 
 const STAMP_REWARDS_COLLECTION = "stampRewards";
 
 export interface StampRewardData {
   id?: string;
   storeId: string;
+  storeName?: string;
   merchantId: string;
   totalStamps: number;
   rewardTitle: string;
@@ -83,7 +85,7 @@ export async function getAllStampRewards(): Promise<StampRewardData[]> {
     const q = query(ref, where("active", "==", true));
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map((d) => {
+    const rewards = snapshot.docs.map((d) => {
       const data = d.data();
       return {
         id: d.id,
@@ -96,6 +98,14 @@ export async function getAllStampRewards(): Promise<StampRewardData[]> {
         updatedAt: toDate(data?.updatedAt),
       };
     });
+
+    const withStoreNames = await Promise.all(
+      rewards.map(async (r) => {
+        const store = r.storeId ? await getStoreById(r.storeId) : null;
+        return { ...r, storeName: store?.name ?? "" };
+      })
+    );
+    return withStoreNames;
   } catch (error: any) {
     console.error("❌ [stampRewardsService] Erro ao buscar carimbos:", error);
     return [];

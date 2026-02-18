@@ -12,6 +12,7 @@ import FirebaseAuth
 struct FirebaseStampReward: Identifiable {
     let id: String
     let storeId: String
+    let storeName: String?
     let merchantId: String
     let totalStamps: Int
     let rewardTitle: String
@@ -55,27 +56,43 @@ class StampRewardsService {
             .whereField("active", isEqualTo: true)
             .getDocuments()
         
-        return snapshot.documents.compactMap { doc in
-            try? parseStampReward(doc.documentID, doc.data())
+        var rewards: [FirebaseStampReward] = []
+        for doc in snapshot.documents {
+            guard let base = try? parseStampReward(doc.documentID, doc.data()) else { continue }
+            let store = try? await StoresService.shared.getStoreById(storeId: base.storeId)
+            let reward = FirebaseStampReward(
+                id: base.id,
+                storeId: base.storeId,
+                storeName: store?.name,
+                merchantId: base.merchantId,
+                totalStamps: base.totalStamps,
+                rewardTitle: base.rewardTitle,
+                active: base.active,
+                createdAt: base.createdAt,
+                updatedAt: base.updatedAt
+            )
+            rewards.append(reward)
         }
+        return rewards
     }
     
     /// Busca programas de carimbo de uma loja
-    func getStoreStampRewards(storeId: String) async throws -> [FirebaseStampReward] {
+    func getStoreStampRewards(storeId: String, storeName: String? = nil) async throws -> [FirebaseStampReward] {
         let snapshot = try await db.collection(collectionName)
             .whereField("storeId", isEqualTo: storeId)
             .getDocuments()
         
         return snapshot.documents.compactMap { doc in
-            try? parseStampReward(doc.documentID, doc.data())
+            try? parseStampReward(doc.documentID, doc.data(), storeName: storeName)
         }
     }
     
-    private func parseStampReward(_ id: String, _ data: [String: Any]) throws -> FirebaseStampReward {
+    private func parseStampReward(_ id: String, _ data: [String: Any], storeName: String? = nil) throws -> FirebaseStampReward {
         let totalStamps = (data["totalStamps"] as? Int) ?? (data["totalStamps"] as? Int64).map { Int($0) } ?? 0
         return FirebaseStampReward(
             id: id,
             storeId: data["storeId"] as? String ?? "",
+            storeName: storeName,
             merchantId: data["merchantId"] as? String ?? "",
             totalStamps: totalStamps,
             rewardTitle: data["rewardTitle"] as? String ?? "",

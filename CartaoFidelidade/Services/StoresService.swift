@@ -208,6 +208,14 @@ class StoresService {
         }
     }
     
+    /// Busca uma loja pelo ID
+    func getStoreById(storeId: String) async throws -> FirebaseStore? {
+        let docRef = db.collection(collectionName).document(storeId)
+        let snapshot = try await docRef.getDocument()
+        guard snapshot.exists, let data = snapshot.data() else { return nil }
+        return try? parseStore(documentId: snapshot.documentID, data: data)
+    }
+    
     /// Parse de documento do Firestore para FirebaseStore
     private func parseStore(documentId: String, data: [String: Any]) throws -> FirebaseStore {
         guard let merchantId = data["merchantId"] as? String,
