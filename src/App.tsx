@@ -14,6 +14,7 @@ import Index from "./pages/Index";
 import StoresPage from "./pages/StoresPage";
 import OffersPage from "./pages/OffersPage";
 import ProfilePage from "./pages/ProfilePage";
+import PremiumPage from "./pages/PremiumPage";
 import LoginPage from "./pages/LoginPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import HistoryPage from "./pages/HistoryPage";
@@ -161,6 +162,7 @@ const App = () => {
                         <Route path="/offers" element={<OffersPage />} />
                         <Route path="/offer" element={<OfferDetailPage />} />
                         <Route path="/profile" element={<ProfilePage />} />
+                        <Route path="/premium" element={<PremiumPage />} />
                         <Route path="/notifications" element={<NotificationsPage />} />
                         <Route path="/history" element={<HistoryPage />} />
                         <Route path="/history-detail" element={<HistoryDetailPage />} />

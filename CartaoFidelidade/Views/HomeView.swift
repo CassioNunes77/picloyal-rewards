@@ -11,6 +11,7 @@ struct HomeView: View {
     @Binding var showSettings: Bool
     @Binding var activeTab: String
     @Binding var showQRCode: Bool
+    @Binding var showPremium: Bool
     @AppStorage("userDisplayName") private var userDisplayName = ""
     @AppStorage("userEmail") private var userEmail = ""
     @AppStorage("selectedLocation") private var selectedLocation = ""
@@ -275,7 +276,7 @@ struct HomeView: View {
                         }
                         
                         // Premium Ad Card
-                        Button(action: {}) {
+                        Button(action: { showPremium = true }) {
                             HStack {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("Seja Premium")
@@ -317,7 +318,7 @@ struct HomeView: View {
                         .fadeIn(delay: 0.5)
                         
                         // Promo Banner
-                        Button(action: {}) {
+                        Button(action: { showPremium = true }) {
                             HStack {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("Oferta Especial")
@@ -436,5 +437,5 @@ struct RoundedCorner: Shape {
 }
 
 #Preview {
-    HomeView(showSettings: .constant(false), activeTab: .constant("home"), showQRCode: .constant(false))
+    HomeView(showSettings: .constant(false), activeTab: .constant("home"), showQRCode: .constant(false), showPremium: .constant(false))
 }

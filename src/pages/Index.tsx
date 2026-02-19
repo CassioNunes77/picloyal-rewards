@@ -6,7 +6,7 @@ import RewardCard from "@/components/RewardCard";
 import QuickAction from "@/components/QuickAction";
 import SettingsScreen from "@/components/SettingsScreen";
 import LocationSelector from "@/components/LocationSelector";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQR } from "@/contexts/QRContext";
@@ -137,9 +137,10 @@ const Index = () => {
               </div>
             </div>
             <div className="md:col-span-5 flex flex-col gap-4">
-              <div
+              <Link
+                to="/premium"
                 className="min-h-[100px] overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 p-5 text-white
-                           transition-all duration-300 hover:shadow-md cursor-pointer flex items-center justify-between"
+                           transition-all duration-300 hover:shadow-md flex items-center justify-between"
               >
                 <div>
                   <p className="text-sm font-medium opacity-90">Seja Premium</p>
@@ -148,10 +149,11 @@ const Index = () => {
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20">
                   <Crown className="h-6 w-6" />
                 </div>
-              </div>
-              <div
+              </Link>
+              <Link
+                to="/premium"
                 className="h-full min-h-[140px] overflow-hidden rounded-2xl gradient-secondary p-5 text-secondary-foreground
-                           transition-all duration-300 hover:shadow-md cursor-pointer flex items-center justify-between"
+                           transition-all duration-300 hover:shadow-md flex items-center justify-between"
               >
                 <div>
                   <p className="text-sm font-medium opacity-90">Oferta Especial</p>
@@ -161,7 +163,7 @@ const Index = () => {
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-secondary-foreground/20">
                   <span className="text-xl font-bold">2x</span>
                 </div>
-              </div>
+              </Link>
             </div>
           </div>
 
@@ -346,9 +348,10 @@ const Index = () => {
             ))}
           </div>
         </div>
-        <div
+        <Link
+          to="/premium"
           className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 p-5 text-white
-                     transition-all duration-300 active:scale-[0.98] cursor-pointer animate-fade-in"
+                     transition-all duration-300 active:scale-[0.98] block animate-fade-in"
           style={{ animationDelay: "500ms" }}
         >
           <div className="flex items-center justify-between">
@@ -360,10 +363,11 @@ const Index = () => {
               <Crown className="h-6 w-6" />
             </div>
           </div>
-        </div>
-        <div
+        </Link>
+        <Link
+          to="/premium"
           className="mb-6 overflow-hidden rounded-2xl gradient-secondary p-5 text-secondary-foreground
-                     transition-all duration-300 active:scale-[0.98] cursor-pointer animate-fade-in"
+                     transition-all duration-300 active:scale-[0.98] block animate-fade-in"
           style={{ animationDelay: "550ms" }}
         >
           <div className="flex items-center justify-between">
@@ -376,7 +380,7 @@ const Index = () => {
               <span className="text-xl font-bold">2x</span>
             </div>
           </div>
-        </div>
+        </Link>
       </div>
     </div>
   );
