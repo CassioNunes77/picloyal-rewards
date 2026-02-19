@@ -35,7 +35,8 @@ class RedemptionsService {
     
     private init() {}
     
-    /// Cria um resgate quando o usuário solicita usar uma oferta
+    /// Cria um resgate quando o usuário solicita usar uma oferta.
+    /// Não cria duplicata se já existir resgate pendente para o mesmo usuário+oferta.
     func createRedemption(
         offerId: String,
         offerTitle: String,
@@ -45,6 +46,12 @@ class RedemptionsService {
     ) async throws -> String {
         guard let user = Auth.auth().currentUser else {
             throw NSError(domain: "RedemptionsService", code: 401, userInfo: [NSLocalizedDescriptionKey: "Usuário não autenticado"])
+        }
+        
+        // Evitar duplicatas: se já existe resgate pendente, retornar o id existente
+        if let existing = try await getUserRedemptionForOffer(userId: user.uid, offerId: offerId),
+           existing.status == .pending {
+            return existing.id
         }
         
         let ref = db.collection(collectionName)

@@ -27,7 +27,8 @@ function toDate(value: any): Date {
 }
 
 /**
- * Cria um resgate quando o usuário solicita usar uma oferta
+ * Cria um resgate quando o usuário solicita usar uma oferta.
+ * Não cria duplicata se já existir resgate pendente para o mesmo usuário+oferta.
  */
 export async function createRedemption(
   offerId: string,
@@ -40,6 +41,12 @@ export async function createRedemption(
   userEmail: string
 ): Promise<string> {
   if (!firestore) throw new Error("Firestore não está configurado");
+
+  // Evitar duplicatas: se já existe resgate pendente, retornar o id existente
+  const existing = await getUserRedemptionForOffer(userId, offerId);
+  if (existing?.status === "pending") {
+    return existing.id;
+  }
 
   const ref = collection(firestore, REDEMPTIONS_COLLECTION);
   const docRef = await addDoc(ref, {

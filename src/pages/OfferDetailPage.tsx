@@ -51,7 +51,9 @@ const OfferDetailPage = () => {
 
   const [redemptionStatus, setRedemptionStatus] = useState<RedemptionStatus | null>(null);
   const [loadingRedemption, setLoadingRedemption] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Busca status ao abrir: lembra se usuário já solicitou ou resgatou
   useEffect(() => {
     if (!user?.uid || !offer?.id) {
       setLoadingRedemption(false);
@@ -78,6 +80,8 @@ const OfferDetailPage = () => {
       return;
     }
     if (!offer.storeId || !offer.merchantId) return;
+    if (isSubmitting || redemptionStatus === "pending") return;
+    setIsSubmitting(true);
     try {
       await createRedemption(
         String(offer.id),
@@ -96,6 +100,8 @@ const OfferDetailPage = () => {
     } catch (err) {
       console.error("Erro ao registrar resgate:", err);
       toast.error("Erro ao solicitar oferta. Tente novamente.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -174,10 +180,15 @@ const OfferDetailPage = () => {
         <button
           type="button"
           onClick={handleUseOffer}
+          disabled={isSubmitting}
           className="w-full py-4 rounded-xl gradient-primary text-primary-foreground font-semibold text-base
-                   transition-all duration-200 active:scale-[0.98] shadow-md"
+                   transition-all duration-200 active:scale-[0.98] shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Usar oferta
+          {isSubmitting ? (
+            <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+          ) : (
+            "Usar oferta"
+          )}
         </button>
       )}
 

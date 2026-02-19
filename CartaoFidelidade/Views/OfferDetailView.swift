@@ -166,7 +166,8 @@ struct OfferDetailView: View {
                 }
             }
         }
-        .task {
+        .task(id: offer.id) {
+            // Busca status ao abrir: lembra se usuário já solicitou ou resgatou
             await loadRedemptionStatus()
         }
     }
@@ -203,8 +204,8 @@ struct OfferDetailView: View {
                 .cornerRadius(AppRadius.lg)
         } else {
             Button(action: {
+                redemptionStatus = .pending  // Otimista: evita duplo toque
                 onUseOffer()
-                redemptionStatus = .pending
             }) {
                 Text("Usar oferta")
                     .font(.system(size: 16, weight: .semibold))
