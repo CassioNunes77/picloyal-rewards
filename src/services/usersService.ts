@@ -19,6 +19,8 @@ export interface UserData {
   
   // Dados adicionais do perfil
   phone?: string;
+  address?: string;
+  birthDate?: string;
   
   // Role do usuário (user ou merchant)
   role?: UserRole;
@@ -51,6 +53,8 @@ interface UserDataFirestore {
   photoURL: string | null;
   phoneNumber: string | null;
   phone?: string;
+  address?: string;
+  birthDate?: string;
   role?: UserRole;
   preferences?: {
     darkMode?: boolean;
@@ -107,6 +111,8 @@ function firestoreToUserData(docId: string, data: any): UserData {
       photoURL: data.photoURL || null,
       phoneNumber: data.phoneNumber || null,
       phone: data.phone || undefined,
+      address: data.address || undefined,
+      birthDate: data.birthDate || undefined,
       role: data.role || "user",
       preferences: data.preferences || undefined,
       createdAt,
@@ -134,6 +140,8 @@ function userDataToFirestore(userData: Partial<UserData>): Partial<UserDataFires
   if (userData.photoURL !== undefined) result.photoURL = userData.photoURL;
   if (userData.phoneNumber !== undefined) result.phoneNumber = userData.phoneNumber;
   if (userData.phone !== undefined) result.phone = userData.phone;
+  if (userData.address !== undefined) result.address = userData.address;
+  if (userData.birthDate !== undefined) result.birthDate = userData.birthDate;
   if (userData.role !== undefined) result.role = userData.role;
   if (userData.preferences !== undefined) result.preferences = userData.preferences;
   if (userData.createdAt) {

@@ -63,18 +63,18 @@ struct StoreDetailView: View {
                             }) {
                                 ZStack {
                                     Circle()
-                                        .fill(Color.white.opacity(0.2))
+                                        .fill(Color.heroOverlay)
                                         .frame(width: 40, height: 40)
                                     
                                     Image(systemName: "chevron.left")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.heroForeground)
                                         .font(.system(size: 20))
                                 }
                             }
                             
                             Text(store.name)
                                 .font(.appTitle)
-                                .foregroundColor(.white)
+                                .foregroundColor(.heroForeground)
                                 .lineLimit(1)
                             
                             Spacer()
@@ -84,11 +84,11 @@ struct StoreDetailView: View {
                             }) {
                                 ZStack {
                                     Circle()
-                                        .fill(Color.white.opacity(0.2))
+                                        .fill(Color.heroOverlay)
                                         .frame(width: 40, height: 40)
                                     
                                     Image(systemName: "square.and.arrow.up")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.heroForeground)
                                         .font(.system(size: 20))
                                 }
                             }
@@ -119,7 +119,7 @@ struct StoreDetailView: View {
                                                 .frame(width: 8, height: 8)
                                             Text("Aberto")
                                                 .font(.system(size: 14, weight: .medium))
-                                                .foregroundColor(.white)
+                                                .foregroundColor(.heroForeground)
                                         }
                                     } else {
                                         HStack(spacing: 4) {
@@ -128,7 +128,7 @@ struct StoreDetailView: View {
                                                 .frame(width: 8, height: 8)
                                             Text("Fechado")
                                                 .font(.system(size: 14, weight: .medium))
-                                                .foregroundColor(.white)
+                                                .foregroundColor(.heroForeground)
                                         }
                                     }
                                 }
@@ -139,7 +139,7 @@ struct StoreDetailView: View {
                                         .font(.system(size: 16))
                                     Text(String(format: "%.1f", store.rating))
                                         .font(.system(size: 16, weight: .semibold))
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.heroForeground)
                                 }
                                 
                                 HStack(spacing: 4) {
@@ -147,7 +147,7 @@ struct StoreDetailView: View {
                                         .font(.system(size: 14))
                                     Text(store.distance)
                                         .font(.system(size: 14))
-                                        .foregroundColor(.white.opacity(0.9))
+                                        .foregroundColor(.heroForegroundMuted)
                                 }
                                 
                                 if store.isOpen {
@@ -156,7 +156,7 @@ struct StoreDetailView: View {
                                             .font(.system(size: 14))
                                         Text("Até \(store.openUntil)")
                                             .font(.system(size: 14))
-                                            .foregroundColor(.white.opacity(0.9))
+                                            .foregroundColor(.heroForegroundMuted)
                                     }
                                 }
                             }
@@ -218,10 +218,10 @@ struct StoreDetailView: View {
                     
                     Text(toastMessage)
                         .font(.appBody)
-                        .foregroundColor(.white)
+                        .foregroundColor(.cardForeground)
                         .padding(.horizontal, AppSpacing.lg)
                         .padding(.vertical, AppSpacing.md)
-                        .background(Color.appForeground.opacity(0.9))
+                        .background(Color.card)
                         .cornerRadius(AppRadius.md)
                         .padding(.bottom, 100)
                         .transition(.move(edge: .bottom).combined(with: .opacity))

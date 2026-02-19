@@ -21,6 +21,7 @@ import {
   reauthenticateWithPopup,
   EmailAuthProvider,
   updateEmail as firebaseUpdateEmail,
+  updateProfile as firebaseUpdateProfile,
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, firestore } from "@/lib/firebase";
@@ -68,9 +69,12 @@ interface AuthContextType {
   reauthenticateWithGoogle: () => Promise<void>;
   /** Atualizar e-mail do usuário (requer senha para reautenticação). Não disponível para conta Google. */
   updateEmail: (newEmail: string, password: string) => Promise<void>;
-  /** Perfil do usuário em Firestore (ex.: telefone). */
-  getProfile: () => Promise<{ phone?: string }>;
+  /** Perfil do usuário em Firestore. */
+  getProfile: () => Promise<{ phone?: string; address?: string; birthDate?: string; displayName?: string }>;
   updatePhone: (phone: string) => Promise<void>;
+  updateDisplayName: (displayName: string) => Promise<void>;
+  updateAddress: (address: string) => Promise<void>;
+  updateBirthDate: (birthDate: string) => Promise<void>;
   authError: string | null;
   clearError: () => void;
 }
@@ -282,17 +286,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await firebaseUpdateEmail(u, newEmail);
   }, []);
 
-  const getProfile = useCallback(async (): Promise<{ phone?: string }> => {
+  const getProfile = useCallback(async (): Promise<{ phone?: string; address?: string; birthDate?: string; displayName?: string }> => {
     const u = auth?.currentUser;
     if (!u || !firestore) return {};
     const snap = await getDoc(doc(firestore, "users", u.uid));
-    return (snap.data() as { phone?: string }) ?? {};
+    const data = snap.data() as { phone?: string; address?: string; birthDate?: string; displayName?: string } | undefined;
+    return {
+      ...data,
+      displayName: data?.displayName ?? u.displayName ?? undefined,
+    };
   }, []);
 
   const updatePhone = useCallback(async (phone: string) => {
     const u = auth?.currentUser;
     if (!u || !firestore) throw new Error("Nenhum usuário logado.");
     await setDoc(doc(firestore, "users", u.uid), { phone }, { merge: true });
+  }, []);
+
+  const updateDisplayName = useCallback(async (displayName: string) => {
+    const u = auth?.currentUser;
+    if (!u) throw new Error("Nenhum usuário logado.");
+    await firebaseUpdateProfile(u, { displayName });
+    if (firestore) {
+      await setDoc(doc(firestore, "users", u.uid), { displayName }, { merge: true });
+    }
+  }, []);
+
+  const updateAddress = useCallback(async (address: string) => {
+    const u = auth?.currentUser;
+    if (!u || !firestore) throw new Error("Nenhum usuário logado.");
+    await setDoc(doc(firestore, "users", u.uid), { address }, { merge: true });
+  }, []);
+
+  const updateBirthDate = useCallback(async (birthDate: string) => {
+    const u = auth?.currentUser;
+    if (!u || !firestore) throw new Error("Nenhum usuário logado.");
+    await setDoc(doc(firestore, "users", u.uid), { birthDate }, { merge: true });
   }, []);
 
   const clearError = useCallback(() => setAuthError(null), []);
@@ -310,6 +339,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updateEmail,
     getProfile,
     updatePhone,
+    updateDisplayName,
+    updateAddress,
+    updateBirthDate,
     authError,
     clearError,
   };

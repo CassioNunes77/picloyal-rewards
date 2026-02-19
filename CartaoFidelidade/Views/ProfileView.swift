@@ -20,13 +20,26 @@ struct ProfileView: View {
     @State private var showLogoutConfirmation = false
 
     @State private var profilePhone = ""
+    @State private var profileAddress = ""
+    @State private var profileBirthDate = ""
+    @State private var profileDisplayName = ""
     @State private var showEmailSheet = false
     @State private var showPhoneSheet = false
+    @State private var showDisplayNameSheet = false
+    @State private var showAddressSheet = false
+    @State private var showBirthDateSheet = false
     @State private var tempEmail = ""
     @State private var tempPassword = ""
     @State private var tempPhone = ""
+    @State private var tempDisplayName = ""
+    @State private var tempAddress = ""
+    @State private var tempBirthDate = ""
     @State private var saving = false
     @State private var errorMessage: String?
+    
+    private var displayNameValue: String {
+        !profileDisplayName.isEmpty ? profileDisplayName : userDisplayName
+    }
     
     let userStats = [
         ("Pontos", "650", "star.fill", Color.primary),
@@ -52,28 +65,28 @@ struct ProfileView: View {
                             }) {
                                 ZStack {
                                     Circle()
-                                        .fill(Color.white.opacity(0.2))
+                                        .fill(Color.heroOverlay)
                                         .frame(width: 40, height: 40)
                                     
                                     Image(systemName: "chevron.left")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.heroForeground)
                                         .font(.system(size: 20))
                                 }
                             }
                             
                             Text("Perfil")
                                 .font(.appTitle)
-                                .foregroundColor(.white)
+                                .foregroundColor(.heroForeground)
                             
                             Spacer()
                             
                             Button(action: { showLogoutConfirmation = true }) {
                                 Text("Sair")
                                     .font(.system(size: 15, weight: .semibold))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.heroForeground)
                                     .padding(.horizontal, AppSpacing.md)
                                     .padding(.vertical, AppSpacing.sm)
-                                    .background(Color.white.opacity(0.2))
+                                    .background(Color.heroOverlay)
                                     .cornerRadius(AppRadius.lg)
                             }
                         }
@@ -106,13 +119,13 @@ struct ProfileView: View {
                                 }
                                 .overlay(
                                     Circle()
-                                        .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                                        .stroke(Color.heroForegroundMuted.opacity(0.5), lineWidth: 2)
                                 )
                                 
                                 Button(action: {}) {
                                     ZStack {
                                         Circle()
-                                            .fill(Color.white)
+                                            .fill(Color.heroForeground)
                                             .frame(width: 32, height: 32)
                                         
                                         Image(systemName: "camera.fill")
@@ -124,29 +137,29 @@ struct ProfileView: View {
                             }
                             
                             VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                                Text(userDisplayName.isEmpty ? "Usuário" : userDisplayName)
+                                Text(displayNameValue.isEmpty ? "Usuário" : displayNameValue)
                                     .font(.appTitle)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.heroForeground)
                                 
                                 Text(userEmail.isEmpty ? "—" : userEmail)
                                     .font(.appCaption)
-                                    .foregroundStyle(Color.white)
+                                    .foregroundStyle(Color.heroForeground)
                                 
                                 HStack(spacing: AppSpacing.sm) {
                                     Text("Membro VIP ⭐")
                                         .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.heroForeground)
                                         .padding(.horizontal, AppSpacing.md)
                                         .padding(.vertical, 4)
-                                        .background(Color.white.opacity(0.2))
+                                        .background(Color.heroOverlay)
                                         .cornerRadius(AppRadius.md)
                                     
                                     Text("Desde 2023")
                                         .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.heroForeground)
                                         .padding(.horizontal, AppSpacing.md)
                                         .padding(.vertical, 4)
-                                        .background(Color.white.opacity(0.2))
+                                        .background(Color.heroOverlay)
                                         .cornerRadius(AppRadius.md)
                                 }
                             }
@@ -194,31 +207,59 @@ struct ProfileView: View {
                         // Personal Information
                         ProfileSection(title: "Informações Pessoais") {
                             ProfileInfoItem(
+                                icon: "person.fill",
+                                label: "Nome",
+                                value: displayNameValue.isEmpty ? "—" : displayNameValue,
+                                delay: 0.25,
+                                onEdit: {
+                                    tempDisplayName = profileDisplayName.isEmpty ? userDisplayName : profileDisplayName
+                                    showDisplayNameSheet = true
+                                }
+                            )
+                            
+                            ProfileInfoItem(
                                 icon: "envelope.fill",
                                 label: "E-mail",
                                 value: userEmail.isEmpty ? "—" : userEmail,
-                                delay: 0.3
+                                delay: 0.3,
+                                onEdit: {
+                                    tempEmail = userEmail
+                                    tempPassword = ""
+                                    showEmailSheet = true
+                                }
                             )
                             
                             ProfileInfoItem(
                                 icon: "phone.fill",
                                 label: "Telefone",
-                                value: "(11) 98765-4321",
-                                delay: 0.35
+                                value: profilePhone.isEmpty ? "—" : profilePhone,
+                                delay: 0.35,
+                                onEdit: {
+                                    tempPhone = profilePhone
+                                    showPhoneSheet = true
+                                }
                             )
                             
                             ProfileInfoItem(
                                 icon: "location.fill",
                                 label: "Endereço",
-                                value: "Rua Exemplo, 123 - São Paulo, SP",
-                                delay: 0.4
+                                value: profileAddress.isEmpty ? "—" : profileAddress,
+                                delay: 0.4,
+                                onEdit: {
+                                    tempAddress = profileAddress
+                                    showAddressSheet = true
+                                }
                             )
                             
                             ProfileInfoItem(
                                 icon: "calendar",
                                 label: "Data de Nascimento",
-                                value: "15/03/1990",
-                                delay: 0.45
+                                value: profileBirthDate.isEmpty ? "—" : profileBirthDate,
+                                delay: 0.45,
+                                onEdit: {
+                                    tempBirthDate = profileBirthDate
+                                    showBirthDateSheet = true
+                                }
                             )
                         }
                         
@@ -341,10 +382,10 @@ struct ProfileView: View {
                     
                     Text(toastMessage)
                         .font(.appBody)
-                        .foregroundColor(.white)
+                        .foregroundColor(.cardForeground)
                         .padding(.horizontal, AppSpacing.lg)
                         .padding(.vertical, AppSpacing.md)
-                        .background(Color.appForeground.opacity(0.9))
+                        .background(Color.card)
                         .cornerRadius(AppRadius.md)
                         .padding(.bottom, 100)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -371,6 +412,15 @@ struct ProfileView: View {
         .sheet(isPresented: $showPhoneSheet) {
             editPhoneSheet
         }
+        .sheet(isPresented: $showDisplayNameSheet) {
+            editDisplayNameSheet
+        }
+        .sheet(isPresented: $showAddressSheet) {
+            editAddressSheet
+        }
+        .sheet(isPresented: $showBirthDateSheet) {
+            editBirthDateSheet
+        }
         .appConfirmation(
             isPresented: .init(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } }),
             title: "Erro",
@@ -390,6 +440,12 @@ struct ProfileView: View {
                 let profile = try await ProfileService.shared.getProfile()
                 await MainActor.run {
                     profilePhone = profile.phone ?? ""
+                    profileAddress = profile.address ?? ""
+                    profileBirthDate = profile.birthDate ?? ""
+                    profileDisplayName = profile.displayName ?? ""
+                    if !profileDisplayName.isEmpty {
+                        userDisplayName = profileDisplayName
+                    }
                 }
             } catch {}
         }
@@ -462,6 +518,86 @@ struct ProfileView: View {
         }
     }
 
+    private var editDisplayNameSheet: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Nome", text: $tempDisplayName)
+                        .textContentType(.name)
+                } header: {
+                    Text("Alterar nome")
+                } footer: {
+                    Text("Este nome será exibido no app.")
+                }
+            }
+            .navigationTitle("Alterar nome")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancelar") { showDisplayNameSheet = false }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Salvar") { saveDisplayName() }
+                        .disabled(saving || tempDisplayName.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            }
+            .disabled(saving)
+        }
+    }
+
+    private var editAddressSheet: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Endereço", text: $tempAddress)
+                        .textContentType(.fullStreetAddress)
+                } header: {
+                    Text("Alterar endereço")
+                }
+            }
+            .navigationTitle("Alterar endereço")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancelar") { showAddressSheet = false }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Salvar") { saveAddress() }
+                        .disabled(saving)
+                }
+            }
+            .disabled(saving)
+        }
+    }
+
+    private var editBirthDateSheet: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Data de nascimento (dd/MM/yyyy)", text: $tempBirthDate)
+                        .textContentType(.dateTime)
+                        .keyboardType(.numbersAndPunctuation)
+                } header: {
+                    Text("Alterar data de nascimento")
+                } footer: {
+                    Text("Formato: dia/mês/ano (ex: 15/03/1990)")
+                }
+            }
+            .navigationTitle("Alterar data de nascimento")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancelar") { showBirthDateSheet = false }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Salvar") { saveBirthDate() }
+                        .disabled(saving)
+                }
+            }
+            .disabled(saving)
+        }
+    }
+
     private func saveEmail() {
         let email = tempEmail.trimmingCharacters(in: .whitespaces)
         guard !email.isEmpty, !tempPassword.isEmpty else { return }
@@ -491,6 +627,66 @@ struct ProfileView: View {
                     profilePhone = tempPhone.trimmingCharacters(in: .whitespaces)
                     showPhoneSheet = false
                     showToast(message: "Telefone atualizado.")
+                }
+            } catch {
+                await MainActor.run {
+                    errorMessage = error.localizedDescription
+                }
+            }
+            await MainActor.run { saving = false }
+        }
+    }
+
+    private func saveDisplayName() {
+        let name = tempDisplayName.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else { return }
+        saving = true
+        Task {
+            do {
+                try await ProfileService.shared.updateDisplayName(name)
+                await MainActor.run {
+                    profileDisplayName = name
+                    userDisplayName = name
+                    showDisplayNameSheet = false
+                    showToast(message: "Nome atualizado.")
+                }
+            } catch {
+                await MainActor.run {
+                    errorMessage = error.localizedDescription
+                }
+            }
+            await MainActor.run { saving = false }
+        }
+    }
+
+    private func saveAddress() {
+        saving = true
+        Task {
+            do {
+                try await ProfileService.shared.updateAddress(tempAddress.trimmingCharacters(in: .whitespaces))
+                await MainActor.run {
+                    profileAddress = tempAddress.trimmingCharacters(in: .whitespaces)
+                    showAddressSheet = false
+                    showToast(message: "Endereço atualizado.")
+                }
+            } catch {
+                await MainActor.run {
+                    errorMessage = error.localizedDescription
+                }
+            }
+            await MainActor.run { saving = false }
+        }
+    }
+
+    private func saveBirthDate() {
+        saving = true
+        Task {
+            do {
+                try await ProfileService.shared.updateBirthDate(tempBirthDate.trimmingCharacters(in: .whitespaces))
+                await MainActor.run {
+                    profileBirthDate = tempBirthDate.trimmingCharacters(in: .whitespaces)
+                    showBirthDateSheet = false
+                    showToast(message: "Data de nascimento atualizada.")
                 }
             } catch {
                 await MainActor.run {

@@ -106,10 +106,10 @@ struct MerchantProfileView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Perfil")
                 .font(.appTitle)
-                .foregroundColor(.white)
+                .foregroundColor(.heroForeground)
             Text("Informações da conta")
                 .font(.appCaption)
-                .foregroundColor(.white.opacity(0.9))
+                .foregroundColor(.heroForegroundMuted)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, AppSpacing.lg)

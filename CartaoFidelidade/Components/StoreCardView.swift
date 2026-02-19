@@ -33,7 +33,7 @@ struct StoreCardView: View {
                             if store.active {
                                 Text("Ativa")
                                     .font(.system(size: 11, weight: .medium))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.heroForeground)
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 4)
                                     .background(Color.primary.opacity(0.8))
@@ -41,7 +41,7 @@ struct StoreCardView: View {
                             } else {
                                 Text("Inativa")
                                     .font(.system(size: 11, weight: .medium))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.heroForeground)
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 4)
                                     .background(Color.gray.opacity(0.6))

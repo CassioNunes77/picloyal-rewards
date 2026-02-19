@@ -41,7 +41,7 @@ struct MerchantLoginView: View {
                                 Spacer()
                                 Image(systemName: "storefront.fill")
                                     .font(.system(size: 48))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.heroForeground)
                                 Spacer()
                             }
                             .padding(.top, 56)
@@ -49,11 +49,11 @@ struct MerchantLoginView: View {
                             
                             Text("Painel do Lojista")
                                 .font(.system(size: 28, weight: .bold, design: .rounded))
-                                .foregroundColor(.white)
+                                .foregroundColor(.heroForeground)
                             
                             Text("Crie sua conta para gerenciar sua loja")
                                 .font(.system(size: 16, weight: .regular, design: .rounded))
-                                .foregroundColor(.white.opacity(0.9))
+                                .foregroundColor(.heroForegroundMuted)
                                 .padding(.top, 8)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -111,7 +111,7 @@ struct MerchantLoginView: View {
                                 Spacer()
                                 Image(systemName: "storefront.fill")
                                     .font(.system(size: 48))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.heroForeground)
                                 Spacer()
                             }
                             .padding(.top, 56)
@@ -119,11 +119,11 @@ struct MerchantLoginView: View {
                             
                             Text("Painel do Lojista")
                                 .font(.system(size: 28, weight: .bold, design: .rounded))
-                                .foregroundColor(.white)
+                                .foregroundColor(.heroForeground)
                             
                             Text("Gerencie suas lojas")
                                 .font(.system(size: 16, weight: .regular, design: .rounded))
-                                .foregroundColor(.white.opacity(0.9))
+                                .foregroundColor(.heroForegroundMuted)
                                 .padding(.top, 8)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)

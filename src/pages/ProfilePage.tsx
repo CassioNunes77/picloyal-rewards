@@ -34,12 +34,18 @@ import { Label } from "@/components/ui/label";
 const ProfilePage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const { user, loading, signOut, updateEmail, getProfile, updatePhone } = useAuth();
+  const { user, loading, signOut, updateEmail, getProfile, updatePhone, updateDisplayName, updateAddress, updateBirthDate } = useAuth();
   const [notifications, setNotifications] = useState(true);
   const [profilePhone, setProfilePhone] = useState("");
-  const [editDialog, setEditDialog] = useState<"email" | "phone" | null>(null);
+  const [profileAddress, setProfileAddress] = useState("");
+  const [profileBirthDate, setProfileBirthDate] = useState("");
+  const [profileDisplayName, setProfileDisplayName] = useState("");
+  const [editDialog, setEditDialog] = useState<"email" | "phone" | "displayName" | "address" | "birthDate" | null>(null);
   const [tempEmail, setTempEmail] = useState("");
   const [tempPhone, setTempPhone] = useState("");
+  const [tempDisplayName, setTempDisplayName] = useState("");
+  const [tempAddress, setTempAddress] = useState("");
+  const [tempBirthDate, setTempBirthDate] = useState("");
   const [tempPassword, setTempPassword] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -47,8 +53,11 @@ const ProfilePage = () => {
     if (!user || !getProfile) return;
     getProfile()
       .then((p) => {
-        if (p && typeof p === "object" && "phone" in p) {
+        if (p && typeof p === "object") {
           setProfilePhone(p.phone ?? "");
+          setProfileAddress(p.address ?? "");
+          setProfileBirthDate(p.birthDate ?? "");
+          setProfileDisplayName(p.displayName ?? "");
         }
       })
       .catch((err) => {
@@ -71,6 +80,9 @@ const ProfilePage = () => {
     setTempEmail("");
     setTempPassword("");
     setTempPhone("");
+    setTempDisplayName("");
+    setTempAddress("");
+    setTempBirthDate("");
   };
 
   const handleSaveEmail = async () => {
@@ -105,6 +117,56 @@ const ProfilePage = () => {
       closeEditDialog();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Erro ao atualizar telefone.";
+      toast.error(msg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveDisplayName = async () => {
+    const trimmed = tempDisplayName.trim();
+    if (!trimmed) {
+      toast.error("Informe o nome.");
+      return;
+    }
+    setSaving(true);
+    try {
+      await updateDisplayName(trimmed);
+      setProfileDisplayName(trimmed);
+      toast.success("Nome atualizado.");
+      closeEditDialog();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erro ao atualizar nome.";
+      toast.error(msg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveAddress = async () => {
+    setSaving(true);
+    try {
+      await updateAddress(tempAddress.trim());
+      setProfileAddress(tempAddress.trim());
+      toast.success("Endereço atualizado.");
+      closeEditDialog();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erro ao atualizar endereço.";
+      toast.error(msg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveBirthDate = async () => {
+    setSaving(true);
+    try {
+      await updateBirthDate(tempBirthDate.trim());
+      setProfileBirthDate(tempBirthDate.trim());
+      toast.success("Data de nascimento atualizada.");
+      closeEditDialog();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erro ao atualizar data de nascimento.";
       toast.error(msg);
     } finally {
       setSaving(false);
@@ -154,7 +216,7 @@ const ProfilePage = () => {
       </div>
       <div className="flex-1">
         <h2 className="text-xl font-bold text-card-foreground mb-1">
-          {user.displayName || user.email?.split("@")[0] || "Usuário"}
+          {profileDisplayName || user.displayName || user.email?.split("@")[0] || "Usuário"}
         </h2>
         <p className="text-sm text-muted-foreground mb-2">{user.email}</p>
         <div className="flex items-center gap-2">
@@ -195,6 +257,10 @@ const ProfilePage = () => {
               <div>
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Informações Pessoais</h3>
                 <div className="space-y-2">
+                  <ProfileInfoItem icon={User} label="Nome" value={profileDisplayName || user.displayName || "—"} delay={0} onEdit={() => {
+                    setTempDisplayName(profileDisplayName || user.displayName || "");
+                    setEditDialog("displayName");
+                  }} />
                   <ProfileInfoItem icon={Mail} label="E-mail" value={user.email ?? ""} delay={0} onEdit={() => {
                     setTempEmail(user?.email ?? "");
                     setTempPassword("");
@@ -204,8 +270,14 @@ const ProfilePage = () => {
                     setTempPhone(profilePhone);
                     setEditDialog("phone");
                   }} />
-                  <ProfileInfoItem icon={MapPin} label="Endereço" value="Rua Exemplo, 123 - São Paulo, SP" delay={0} />
-                  <ProfileInfoItem icon={Calendar} label="Data de Nascimento" value="15/03/1990" delay={0} />
+                  <ProfileInfoItem icon={MapPin} label="Endereço" value={profileAddress || "—"} delay={0} onEdit={() => {
+                    setTempAddress(profileAddress);
+                    setEditDialog("address");
+                  }} />
+                  <ProfileInfoItem icon={Calendar} label="Data de Nascimento" value={profileBirthDate || "—"} delay={0} onEdit={() => {
+                    setTempBirthDate(profileBirthDate);
+                    setEditDialog("birthDate");
+                  }} />
                 </div>
               </div>
             </div>
@@ -333,10 +405,20 @@ const ProfilePage = () => {
               </h3>
               <div className="space-y-2">
                 <ProfileInfoItem
+                  icon={User}
+                  label="Nome"
+                  value={profileDisplayName || user.displayName || "—"}
+                  delay={350}
+                  onEdit={() => {
+                    setTempDisplayName(profileDisplayName || user.displayName || "");
+                    setEditDialog("displayName");
+                  }}
+                />
+                <ProfileInfoItem
                   icon={Mail}
                   label="E-mail"
                   value={user.email ?? ""}
-                  delay={350}
+                  delay={400}
                   onEdit={() => {
                     setTempEmail(user?.email ?? "");
                     setTempPassword("");
@@ -347,7 +429,7 @@ const ProfilePage = () => {
                   icon={Phone}
                   label="Telefone"
                   value={profilePhone || "—"}
-                  delay={400}
+                  delay={450}
                   onEdit={() => {
                     setTempPhone(profilePhone);
                     setEditDialog("phone");
@@ -356,14 +438,22 @@ const ProfilePage = () => {
                 <ProfileInfoItem
                   icon={MapPin}
                   label="Endereço"
-                  value="Rua Exemplo, 123 - São Paulo, SP"
-                  delay={450}
+                  value={profileAddress || "—"}
+                  delay={500}
+                  onEdit={() => {
+                    setTempAddress(profileAddress);
+                    setEditDialog("address");
+                  }}
                 />
                 <ProfileInfoItem
                   icon={Calendar}
                   label="Data de Nascimento"
-                  value="15/03/1990"
-                  delay={500}
+                  value={profileBirthDate || "—"}
+                  delay={550}
+                  onEdit={() => {
+                    setTempBirthDate(profileBirthDate);
+                    setEditDialog("birthDate");
+                  }}
                 />
               </div>
             </div>
@@ -463,11 +553,19 @@ const ProfilePage = () => {
       <Dialog open={editDialog !== null} onOpenChange={(open) => !open && closeEditDialog()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editDialog === "email" ? "Alterar e-mail" : "Alterar telefone"}</DialogTitle>
+            <DialogTitle>
+              {editDialog === "email" && "Alterar e-mail"}
+              {editDialog === "phone" && "Alterar telefone"}
+              {editDialog === "displayName" && "Alterar nome"}
+              {editDialog === "address" && "Alterar endereço"}
+              {editDialog === "birthDate" && "Alterar data de nascimento"}
+            </DialogTitle>
             <DialogDescription>
-              {editDialog === "email"
-                ? "Altere apenas o e-mail da sua conta. Informe sua senha atual para confirmar a alteração."
-                : "Informe o novo número de telefone."}
+              {editDialog === "email" && "Altere apenas o e-mail da sua conta. Informe sua senha atual para confirmar a alteração."}
+              {editDialog === "phone" && "Informe o novo número de telefone."}
+              {editDialog === "displayName" && "Este nome será exibido no app."}
+              {editDialog === "address" && "Informe seu endereço completo."}
+              {editDialog === "birthDate" && "Formato: dia/mês/ano (ex: 15/03/1990)"}
             </DialogDescription>
           </DialogHeader>
           {editDialog === "email" && (
@@ -508,13 +606,62 @@ const ProfilePage = () => {
               </div>
             </div>
           )}
+          {editDialog === "displayName" && (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-displayName">Nome</Label>
+                <Input
+                  id="edit-displayName"
+                  type="text"
+                  value={tempDisplayName}
+                  onChange={(e) => setTempDisplayName(e.target.value)}
+                  placeholder="Seu nome"
+                />
+              </div>
+            </div>
+          )}
+          {editDialog === "address" && (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-address">Endereço</Label>
+                <Input
+                  id="edit-address"
+                  type="text"
+                  value={tempAddress}
+                  onChange={(e) => setTempAddress(e.target.value)}
+                  placeholder="Rua, número - Bairro, Cidade, UF"
+                />
+              </div>
+            </div>
+          )}
+          {editDialog === "birthDate" && (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-birthDate">Data de nascimento</Label>
+                <Input
+                  id="edit-birthDate"
+                  type="text"
+                  value={tempBirthDate}
+                  onChange={(e) => setTempBirthDate(e.target.value)}
+                  placeholder="dd/MM/yyyy"
+                />
+              </div>
+            </div>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={closeEditDialog} disabled={saving}>
               Cancelar
             </Button>
             <Button
               type="button"
-              onClick={editDialog === "email" ? handleSaveEmail : handleSavePhone}
+              onClick={
+                editDialog === "email" ? handleSaveEmail :
+                editDialog === "phone" ? handleSavePhone :
+                editDialog === "displayName" ? handleSaveDisplayName :
+                editDialog === "address" ? handleSaveAddress :
+                editDialog === "birthDate" ? handleSaveBirthDate :
+                () => {}
+              }
               disabled={saving}
             >
               {saving ? "Salvando..." : "Salvar"}

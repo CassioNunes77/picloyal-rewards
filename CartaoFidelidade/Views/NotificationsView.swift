@@ -121,23 +121,23 @@ struct NotificationsView: View {
                             }) {
                                 ZStack {
                                     Circle()
-                                        .fill(Color.white.opacity(0.2))
+                                        .fill(Color.heroOverlay)
                                         .frame(width: 40, height: 40)
                                     
                                     Image(systemName: "chevron.left")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.heroForeground)
                                         .font(.system(size: 20))
                                 }
                             }
                             
                             HStack(spacing: AppSpacing.sm) {
                                 Image(systemName: "bell.fill")
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.heroForeground)
                                     .font(.system(size: 24))
                                 
                                 Text("Notificações")
                                     .font(.appTitle)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.heroForeground)
                                 
                                 if unreadCount > 0 {
                                     ZStack {
@@ -159,7 +159,7 @@ struct NotificationsView: View {
                             }) {
                                 Text("Marcar todas")
                                     .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(.white.opacity(0.9))
+                                    .foregroundColor(.heroForegroundMuted)
                             }
                         }
                         .padding(.horizontal, AppSpacing.lg)
@@ -220,10 +220,10 @@ struct NotificationsView: View {
                     
                     Text(toastMessage)
                         .font(.appBody)
-                        .foregroundColor(.white)
+                        .foregroundColor(.cardForeground)
                         .padding(.horizontal, AppSpacing.lg)
                         .padding(.vertical, AppSpacing.md)
-                        .background(Color.appForeground.opacity(0.9))
+                        .background(Color.card)
                         .cornerRadius(AppRadius.md)
                         .padding(.bottom, 100)
                         .transition(.move(edge: .bottom).combined(with: .opacity))

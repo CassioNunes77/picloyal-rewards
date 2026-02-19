@@ -63,7 +63,11 @@ struct StampGrid: View {
         }
         .padding(AppSpacing.lg)
         .background(Color.card)
-        .cornerRadius(AppRadius.xl)
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.xl))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppRadius.xl)
+                .stroke(Color.border, lineWidth: 1)
+        )
         .appShadow(AppShadow.lg)
         .fadeIn(delay: 0.25)
     }

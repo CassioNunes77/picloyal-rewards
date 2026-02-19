@@ -1,6 +1,6 @@
 import { doc, collection, getDocs, addDoc, query, where, Timestamp } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
-import { getStoreById } from "./merchantsService";
+import { getStoreById, getStoresByCity } from "./merchantsService";
 
 const STAMP_REWARDS_COLLECTION = "stampRewards";
 
@@ -73,19 +73,26 @@ export async function createStampReward(
 
 /**
  * Busca todos os programas de carimbo ativos (para exibição na home do usuário)
+ * @param cityFilter - formato "Cidade, UF" ou "Cidade - UF" — quando informado, filtra por lojas da cidade
  */
-export async function getAllStampRewards(): Promise<StampRewardData[]> {
+export async function getAllStampRewards(cityFilter?: string): Promise<StampRewardData[]> {
   if (!firestore) {
     console.error("❌ [stampRewardsService] Firestore não está configurado!");
     return [];
   }
 
   try {
+    let storeIdsInCity: Set<string> | null = null;
+    if (cityFilter?.trim()) {
+      const stores = await getStoresByCity(cityFilter);
+      storeIdsInCity = new Set(stores.map((s) => s.id));
+    }
+
     const ref = collection(firestore, STAMP_REWARDS_COLLECTION);
     const q = query(ref, where("active", "==", true));
     const snapshot = await getDocs(q);
 
-    const rewards = snapshot.docs.map((d) => {
+    let rewards = snapshot.docs.map((d) => {
       const data = d.data();
       return {
         id: d.id,
@@ -98,6 +105,10 @@ export async function getAllStampRewards(): Promise<StampRewardData[]> {
         updatedAt: toDate(data?.updatedAt),
       };
     });
+
+    if (storeIdsInCity) {
+      rewards = rewards.filter((r) => r.storeId && storeIdsInCity!.has(r.storeId));
+    }
 
     const withStoreNames = await Promise.all(
       rewards.map(async (r) => {

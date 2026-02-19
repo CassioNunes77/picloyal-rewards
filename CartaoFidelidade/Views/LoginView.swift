@@ -97,11 +97,11 @@ struct LoginView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Core+")
                         .font(.system(size: 30, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
+                        .foregroundColor(.heroForeground)
                     
                     Text("Seu cartão de benefícios e descontos")
                         .font(.system(size: 16, weight: .regular, design: .rounded))
-                        .foregroundColor(.white.opacity(0.9))
+                        .foregroundColor(.heroForegroundMuted)
                         .padding(.top, 8)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)

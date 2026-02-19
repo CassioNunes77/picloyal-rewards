@@ -119,10 +119,10 @@ struct MerchantSettingsView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Configurações")
                 .font(.appTitle)
-                .foregroundColor(.white)
+                .foregroundColor(.heroForeground)
             Text("Ajustes e preferências")
                 .font(.appCaption)
-                .foregroundColor(.white.opacity(0.9))
+                .foregroundColor(.heroForegroundMuted)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, AppSpacing.lg)

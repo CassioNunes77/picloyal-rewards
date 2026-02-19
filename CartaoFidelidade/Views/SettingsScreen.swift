@@ -15,7 +15,7 @@ struct SettingsScreen: View {
     @AppStorage("userEmail") private var userEmail = ""
     @AppStorage("userPhotoURL") private var userPhotoURL = ""
     @State private var notifications = true
-    @State private var darkMode = false
+    @ObservedObject private var darkModeManager = DarkModeManager.shared
     @State private var showLogoutConfirmation = false
     @State private var showDeleteAccountConfirmation = false
     @State private var showDeleteAccountError = false
@@ -34,18 +34,18 @@ struct SettingsScreen: View {
                                 Button(action: onBack) {
                                     ZStack {
                                         Circle()
-                                            .fill(Color.white.opacity(0.2))
+                                            .fill(Color.heroOverlay)
                                             .frame(width: 40, height: 40)
                                         
                                         Image(systemName: "chevron.left")
-                                            .foregroundColor(.white)
+                                            .foregroundColor(.heroForeground)
                                             .font(.system(size: 20))
                                     }
                                 }
                                 
                                 Text("Configurações")
                                     .font(.appTitle)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.heroForeground)
                                 
                                 Spacer()
                             }
@@ -135,8 +135,13 @@ struct SettingsScreen: View {
                             description: "Alterar aparência do app",
                             delay: 0.1,
                             rightElement: AnyView(
-                                Toggle("", isOn: $darkMode)
-                                    .toggleStyle(SwitchToggleStyle(tint: .primary))
+                                Toggle("", isOn: Binding(
+                                    get: { darkModeManager.darkMode },
+                                    set: { newValue in
+                                        Task { await darkModeManager.setDarkMode(newValue) }
+                                    }
+                                ))
+                                .toggleStyle(SwitchToggleStyle(tint: .primary))
                             )
                         )
                         
@@ -280,6 +285,9 @@ struct SettingsScreen: View {
         )
         .fullScreenCover(isPresented: $showPrivacyPolicy) {
             PrivacyPolicyView(onBack: { showPrivacyPolicy = false })
+        }
+        .onAppear {
+            Task { await DarkModeManager.shared.loadFromFirebase() }
         }
     }
     

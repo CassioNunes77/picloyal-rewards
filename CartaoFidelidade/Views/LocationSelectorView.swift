@@ -20,20 +20,20 @@ struct LocationSelectorView: View {
             HStack(spacing: 4) {
                 Image(systemName: "mappin.circle.fill")
                     .font(.system(size: 14))
-                    .foregroundColor(.white.opacity(0.9))
+                    .foregroundColor(.heroForegroundMuted)
                 
                 Text(selectedLocation.isEmpty ? "Carregando..." : selectedLocation)
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(.heroForeground)
                     .lineLimit(1)
                 
                 Image(systemName: "chevron.down")
                     .font(.system(size: 10))
-                    .foregroundColor(.white.opacity(0.8))
+                    .foregroundColor(.heroForegroundMuted)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
-            .background(Color.white.opacity(0.15))
+            .background(Color.heroOverlay)
             .cornerRadius(16)
         }
         .sheet(isPresented: $showLocationPicker) {

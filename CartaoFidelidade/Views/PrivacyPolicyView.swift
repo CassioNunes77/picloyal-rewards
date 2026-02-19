@@ -26,7 +26,7 @@ struct PrivacyPolicyView: View {
                         Button(action: onBack) {
                             Image(systemName: "chevron.left.circle.fill")
                                 .font(.system(size: 24))
-                                .foregroundColor(.white)
+                                .foregroundColor(.heroForeground)
                         }
 
                         Spacer()
@@ -35,14 +35,14 @@ struct PrivacyPolicyView: View {
                     HStack(spacing: AppSpacing.sm) {
                         Image(systemName: "shield.fill")
                             .font(.system(size: 28))
-                            .foregroundColor(.white)
+                            .foregroundColor(.heroForeground)
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Política de Privacidade")
                                 .font(.system(size: 22, weight: .bold, design: .rounded))
-                                .foregroundColor(.white)
+                                .foregroundColor(.heroForeground)
                             Text("Core+")
                                 .font(.system(size: 14))
-                                .foregroundColor(.white.opacity(0.9))
+                                .foregroundColor(.heroForegroundMuted)
                         }
                         Spacer()
                     }

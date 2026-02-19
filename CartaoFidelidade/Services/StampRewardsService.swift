@@ -51,14 +51,22 @@ class StampRewardsService {
     }
     
     /// Busca todos os programas de carimbo ativos (para exibição na home do usuário)
-    func getAllStampRewards() async throws -> [FirebaseStampReward] {
+    /// - Parameter cityFilter: formato "Cidade, UF" ou "Cidade - UF" — quando informado, filtra por lojas da cidade
+    func getAllStampRewards(cityFilter: String? = nil) async throws -> [FirebaseStampReward] {
         let snapshot = try await db.collection(collectionName)
             .whereField("active", isEqualTo: true)
             .getDocuments()
         
+        var storeIdsInCity: Set<String>? = nil
+        if let filter = cityFilter, !filter.trimmingCharacters(in: .whitespaces).isEmpty {
+            let stores = try await StoresService.shared.getStoresByCity(cityFilter: filter)
+            storeIdsInCity = Set(stores.map { $0.id })
+        }
+        
         var rewards: [FirebaseStampReward] = []
         for doc in snapshot.documents {
             guard let base = try? parseStampReward(doc.documentID, doc.data()) else { continue }
+            if let ids = storeIdsInCity, !ids.contains(base.storeId) { continue }
             let store = try? await StoresService.shared.getStoreById(storeId: base.storeId)
             let reward = FirebaseStampReward(
                 id: base.id,

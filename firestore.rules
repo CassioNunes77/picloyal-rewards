@@ -19,7 +19,7 @@ service cloud.firestore {
                        request.resource.data.city is string &&
                        request.resource.data.country is string &&
                        request.resource.data.active is bool &&
-                       request.resource.data.createdAt is timestamp &&
+                no       request.resource.data.createdAt is timestamp &&
                        request.resource.data.updatedAt is timestamp;
       
       allow update: if request.auth != null &&

@@ -118,23 +118,23 @@ struct RewardsView: View {
                             }) {
                                 ZStack {
                                     Circle()
-                                        .fill(Color.white.opacity(0.2))
+                                        .fill(Color.heroOverlay)
                                         .frame(width: 40, height: 40)
                                     
                                     Image(systemName: "chevron.left")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.heroForeground)
                                         .font(.system(size: 20))
                                 }
                             }
                             
                             HStack(spacing: AppSpacing.sm) {
                                 Image(systemName: "sparkles")
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.heroForeground)
                                     .font(.system(size: 24))
                                 
                                 Text("Suas Recompensas")
                                     .font(.appTitle)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.heroForeground)
                             }
                             
                             Spacer()
@@ -146,19 +146,19 @@ struct RewardsView: View {
                         // Search Bar
                         HStack {
                             Image(systemName: "magnifyingglass")
-                                .foregroundColor(.white.opacity(0.6))
+                                .foregroundColor(.heroForegroundSubtle)
                                 .font(.system(size: 20))
                             
                             TextField("Buscar recompensas...", text: $searchQuery)
-                                .foregroundColor(.white)
-                                .tint(.white)
+                                .foregroundColor(.heroForeground)
+                                .tint(.heroForeground)
                         }
                         .padding(AppSpacing.md)
-                        .background(Color.white.opacity(0.2))
+                        .background(Color.heroOverlay)
                         .cornerRadius(AppRadius.lg)
                         .overlay(
                             RoundedRectangle(cornerRadius: AppRadius.lg)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                                .stroke(Color.heroForegroundMuted.opacity(0.5), lineWidth: 1)
                         )
                         .padding(.horizontal, AppSpacing.lg)
                         .padding(.bottom, AppSpacing.lg)
@@ -242,10 +242,10 @@ struct RewardsView: View {
                     
                     Text(toastMessage)
                         .font(.appBody)
-                        .foregroundColor(.white)
+                        .foregroundColor(.cardForeground)
                         .padding(.horizontal, AppSpacing.lg)
                         .padding(.vertical, AppSpacing.md)
-                        .background(Color.appForeground.opacity(0.9))
+                        .background(Color.card)
                         .cornerRadius(AppRadius.md)
                         .padding(.bottom, 100)
                         .transition(.move(edge: .bottom).combined(with: .opacity))

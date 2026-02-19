@@ -28,10 +28,10 @@ struct MerchantStoreDetailsView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(store.name)
                     .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
+                                    .foregroundColor(.heroForeground)
                 Text("Gerencie suas ofertas")
                     .font(.system(size: 14, weight: .regular))
-                    .foregroundColor(.white.opacity(0.9))
+                                    .foregroundColor(.heroForegroundMuted)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, AppSpacing.lg)
@@ -43,7 +43,7 @@ struct MerchantStoreDetailsView: View {
                 }) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(.white)
+                                    .foregroundColor(.heroForeground)
                 }
                 Spacer()
             }

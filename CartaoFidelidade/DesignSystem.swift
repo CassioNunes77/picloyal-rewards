@@ -3,42 +3,91 @@
 //  CartaoFidelidade
 //
 //  Design System baseado no site web React + Vite
+//  Cores adaptativas para modo claro/escuro (alinhado com index.css .dark)
 //
 
 import SwiftUI
+import UIKit
 
-// MARK: - Colors
+// MARK: - Colors (adaptativas para modo escuro via preferredColorScheme)
 extension Color {
-    // Background
-    static let appBackground = Color(red: 0.98, green: 0.98, blue: 0.99) // hsl(250 20% 98%)
-    static let appForeground = Color(red: 0.1, green: 0.1, blue: 0.12) // hsl(250 30% 10%)
+    // Background - light: hsl(250 20% 98%), dark: hsl(250 30% 8%)
+    static let appBackground = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? UIColor(red: 0.05, green: 0.05, blue: 0.08, alpha: 1)
+            : UIColor(red: 0.98, green: 0.98, blue: 0.99, alpha: 1)
+    })
+    static let appForeground = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? UIColor(red: 0.98, green: 0.98, blue: 0.98, alpha: 1)
+            : UIColor(red: 0.1, green: 0.1, blue: 0.12, alpha: 1)
+    })
     
-    // Card
-    static let card = Color.white
-    static let cardForeground = Color(red: 0.1, green: 0.1, blue: 0.12)
+    // Card - light: white, dark: hsl(250 25% 12%)
+    static let card = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? UIColor(red: 0.08, green: 0.08, blue: 0.1, alpha: 1)
+            : UIColor.white
+    })
+    static let cardForeground = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? UIColor(red: 0.98, green: 0.98, blue: 0.98, alpha: 1)
+            : UIColor(red: 0.1, green: 0.1, blue: 0.12, alpha: 1)
+    })
     
-    // Primary (verde)
-    static let primary = Color(red: 0.2, green: 0.8, blue: 0.4) // hsl(155 80% 40%)
-    static let primaryForeground = Color.white
+    // Primary (verde) - mantém similar em ambos
+    static let primary = Color(red: 0.2, green: 0.8, blue: 0.4)
+    static let primaryForeground = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? UIColor(red: 0.05, green: 0.05, blue: 0.08, alpha: 1)
+            : UIColor.white
+    })
     
-    // Secondary (roxo) - alinhado com WEB
-    static let secondary = Color(red: 168/255.0, green: 42/255.0, blue: 224/255.0) // hsl(270 70% 55%) = #A82AE0
+    // Secondary (roxo)
+    static let secondary = Color(red: 168/255.0, green: 42/255.0, blue: 224/255.0)
     static let secondaryForeground = Color.white
     
-    // Muted
-    static let muted = Color(red: 0.9, green: 0.9, blue: 0.92) // hsl(250 15% 90%)
-    static let mutedForeground = Color(red: 0.45, green: 0.45, blue: 0.5) // hsl(250 15% 45%)
+    // Muted - light: hsl(250 15% 90%), dark: hsl(250 20% 20%)
+    static let muted = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? UIColor(red: 0.18, green: 0.18, blue: 0.2, alpha: 1)
+            : UIColor(red: 0.9, green: 0.9, blue: 0.92, alpha: 1)
+    })
+    static let mutedForeground = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? UIColor(red: 0.65, green: 0.65, blue: 0.7, alpha: 1)
+            : UIColor(red: 0.45, green: 0.45, blue: 0.5, alpha: 1)
+    })
     
-    // Accent
-    static let accent = Color(red: 0.95, green: 0.98, blue: 0.96) // hsl(155 60% 95%)
-    static let accentForeground = Color(red: 0.3, green: 0.8, blue: 0.3) // hsl(155 80% 30%)
+    // Accent - light: hsl(155 60% 95%), dark: hsl(155 50% 15%)
+    static let accent = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? UIColor(red: 0.08, green: 0.15, blue: 0.1, alpha: 1)
+            : UIColor(red: 0.95, green: 0.98, blue: 0.96, alpha: 1)
+    })
+    static let accentForeground = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? UIColor(red: 0.4, green: 0.85, blue: 0.45, alpha: 1)
+            : UIColor(red: 0.3, green: 0.8, blue: 0.3, alpha: 1)
+    })
     
     // Destructive
-    static let destructive = Color(red: 0.9, green: 0.2, blue: 0.2) // hsl(0 72% 50%)
+    static let destructive = Color(red: 0.9, green: 0.2, blue: 0.2)
     static let destructiveForeground = Color.white
     
-    // Border
-    static let border = Color(red: 0.9, green: 0.9, blue: 0.92)
+    // Border - light: hsl(250 15% 90%), dark: hsl(250 20% 20%)
+    static let border = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? UIColor(red: 0.18, green: 0.18, blue: 0.2, alpha: 1)
+            : UIColor(red: 0.9, green: 0.9, blue: 0.92, alpha: 1)
+    })
+    
+    // Hero (área roxa) - texto e ícones sempre brancos (roxo mantém mesmo tom em ambos os modos)
+    static let heroForeground = Color.white
+    static let heroForegroundMuted = Color(white: 1, opacity: 0.8)
+    static let heroForegroundSubtle = Color(white: 1, opacity: 0.6)
+    /// Overlay para círculos/botões na área hero
+    static let heroOverlay = Color(white: 1, opacity: 0.2)
 }
 
 // MARK: - Gradients
@@ -63,11 +112,11 @@ struct AppGradients {
         endPoint: .bottomTrailing
     )
     
-    // Hero Gradient (roxo vertical) - alinhado com WEB
+    // Hero Gradient (roxo vertical) - mesmo tom de roxo em modo claro e escuro
     static let hero = LinearGradient(
         colors: [
-            Color(red: 168/255.0, green: 42/255.0, blue: 224/255.0), // hsl(270 70% 55%) = #A82AE0 - roxo claro
-            Color(red: 138/255.0, green: 45/255.0, blue: 184/255.0) // hsl(280 60% 45%) = #8A2DB8 - roxo escuro
+            Color(red: 168/255.0, green: 42/255.0, blue: 224/255.0), // #A82AE0
+            Color(red: 138/255.0, green: 45/255.0, blue: 184/255.0)  // #801BB3
         ],
         startPoint: .top,
         endPoint: .bottom

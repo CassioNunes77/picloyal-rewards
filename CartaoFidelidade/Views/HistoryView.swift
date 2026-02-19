@@ -59,19 +59,20 @@ struct HistoryView: View {
                             }) {
                                 ZStack {
                                     Circle()
-                                        .fill(Color.white.opacity(0.2))
+                                        .fill(Color.heroOverlay)
                                         .frame(width: 40, height: 40)
                                     Image(systemName: "chevron.left")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.heroForeground)
                                         .font(.system(size: 20))
                                 }
                             }
                             HStack(spacing: AppSpacing.sm) {
                                 Image(systemName: "clock.fill")
                                     .font(.system(size: 24))
+                                    .foregroundColor(.heroForeground)
                                 Text("Atividades")
                                     .font(.appTitle)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.heroForeground)
                             }
                             Spacer()
                         }
@@ -81,13 +82,13 @@ struct HistoryView: View {
 
                         HStack {
                             Image(systemName: "magnifyingglass")
-                                .foregroundColor(.white.opacity(0.6))
+                                .foregroundColor(.heroForegroundSubtle)
                             TextField("Buscar nas atividades...", text: $searchQuery)
-                                .foregroundColor(.white)
-                                .tint(.white)
+                                .foregroundColor(.heroForeground)
+                                .tint(.heroForeground)
                         }
                         .padding(AppSpacing.md)
-                        .background(Color.white.opacity(0.2))
+                        .background(Color.heroOverlay)
                         .cornerRadius(AppRadius.lg)
                         .padding(.horizontal, AppSpacing.lg)
                         .padding(.bottom, AppSpacing.lg)
@@ -149,10 +150,10 @@ struct HistoryView: View {
                     Spacer()
                     Text(toastMessage)
                         .font(.appBody)
-                        .foregroundColor(.white)
+                        .foregroundColor(.cardForeground)
                         .padding(.horizontal, AppSpacing.lg)
                         .padding(.vertical, AppSpacing.md)
-                        .background(Color.appForeground.opacity(0.9))
+                        .background(Color.card)
                         .cornerRadius(AppRadius.md)
                         .padding(.bottom, 100)
                 }

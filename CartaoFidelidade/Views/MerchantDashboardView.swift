@@ -101,17 +101,17 @@ struct MerchantDashboardView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Painel do Lojista")
                         .font(.appTitle)
-                        .foregroundColor(.white)
+                        .foregroundColor(.heroForeground)
                     Text("Visão geral do seu negócio")
                         .font(.appCaption)
-                        .foregroundColor(.white.opacity(0.9))
+                        .foregroundColor(.heroForegroundMuted)
                 }
                 Spacer()
                 if isLoggedIn {
                     Button(action: { showLogoutConfirmation = true }) {
                         Image(systemName: "arrow.right.square.fill")
                             .font(.system(size: 24))
-                            .foregroundColor(.white.opacity(0.8))
+                            .foregroundColor(.heroForegroundMuted)
                     }
                 }
             }
@@ -132,21 +132,21 @@ struct MerchantDashboardView: View {
                     if isLoggedIn {
                         Text("Bem-vindo, \(userDisplayName.isEmpty ? (userEmail.isEmpty ? "Lojista" : String(userEmail.split(separator: "@").first ?? "Lojista")) : userDisplayName)")
                             .font(.appCaption)
-                            .foregroundColor(.white.opacity(0.9))
+                            .foregroundColor(.heroForegroundMuted)
                     }
                     Text("Painel do Lojista")
                         .font(.appTitle)
-                        .foregroundColor(.white)
+                        .foregroundColor(.heroForeground)
                     Text("Gerencie suas lojas")
                         .font(.appCaption)
-                        .foregroundColor(.white.opacity(0.9))
+                        .foregroundColor(.heroForegroundMuted)
                 }
                 Spacer()
                 if isLoggedIn {
                     Button(action: { showLogoutConfirmation = true }) {
                         Image(systemName: "arrow.right.square.fill")
                             .font(.system(size: 24))
-                            .foregroundColor(.white.opacity(0.8))
+                            .foregroundColor(.heroForegroundMuted)
                     }
                 }
             }
@@ -164,10 +164,10 @@ struct MerchantDashboardView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Suas Lojas")
                 .font(.appTitle)
-                .foregroundColor(.white)
+                .foregroundColor(.heroForeground)
             Text("Gerencie e cadastre suas lojas")
                 .font(.appCaption)
-                .foregroundColor(.white.opacity(0.9))
+                .foregroundColor(.heroForegroundMuted)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, AppSpacing.lg)

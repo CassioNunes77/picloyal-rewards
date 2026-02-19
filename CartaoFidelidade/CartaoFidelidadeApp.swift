@@ -18,6 +18,7 @@ struct CartaoFidelidadeApp: App {
     @AppStorage("userDisplayName") private var userDisplayName = ""
     @AppStorage("userEmail") private var userEmail = ""
     @AppStorage("userPhotoURL") private var userPhotoURL = ""
+    @ObservedObject private var darkModeManager = DarkModeManager.shared
 
     init() {
         FirebaseApp.configure()
@@ -27,7 +28,64 @@ struct CartaoFidelidadeApp: App {
     
     var body: some Scene {
         WindowGroup {
-            Group {
+            RootContentView(
+                splashDone: $splashDone,
+                isLoggedIn: $isLoggedIn,
+                isMerchant: $isMerchant,
+                showMerchantLogin: $showMerchantLogin,
+                userDisplayName: $userDisplayName,
+                userEmail: $userEmail,
+                userPhotoURL: $userPhotoURL
+            )
+            .preferredColorScheme(darkModeManager.darkMode ? .dark : .light)
+            .onAppear {
+                Task { await DarkModeManager.shared.loadFromFirebase() }
+            }
+            .background(Color.appBackground.ignoresSafeArea())
+            .onOpenURL { url in
+                _ = handleGoogleSignInURL(url)
+            }
+            .onAppear {
+                if isLoggedIn, let user = Auth.auth().currentUser {
+                    checkUserRole(userId: user.uid)
+                }
+            }
+        }
+    }
+    
+    private func checkUserRole(userId: String) {
+        Task {
+            let roleService = UserRoleService.shared
+            do {
+                let isMerchantUser = try await roleService.isMerchant(userId: userId)
+                isMerchant = isMerchantUser
+                
+                if isMerchantUser {
+                    print("✅ [CartaoFidelidadeApp] Usuário encontrado em merchants, isMerchant: true")
+                } else {
+                    print("✅ [CartaoFidelidadeApp] Usuário não encontrado em merchants, isMerchant: false")
+                }
+            } catch {
+                print("❌ [CartaoFidelidadeApp] Erro ao verificar role: \(error.localizedDescription)")
+                isMerchant = false
+            }
+        }
+    }
+    
+}
+
+// MARK: - Root Content (extraído para simplificar o App)
+private struct RootContentView: View {
+    @Binding var splashDone: Bool
+    @Binding var isLoggedIn: Bool
+    @Binding var isMerchant: Bool
+    @Binding var showMerchantLogin: Bool
+    @Binding var userDisplayName: String
+    @Binding var userEmail: String
+    @Binding var userPhotoURL: String
+    
+    var body: some View {
+        Group {
                 if !splashDone {
                     SplashScreenView {
                         splashDone = true
@@ -45,7 +103,10 @@ struct CartaoFidelidadeApp: App {
                     }
                 } else if showMerchantLogin {
                     MerchantLoginView(
-                        onSuccess: { showMerchantLogin = false },
+                        onSuccess: {
+                            showMerchantLogin = false
+                            Task { await DarkModeManager.shared.loadFromFirebase() }
+                        },
                         onBack: { showMerchantLogin = false }
                     )
                 } else {
@@ -108,6 +169,7 @@ struct CartaoFidelidadeApp: App {
                                         userPhotoURL = user.photoURL?.absoluteString ?? ""
                                         
                                         print("✅ [CartaoFidelidadeApp] Usuário comum logado com sucesso")
+                                        Task { await DarkModeManager.shared.loadFromFirebase() }
                                     } catch {
                                         print("❌ [CartaoFidelidadeApp] Erro ao verificar role: \(error.localizedDescription)")
                                         // Em caso de erro, não permitir login
@@ -120,36 +182,5 @@ struct CartaoFidelidadeApp: App {
                     )
                 }
             }
-            .background(Color.appBackground.ignoresSafeArea())
-            .onOpenURL { url in
-                _ = handleGoogleSignInURL(url)
-            }
-            .onAppear {
-                // Verificar role ao iniciar o app se já estiver logado
-                if isLoggedIn, let user = Auth.auth().currentUser {
-                    checkUserRole(userId: user.uid)
-                }
-            }
         }
-    }
-    
-    private func checkUserRole(userId: String) {
-        Task {
-            let roleService = UserRoleService.shared
-            do {
-                // Verificar se existe em merchants (lojista)
-                let isMerchantUser = try await roleService.isMerchant(userId: userId)
-                isMerchant = isMerchantUser
-                
-                if isMerchantUser {
-                    print("✅ [CartaoFidelidadeApp] Usuário encontrado em merchants, isMerchant: true")
-                } else {
-                    print("✅ [CartaoFidelidadeApp] Usuário não encontrado em merchants, isMerchant: false")
-                }
-            } catch {
-                print("❌ [CartaoFidelidadeApp] Erro ao verificar role: \(error.localizedDescription)")
-                isMerchant = false
-            }
-        }
-    }
 }
