@@ -10,7 +10,13 @@ import { Input } from "@/components/ui/input";
 import { getCitiesFromStores, type CityOption } from "@/services/merchantsService";
 import { toast } from "sonner";
 
-const LocationSelector = () => {
+type LocationSelectorVariant = "hero" | "header";
+
+interface LocationSelectorProps {
+  variant?: LocationSelectorVariant;
+}
+
+const LocationSelector = ({ variant = "hero" }: LocationSelectorProps) => {
   const [selectedLocation, setSelectedLocation] = useState(() => {
     return localStorage.getItem("selectedLocation") || "";
   });
@@ -36,6 +42,7 @@ const LocationSelector = () => {
         const firstLocation = fetchedCities[0].displayName;
         setSelectedLocation(firstLocation);
         localStorage.setItem("selectedLocation", firstLocation);
+        window.dispatchEvent(new CustomEvent("locationChanged", { detail: firstLocation }));
       }
     } catch (error) {
       console.error("Erro ao carregar cidades:", error);
@@ -59,6 +66,7 @@ const LocationSelector = () => {
   const handleSelectCity = (cityOption: CityOption) => {
     setSelectedLocation(cityOption.displayName);
     localStorage.setItem("selectedLocation", cityOption.displayName);
+    window.dispatchEvent(new CustomEvent("locationChanged", { detail: cityOption.displayName }));
     setShowPicker(false);
     setSearchText("");
   };
@@ -67,16 +75,24 @@ const LocationSelector = () => {
     <>
       <button
         onClick={() => setShowPicker(true)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-primary-foreground/15 
-                   hover:bg-primary-foreground/20 transition-all duration-200 
-                   active:scale-95 animate-fade-in"
-        style={{ animationDelay: "50ms" }}
+        className={
+          variant === "header"
+            ? "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted hover:bg-muted/80 transition-colors text-muted-foreground hover:text-card-foreground"
+            : "flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-primary-foreground/15 hover:bg-primary-foreground/20 transition-all duration-200 active:scale-95 animate-fade-in"
+        }
+        style={variant === "hero" ? { animationDelay: "50ms" } : undefined}
       >
-        <MapPin className="h-3.5 w-3.5 text-primary-foreground/90" />
-        <span className="text-xs font-semibold text-primary-foreground line-clamp-1 max-w-[120px]">
+        <MapPin className={variant === "header" ? "h-4 w-4 shrink-0" : "h-3.5 w-3.5 text-primary-foreground/90"} />
+        <span
+          className={
+            variant === "header"
+              ? "text-sm font-medium line-clamp-1 max-w-[140px]"
+              : "text-xs font-semibold text-primary-foreground line-clamp-1 max-w-[120px]"
+          }
+        >
           {selectedLocation || "Carregando..."}
         </span>
-        <ChevronDown className="h-3 w-3 text-primary-foreground/80" />
+        <ChevronDown className={variant === "header" ? "h-4 w-4 shrink-0" : "h-3 w-3 text-primary-foreground/80"} />
       </button>
 
       <Dialog open={showPicker} onOpenChange={setShowPicker}>

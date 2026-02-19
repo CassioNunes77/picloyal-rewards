@@ -3,6 +3,7 @@ import { navItems, getActiveNavId } from "@/config/nav";
 import { cn } from "@/lib/utils";
 import QRCodeCard from "@/components/QRCodeCard";
 import LoyaltyCard from "@/components/LoyaltyCard";
+import LocationSelector from "@/components/LocationSelector";
 import { useQR } from "@/contexts/QRContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { User, Bell, Settings } from "lucide-react";
@@ -62,6 +63,7 @@ export default function DesktopLayout() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <LocationSelector variant="header" />
           <button
             type="button"
             onClick={() => navigate("/notifications")}
