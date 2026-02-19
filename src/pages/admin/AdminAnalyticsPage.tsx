@@ -8,12 +8,17 @@ import {
 } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
 import { getUsersGrowthData, type UserGrowthPoint } from "@/services/usersService";
+import { getOffersCountByCategory, type CategoryCount } from "@/services/offersService";
+
+const CATEGORY_COLORS = ["bg-primary", "bg-secondary", "bg-green-500", "bg-blue-500", "bg-muted"];
 
 const AdminAnalyticsPage = () => {
   const isMobile = useIsMobile();
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "1y">("30d");
   const [userGrowth, setUserGrowth] = useState<UserGrowthPoint[]>([]);
   const [loadingUserGrowth, setLoadingUserGrowth] = useState(true);
+  const [topCategories, setTopCategories] = useState<CategoryCount[]>([]);
+  const [loadingTopCategories, setLoadingTopCategories] = useState(true);
 
   useEffect(() => {
     const load = async () => {
@@ -31,6 +36,22 @@ const AdminAnalyticsPage = () => {
     load();
   }, [timeRange]);
 
+  useEffect(() => {
+    const load = async () => {
+      setLoadingTopCategories(true);
+      try {
+        const data = await getOffersCountByCategory();
+        setTopCategories(data);
+      } catch (err) {
+        console.error("Erro ao carregar categorias:", err);
+        setTopCategories([]);
+      } finally {
+        setLoadingTopCategories(false);
+      }
+    };
+    load();
+  }, []);
+
   // Dados mockados para outros gráficos
   const analytics = {
     revenue: [
@@ -39,13 +60,6 @@ const AdminAnalyticsPage = () => {
       { period: "Mar", value: 168000 },
       { period: "Abr", value: 195000 },
       { period: "Mai", value: 245000 },
-    ],
-    topCategories: [
-      { name: "Bebidas", value: 35, color: "bg-primary" },
-      { name: "Comida", value: 28, color: "bg-secondary" },
-      { name: "Brindes", value: 20, color: "bg-green-500" },
-      { name: "Saúde", value: 12, color: "bg-blue-500" },
-      { name: "Outros", value: 5, color: "bg-muted" },
     ],
   };
 
@@ -160,26 +174,38 @@ const AdminAnalyticsPage = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-lg font-bold text-card-foreground mb-1">Top Categorias</h2>
-            <p className="text-sm text-muted-foreground">Distribuição por categoria</p>
+            <p className="text-sm text-muted-foreground">Quantidade de ofertas por categoria (Firebase)</p>
           </div>
           <BarChart3 className="h-6 w-6 text-primary" />
         </div>
-        <div className="space-y-4">
-          {analytics.topCategories.map((category, index) => (
-            <div key={index}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-card-foreground">{category.name}</span>
-                <span className="text-sm text-muted-foreground">{category.value}%</span>
+        {loadingTopCategories ? (
+          <div className="py-12 flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : topCategories.length === 0 ? (
+          <div className="py-12 text-center text-muted-foreground text-sm">
+            Nenhuma oferta cadastrada. As categorias aparecerão conforme as ofertas forem criadas.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {topCategories.map((category, index) => (
+              <div key={category.name}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-card-foreground">{category.name}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {category.count} ofertas ({category.percentage}%)
+                  </span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                  <div
+                    className={`h-full ${CATEGORY_COLORS[index % CATEGORY_COLORS.length]} rounded-full transition-all`}
+                    style={{ width: `${category.percentage}%` }}
+                  />
+                </div>
               </div>
-              <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
-                <div
-                  className={`h-full ${category.color} rounded-full transition-all`}
-                  style={{ width: `${category.value}%` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

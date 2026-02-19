@@ -167,6 +167,48 @@ export async function getOfferById(offerId: string): Promise<OfferData | null> {
 }
 
 /**
+ * Retorna contagem de ofertas por categoria (para Analytics - Top Categorias)
+ */
+export interface CategoryCount {
+  name: string;
+  count: number;
+  percentage: number;
+}
+
+export async function getOffersCountByCategory(): Promise<CategoryCount[]> {
+  if (!firestore) {
+    console.error("❌ [offersService] Firestore não está configurado!");
+    return [];
+  }
+
+  try {
+    const offersRef = collection(firestore, OFFERS_COLLECTION);
+    const snapshot = await getDocs(offersRef);
+
+    const categoryMap = new Map<string, number>();
+    snapshot.docs.forEach((docSnap) => {
+      const data = docSnap.data();
+      const category = String(data?.category ?? "geral").trim() || "geral";
+      categoryMap.set(category, (categoryMap.get(category) ?? 0) + 1);
+    });
+
+    const total = snapshot.size;
+    const result: CategoryCount[] = Array.from(categoryMap.entries())
+      .map(([name, count]) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(),
+        count,
+        percentage: total > 0 ? Math.round((count / total) * 100) : 0,
+      }))
+      .sort((a, b) => b.count - a.count);
+
+    return result;
+  } catch (error: any) {
+    console.error("❌ [offersService] Erro ao contar ofertas por categoria:", error);
+    return [];
+  }
+}
+
+/**
  * Busca todas as ofertas de uma loja
  */
 export async function getStoreOffers(storeId: string): Promise<OfferData[]> {
