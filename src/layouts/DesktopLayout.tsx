@@ -81,12 +81,16 @@ export default function DesktopLayout() {
           >
             <Settings className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-2 pl-2 border-l border-border text-sm text-card-foreground">
+          <button
+            type="button"
+            onClick={() => navigate("/profile")}
+            className="flex items-center gap-2 pl-2 border-l border-border text-sm text-card-foreground hover:bg-muted/50 rounded-lg px-2 py-1.5 -mr-2 transition-colors"
+          >
             <User className="h-4 w-4 text-muted-foreground shrink-0" />
             <span className="font-medium truncate max-w-[140px] sm:max-w-[180px]">
               {displayName}
             </span>
-          </div>
+          </button>
         </div>
       </header>
 
