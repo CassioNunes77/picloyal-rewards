@@ -13,6 +13,7 @@ struct HomeView: View {
     @Binding var showQRCode: Bool
     @AppStorage("userDisplayName") private var userDisplayName = ""
     @AppStorage("userEmail") private var userEmail = ""
+    @AppStorage("selectedLocation") private var selectedLocation = ""
     @State private var showToast = false
     @State private var toastMessage = ""
     @State private var stampRewards: [FirebaseStampReward] = []
@@ -210,6 +211,8 @@ struct HomeView: View {
                                 }
                                 .tabViewStyle(.page(indexDisplayMode: .never))
                                 .frame(height: 220)
+                                .clipShape(RoundedRectangle(cornerRadius: AppRadius.xl))
+                                .padding(.horizontal, AppSpacing.lg)
                                 
                                 // Indicadores em pontinhos ultra discretos
                                 HStack(spacing: 3) {
@@ -271,6 +274,48 @@ struct HomeView: View {
                             .padding(.horizontal, AppSpacing.lg)
                         }
                         
+                        // Premium Ad Card
+                        Button(action: {}) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Seja Premium")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(.white.opacity(0.9))
+                                    
+                                    Text("Desbloqueie benefícios exclusivos")
+                                        .font(.appCaption)
+                                        .foregroundColor(.white.opacity(0.8))
+                                }
+                                
+                                Spacer()
+                                
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.white.opacity(0.2))
+                                        .frame(width: 48, height: 48)
+                                    
+                                    Image(systemName: "crown.fill")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 22))
+                                }
+                            }
+                            .padding(AppSpacing.lg)
+                            .background(
+                                LinearGradient(
+                                    colors: [
+                                        Color(red: 0.85, green: 0.65, blue: 0.2),
+                                        Color(red: 0.75, green: 0.5, blue: 0.1)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .cornerRadius(AppRadius.xl)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .padding(.horizontal, AppSpacing.lg)
+                        .fadeIn(delay: 0.5)
+                        
                         // Promo Banner
                         Button(action: {}) {
                             HStack {
@@ -318,9 +363,9 @@ struct HomeView: View {
                 }
             }
             .ignoresSafeArea(edges: .top)
-            .task {
+            .task(id: selectedLocation) {
                 do {
-                    stampRewards = try await StampRewardsService.shared.getAllStampRewards()
+                    stampRewards = try await StampRewardsService.shared.getAllStampRewards(cityFilter: selectedLocation.isEmpty ? nil : selectedLocation)
                 } catch {
                     stampRewards = []
                 }

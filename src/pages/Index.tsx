@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { QrCode, History, Sparkles, Store, Settings } from "lucide-react";
+import { QrCode, History, Sparkles, Store, Settings, Crown } from "lucide-react";
 import LoyaltyCard from "@/components/LoyaltyCard";
 import StampGrid from "@/components/StampGrid";
 import RewardCard from "@/components/RewardCard";
@@ -18,10 +18,21 @@ const Index = () => {
   const { openQR } = useQR();
   const { user, loading: authLoading } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(() => localStorage.getItem("selectedLocation") || "");
   const [stampRewards, setStampRewards] = useState<StampRewardData[]>([]);
   const [stampCarouselIndex, setStampCarouselIndex] = useState(0);
   const stampCarouselRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    setSelectedLocation(localStorage.getItem("selectedLocation") || "");
+  }, []);
+
+  useEffect(() => {
+    const handler = () => setSelectedLocation(localStorage.getItem("selectedLocation") || "");
+    window.addEventListener("locationChanged", handler);
+    return () => window.removeEventListener("locationChanged", handler);
+  }, []);
 
   const updateStampCarouselIndex = useCallback(() => {
     const el = stampCarouselRef.current;
@@ -125,7 +136,19 @@ const Index = () => {
                 </div>
               </div>
             </div>
-            <div className="md:col-span-5">
+            <div className="md:col-span-5 flex flex-col gap-4">
+              <div
+                className="min-h-[100px] overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 p-5 text-white
+                           transition-all duration-300 hover:shadow-md cursor-pointer flex items-center justify-between"
+              >
+                <div>
+                  <p className="text-sm font-medium opacity-90">Seja Premium</p>
+                  <p className="text-xs opacity-80">Desbloqueie benefícios exclusivos</p>
+                </div>
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20">
+                  <Crown className="h-6 w-6" />
+                </div>
+              </div>
               <div
                 className="h-full min-h-[140px] overflow-hidden rounded-2xl gradient-secondary p-5 text-secondary-foreground
                            transition-all duration-300 hover:shadow-md cursor-pointer flex items-center justify-between"
@@ -321,6 +344,21 @@ const Index = () => {
                 <RewardCard {...reward} onClaim={() => handleClaimReward(reward.title)} />
               </div>
             ))}
+          </div>
+        </div>
+        <div
+          className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 p-5 text-white
+                     transition-all duration-300 active:scale-[0.98] cursor-pointer animate-fade-in"
+          style={{ animationDelay: "500ms" }}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium opacity-90">Seja Premium</p>
+              <p className="text-sm opacity-80">Desbloqueie benefícios exclusivos</p>
+            </div>
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/20">
+              <Crown className="h-6 w-6" />
+            </div>
           </div>
         </div>
         <div

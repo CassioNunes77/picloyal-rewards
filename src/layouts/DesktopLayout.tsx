@@ -6,7 +6,7 @@ import LoyaltyCard from "@/components/LoyaltyCard";
 import LocationSelector from "@/components/LocationSelector";
 import { useQR } from "@/contexts/QRContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { User, Bell, Settings } from "lucide-react";
+import { User, Bell, Settings, Crown } from "lucide-react";
 
 export default function DesktopLayout() {
   const { pathname } = useLocation();
@@ -92,13 +92,25 @@ export default function DesktopLayout() {
       {/* Área principal: cartão e conteúdo no mesmo fluxo, sem divisória */}
       <main className="flex-1 min-h-0 overflow-auto">
         <div className="p-6 flex gap-6 min-h-full">
-          <div className="w-[300px] shrink-0">
+          <div className="w-[300px] shrink-0 flex flex-col gap-4">
             <LoyaltyCard
               currentPoints={650}
               totalPoints={1000}
               userName={displayName}
               cardNumber="**** **** **** 4589"
             />
+            <div
+              className="overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 p-5 text-white
+                         transition-all duration-300 hover:shadow-md cursor-pointer flex items-center justify-between gap-4"
+            >
+              <div>
+                <p className="text-sm font-medium opacity-90">Seja Premium</p>
+                <p className="text-xs opacity-80">Desbloqueie benefícios exclusivos</p>
+              </div>
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20">
+                <Crown className="h-6 w-6" />
+              </div>
+            </div>
           </div>
           <div
             className="flex-1 min-w-0 min-h-[60vh] flex flex-col overflow-auto bg-background rounded-lg"
