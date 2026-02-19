@@ -115,34 +115,36 @@ const AdminStoreDetailPage = () => {
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold text-card-foreground">{store.name}</h1>
-                <span
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-medium ${
-                    store.active ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"
-                  }`}
+              <div className="flex flex-wrap items-start justify-between gap-3 mb-2">
+                <div className="flex flex-wrap items-center gap-3">
+                  <h1 className="text-2xl font-bold text-card-foreground">{store.name}</h1>
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-medium ${
+                      store.active ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {store.active ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
+                    {store.active ? "Ativa" : "Inativa"}
+                  </span>
+                </div>
+                <button
+                  onClick={handleToggleActive}
+                  disabled={toggling}
+                  className={`shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                    store.active
+                      ? "bg-red-100 text-red-700 hover:bg-red-200"
+                      : "bg-green-100 text-green-700 hover:bg-green-200"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
-                  {store.active ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
-                  {store.active ? "Ativa" : "Inativa"}
-                </span>
+                  {toggling ? (
+                    <Loader2 className="h-4 w-4 animate-spin inline mr-2" />
+                  ) : null}
+                  {store.active ? "Desabilitar loja" : "Habilitar loja"}
+                </button>
               </div>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm text-muted-foreground">
                 {offers.filter((o) => o.active).length} ofertas ativas · {offers.length} total
               </p>
-              <button
-                onClick={handleToggleActive}
-                disabled={toggling}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                  store.active
-                    ? "bg-red-100 text-red-700 hover:bg-red-200"
-                    : "bg-green-100 text-green-700 hover:bg-green-200"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                {toggling ? (
-                  <Loader2 className="h-4 w-4 animate-spin inline mr-2" />
-                ) : null}
-                {store.active ? "Desabilitar loja" : "Habilitar loja"}
-              </button>
             </div>
           </div>
         </div>
