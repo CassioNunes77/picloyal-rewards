@@ -396,29 +396,29 @@ const AdminCategoriesPage = () => {
           </p>
         </div>
       ) : (
-        <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-4"} gap-4`}>
+        <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-4"} gap-3`}>
           {filteredCategories.map((category) => (
           <div
             key={category.id}
-            className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-all"
+            className="bg-card rounded-xl border border-border p-4 shadow-sm hover:shadow-md transition-all"
           >
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
                   {(() => {
                     const IconComponent = getIconComponent(category.icon);
                     return IconComponent ? (
-                      <IconComponent className="h-6 w-6" />
+                      <IconComponent className="h-4 w-4" />
                     ) : (
-                      <Tag className="h-6 w-6" />
+                      <Tag className="h-4 w-4" />
                     );
                   })()}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-card-foreground truncate">{category.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-card-foreground text-sm truncate">{category.name}</h3>
                     <span
-                      className={`px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${
+                      className={`px-1.5 py-0.5 rounded-full text-xs font-medium shrink-0 ${
                         category.active
                           ? "bg-green-100 text-green-700"
                           : "bg-muted text-muted-foreground"
@@ -427,13 +427,12 @@ const AdminCategoriesPage = () => {
                       {category.active ? "Ativa" : "Inativa"}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground">{category.productsCount} produtos</p>
                 </div>
               </div>
               <button
                 onClick={() => handleToggleActive(category.id)}
                 disabled={updatingCategoryId === category.id}
-                className={`p-2 rounded-lg transition-all shrink-0 ${
+                className={`p-1.5 rounded-lg transition-all shrink-0 ${
                   category.active
                     ? "bg-green-100 text-green-700 hover:bg-green-200"
                     : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -449,27 +448,30 @@ const AdminCategoriesPage = () => {
                 )}
               </button>
             </div>
-            <div className="flex items-center justify-end gap-2 pt-4 border-t border-border">
-              <button
-                onClick={() => handleEditClick(category)}
-                disabled={updatingCategoryId === category.id || deletingCategoryId === category.id}
-                className="p-2 rounded-lg text-muted-foreground hover:bg-muted transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Editar categoria"
-              >
-                <Edit className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => handleDeleteClick(category)}
-                disabled={deletingCategoryId === category.id || updatingCategoryId === category.id}
-                className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Excluir categoria"
-              >
-                {deletingCategoryId === category.id ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Trash2 className="h-4 w-4" />
-                )}
-              </button>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs text-muted-foreground">{category.productsCount} produtos</p>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => handleEditClick(category)}
+                  disabled={updatingCategoryId === category.id || deletingCategoryId === category.id}
+                  className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Editar categoria"
+                >
+                  <Edit className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => handleDeleteClick(category)}
+                  disabled={deletingCategoryId === category.id || updatingCategoryId === category.id}
+                  className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Excluir categoria"
+                >
+                  {deletingCategoryId === category.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         ))}
