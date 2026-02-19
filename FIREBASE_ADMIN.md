@@ -23,8 +23,8 @@ Para que o painel administrativo possa **adicionar regiões**, **categorias** e 
 4. **Fazer login no painel admin**
    - Acesse o painel administrativo e faça login com as credenciais do admin (usuário/senha do painel)
    - O sistema fará login automático no Firebase Auth com a conta configurada
-   - Agora você poderá adicionar regiões, categorias, etc.
+   - Agora você poderá adicionar regiões, categorias, alterar a política de privacidade, etc.
 
 ## Observação
 
-As regras de segurança do Firestore exigem `request.auth != null` para operações de escrita em regiões e categorias. O painel admin usa autenticação própria (usuário/senha), mas as requisições ao Firestore precisam de um usuário autenticado no Firebase Auth. Por isso, ao fazer login no painel, o sistema também autentica no Firebase com a conta configurada em `VITE_ADMIN_FIREBASE_EMAIL` e `VITE_ADMIN_FIREBASE_PASSWORD`.
+As regras de segurança do Firestore exigem `request.auth != null` para operações de escrita em regiões, categorias e política de privacidade. O painel admin usa autenticação própria (usuário/senha), mas as requisições ao Firestore precisam de um usuário autenticado no Firebase Auth. Por isso, ao fazer login no painel, o sistema também autentica no Firebase com a conta configurada em `VITE_ADMIN_FIREBASE_EMAIL` e `VITE_ADMIN_FIREBASE_PASSWORD`.
