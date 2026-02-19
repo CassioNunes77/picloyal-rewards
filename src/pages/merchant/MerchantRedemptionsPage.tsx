@@ -168,12 +168,12 @@ export default function MerchantRedemptionsPage() {
                         </span>
                         <span
                           className={`text-xs font-semibold ${
-                            r.status === "pending"
-                              ? "text-orange-500"
-                              : "text-green-500"
+                            r.status === "confirmed"
+                              ? "text-green-500"
+                              : "text-orange-500"
                           }`}
                         >
-                          {r.status === "pending" ? "Solicitada" : "Resgatada"}
+                          {r.status === "confirmed" ? "Resgatada" : "Solicitada"}
                         </span>
                       </div>
                     </div>
@@ -187,11 +187,11 @@ export default function MerchantRedemptionsPage() {
                         </>
                       )}
                     </div>
-                    {r.status === "pending" && (
+                    {r.status !== "confirmed" && (
                       <button
                         type="button"
                         onClick={() => handleConfirm(r)}
-                        disabled={confirmingId === r.id}
+                        disabled={confirmingId === r.id || r.status === "confirmed"}
                         className="mt-3 w-full py-2 rounded-lg gradient-primary text-primary-foreground font-semibold text-sm
                                  transition-all duration-200 disabled:opacity-50"
                       >
