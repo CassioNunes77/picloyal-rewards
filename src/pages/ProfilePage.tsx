@@ -60,16 +60,36 @@ const ProfilePage = () => {
   const [tempPassword, setTempPassword] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const formatPhone = (value: string) => {
+    const numbers = value.replace(/\D/g, "");
+    if (numbers.length <= 11) {
+      return numbers
+        .replace(/^(\d{2})(\d)/, "($1) $2")
+        .replace(/(\d{5})(\d)/, "$1-$2");
+    }
+    return value;
+  };
+
+  const formatBirthDate = (value: string) => {
+    const numbers = value.replace(/\D/g, "");
+    if (numbers.length <= 8) {
+      return numbers
+        .replace(/^(\d{2})(\d)/, "$1/$2")
+        .replace(/^(\d{2})\/(\d{2})(\d*)/, "$1/$2/$3");
+    }
+    return value;
+  };
+
   useEffect(() => {
     if (!user || !getProfile) return;
     getProfile()
       .then((p) => {
         if (p && typeof p === "object") {
-          setProfilePhone(p.phone ?? "");
+          setProfilePhone(formatPhone(p.phone ?? ""));
           setProfileAddress(p.address ?? "");
           setProfileCity(p.city ?? "");
           setProfileState(p.state ?? "");
-          setProfileBirthDate(p.birthDate ?? "");
+          setProfileBirthDate(formatBirthDate(p.birthDate ?? ""));
           setProfileDisplayName(p.displayName ?? "");
         }
       })
@@ -679,8 +699,8 @@ const ProfilePage = () => {
                   id="edit-phone"
                   type="tel"
                   value={tempPhone}
-                  onChange={(e) => setTempPhone(e.target.value)}
-                  placeholder="(11) 98765-4321"
+                  onChange={(e) => setTempPhone(formatPhone(e.target.value))}
+                  placeholder="(00) 00000-0000"
                 />
               </div>
             </div>
@@ -755,7 +775,7 @@ const ProfilePage = () => {
                   id="edit-birthDate"
                   type="text"
                   value={tempBirthDate}
-                  onChange={(e) => setTempBirthDate(e.target.value)}
+                  onChange={(e) => setTempBirthDate(formatBirthDate(e.target.value))}
                   placeholder="dd/MM/yyyy"
                 />
               </div>

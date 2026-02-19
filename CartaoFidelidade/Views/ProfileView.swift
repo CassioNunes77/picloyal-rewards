@@ -455,11 +455,11 @@ struct ProfileView: View {
             do {
                 let profile = try await ProfileService.shared.getProfile()
                 await MainActor.run {
-                    profilePhone = profile.phone ?? ""
+                    profilePhone = formatPhone(profile.phone ?? "")
                     profileAddress = profile.address ?? ""
                     profileCity = profile.city ?? ""
                     profileState = profile.state ?? ""
-                    profileBirthDate = profile.birthDate ?? ""
+                    profileBirthDate = formatBirthDate(profile.birthDate ?? "")
                     profileDisplayName = profile.displayName ?? ""
                     if !profileDisplayName.isEmpty {
                         userDisplayName = profileDisplayName
@@ -508,9 +508,12 @@ struct ProfileView: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Telefone", text: $tempPhone)
+                    TextField("(00) 00000-0000", text: $tempPhone)
                         .textContentType(.telephoneNumber)
                         .keyboardType(.phonePad)
+                        .onChange(of: tempPhone) { _, newValue in
+                            tempPhone = formatPhone(newValue)
+                        }
                 } header: {
                     Text("Alterar telefone")
                 } footer: {
@@ -647,9 +650,12 @@ struct ProfileView: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Data de nascimento (dd/MM/yyyy)", text: $tempBirthDate)
+                    TextField("dd/MM/yyyy", text: $tempBirthDate)
                         .textContentType(.dateTime)
                         .keyboardType(.numbersAndPunctuation)
+                        .onChange(of: tempBirthDate) { _, newValue in
+                            tempBirthDate = formatBirthDate(newValue)
+                        }
                 } header: {
                     Text("Alterar data de nascimento")
                 } footer: {
@@ -756,6 +762,38 @@ struct ProfileView: View {
         }
     }
 
+    private func formatPhone(_ value: String) -> String {
+        let numbers = value.filter { $0.isNumber }
+        if numbers.count <= 11 {
+            var formatted = numbers
+            if formatted.count > 2 {
+                formatted.insert("(", at: formatted.startIndex)
+                formatted.insert(")", at: formatted.index(formatted.startIndex, offsetBy: 3))
+                formatted.insert(" ", at: formatted.index(formatted.startIndex, offsetBy: 4))
+            }
+            if formatted.count > 10 {
+                formatted.insert("-", at: formatted.index(formatted.startIndex, offsetBy: 10))
+            }
+            return String(formatted.prefix(15))
+        }
+        return value
+    }
+    
+    private func formatBirthDate(_ value: String) -> String {
+        let numbers = value.filter { $0.isNumber }
+        if numbers.count <= 8 {
+            var formatted = numbers
+            if formatted.count > 2 {
+                formatted.insert("/", at: formatted.index(formatted.startIndex, offsetBy: 2))
+            }
+            if formatted.count > 5 {
+                formatted.insert("/", at: formatted.index(formatted.startIndex, offsetBy: 5))
+            }
+            return String(formatted.prefix(10))
+        }
+        return value
+    }
+    
     private func formatAddressDisplay() -> String {
         var parts: [String] = []
         if !profileAddress.isEmpty { parts.append(profileAddress) }
