@@ -11,6 +11,8 @@ import {
   FileText,
   Percent,
   Gift,
+  Users,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getOfferById, updateOffer, type OfferData } from "@/services/offersService";
@@ -178,6 +180,52 @@ const AdminOfferDetailPage = () => {
                 </div>
               </div>
             </dl>
+          </div>
+        </div>
+
+        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-card-foreground flex items-center gap-2">
+                <Users className="h-5 w-5 text-primary" />
+              Resgates
+            </h2>
+            <button
+                type="button"
+                onClick={() => {}}
+                className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
+              >
+              Ver todos
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="mb-4 p-3 rounded-xl bg-primary/10">
+            <p className="text-2xl font-bold text-primary">12</p>
+            <p className="text-sm text-muted-foreground">resgates realizados</p>
+          </div>
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground uppercase mb-2">Resgates mais recentes</p>
+            {[
+                { userName: "Maria Silva", date: "19/02/2025 14:32", status: "Confirmado" },
+                { userName: "João Santos", date: "18/02/2025 11:15", status: "Confirmado" },
+                { userName: "Ana Costa", date: "17/02/2025 09:45", status: "Pendente" },
+            ].map((r, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between p-3 rounded-xl bg-background border border-border"
+              >
+                <div>
+                  <p className="font-medium text-card-foreground text-sm">{r.userName}</p>
+                  <p className="text-xs text-muted-foreground">{r.date}</p>
+                </div>
+                <span
+                  className={`text-xs font-medium px-2 py-1 rounded-lg ${
+                    r.status === "Confirmado" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
+                  }`}
+                >
+                  {r.status}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
