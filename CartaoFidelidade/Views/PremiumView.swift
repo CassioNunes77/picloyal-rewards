@@ -160,7 +160,7 @@ struct PremiumView: View {
                         .padding(.horizontal, AppSpacing.lg)
                         .fadeIn(delay: 0.4)
                         
-                        Text("R$ 9,90/mês • Cancele quando quiser")
+                        Text("R$ 19,90/mês • Cancele quando quiser")
                             .font(.appCaption)
                             .foregroundColor(.mutedForeground)
                             .fadeIn(delay: 0.45)

@@ -99,7 +99,7 @@ const PremiumPage = () => {
           className="text-center text-sm text-muted-foreground mt-3 animate-fade-in"
           style={{ animationDelay: "450ms" }}
         >
-          R$ 9,90/mês • Cancele quando quiser
+          R$ 19,90/mês • Cancele quando quiser
         </p>
       </div>
     </div>
