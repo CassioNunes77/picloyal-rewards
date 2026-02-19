@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import { BarChart3, Users, DollarSign, Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
@@ -14,27 +15,43 @@ const CATEGORY_COLORS = ["bg-primary", "bg-secondary", "bg-green-500", "bg-blue-
 
 const AdminAnalyticsPage = () => {
   const isMobile = useIsMobile();
+  const location = useLocation();
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "1y">("30d");
   const [userGrowth, setUserGrowth] = useState<UserGrowthPoint[]>([]);
   const [loadingUserGrowth, setLoadingUserGrowth] = useState(true);
   const [topCategories, setTopCategories] = useState<CategoryCount[]>([]);
   const [loadingTopCategories, setLoadingTopCategories] = useState(true);
 
+  const loadUserGrowth = useCallback(async () => {
+    setLoadingUserGrowth(true);
+    try {
+      const data = await getUsersGrowthData(timeRange);
+      setUserGrowth(data);
+    } catch (err) {
+      console.error("Erro ao carregar crescimento de usuários:", err);
+      setUserGrowth([]);
+    } finally {
+      setLoadingUserGrowth(false);
+    }
+  }, [timeRange]);
+
+  // Recarrega ao abrir a tela (navegação) e ao trocar o período
   useEffect(() => {
-    const load = async () => {
-      setLoadingUserGrowth(true);
-      try {
-        const data = await getUsersGrowthData(timeRange);
-        setUserGrowth(data);
-      } catch (err) {
-        console.error("Erro ao carregar crescimento de usuários:", err);
-        setUserGrowth([]);
-      } finally {
-        setLoadingUserGrowth(false);
+    if (location.pathname.includes("analytics")) {
+      loadUserGrowth();
+    }
+  }, [location.pathname, loadUserGrowth]);
+
+  // Atualização em tempo real: recarrega ao retornar à aba/janela
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible" && location.pathname.includes("analytics")) {
+        loadUserGrowth();
       }
     };
-    load();
-  }, [timeRange]);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [location.pathname, loadUserGrowth]);
 
   useEffect(() => {
     const load = async () => {
