@@ -489,7 +489,10 @@ const AdminCategoriesPage = () => {
             }
           }}
         >
-          <div className="bg-card rounded-2xl border border-border shadow-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div
+            className={`bg-card rounded-2xl border border-border shadow-lg p-6 w-full max-w-md max-h-[90vh] ${showIconPicker ? "overflow-visible" : "overflow-y-auto"}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <h2 className="text-xl font-bold text-card-foreground mb-4">Adicionar Categoria</h2>
             <div className="space-y-4">
               <div>
@@ -615,7 +618,10 @@ const AdminCategoriesPage = () => {
             }
           }}
         >
-          <div className="bg-card rounded-2xl border border-border shadow-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div
+            className={`bg-card rounded-2xl border border-border shadow-lg p-6 w-full max-w-md max-h-[90vh] ${showEditIconPicker ? "overflow-visible" : "overflow-y-auto"}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <h2 className="text-xl font-bold text-card-foreground mb-4">Editar Categoria</h2>
             <div className="space-y-4">
               <div>
