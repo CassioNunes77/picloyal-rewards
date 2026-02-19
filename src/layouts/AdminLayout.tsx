@@ -21,7 +21,7 @@ import { useState, useEffect } from "react";
 const adminNavItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "dashboard" },
   { id: "analytics", label: "Analytics", icon: BarChart3, path: "analytics" },
-  { id: "locations", label: "Localização", icon: MapPin, path: "locations" },
+  { id: "locations", label: "Regiões", icon: MapPin, path: "locations" },
   { id: "categories", label: "Categorias", icon: Tag, path: "categories" },
   { id: "stores", label: "Lojas", icon: Store, path: "stores" },
   { id: "products", label: "Ofertas", icon: Package, path: "products" },

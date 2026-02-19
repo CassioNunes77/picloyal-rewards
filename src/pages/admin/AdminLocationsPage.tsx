@@ -428,7 +428,7 @@ const AdminLocationsPage = () => {
     <div className="min-h-full bg-background">
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-card-foreground mb-2">Localização</h1>
+          <h1 className="text-2xl font-bold text-card-foreground mb-2">Regiões</h1>
           <p className="text-sm text-muted-foreground">
             Gerenciar regiões e localizações
             {regions.length > 0 && (
@@ -503,7 +503,7 @@ const AdminLocationsPage = () => {
           )}
         </div>
       ) : (
-        <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
+        <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-3"} gap-4`}>
           {filteredRegions.map((region) => {
             console.log("🎨 [AdminLocationsPage] Renderizando região:", region.id, region.name);
             return (
