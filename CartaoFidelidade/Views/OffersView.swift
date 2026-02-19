@@ -58,6 +58,7 @@ struct Offer: Identifiable, Hashable {
 
 struct OffersView: View {
     @Binding var activeTab: String
+    @Binding var showPremium: Bool
     @AppStorage("selectedLocation") private var selectedLocation = ""
     @State private var searchQuery = ""
     @State private var selectedCategory = "all"
@@ -180,6 +181,47 @@ struct OffersView: View {
                             }
                             .padding(.vertical, AppSpacing.sm)
                             .fadeIn(delay: 0.15)
+                            
+                            // Seja Premium Card
+                            Button(action: { showPremium = true }) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Seja Premium")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(.white.opacity(0.9))
+                                        
+                                        Text("Desbloqueie benefícios exclusivos")
+                                            .font(.appCaption)
+                                            .foregroundColor(.white.opacity(0.8))
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color.white.opacity(0.2))
+                                            .frame(width: 48, height: 48)
+                                        
+                                        Image(systemName: "crown.fill")
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 22))
+                                    }
+                                }
+                                .padding(AppSpacing.lg)
+                                .background(
+                                    LinearGradient(
+                                        colors: [
+                                            Color(red: 0.85, green: 0.65, blue: 0.2),
+                                            Color(red: 0.75, green: 0.5, blue: 0.1)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .cornerRadius(AppRadius.xl)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .fadeIn(delay: 0.18)
                             
                             // Offers List
                             if loadingOffers {
@@ -501,5 +543,5 @@ struct OfferCard: View {
 }
 
 #Preview {
-    OffersView(activeTab: .constant("offers"))
+    OffersView(activeTab: .constant("offers"), showPremium: .constant(false))
 }

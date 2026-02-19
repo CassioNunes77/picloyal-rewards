@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Tag, Clock, MapPin, Percent, Gift, Coffee, Pizza, Sparkles, ChevronRight, Search, Loader2 } from "lucide-react";
+import { Tag, Clock, MapPin, Percent, Gift, Coffee, Pizza, Sparkles, ChevronRight, Search, Loader2, Crown } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -139,6 +139,19 @@ const OffersPage = () => {
           </h1>
         </div>
         <div className="mb-4">{searchInput}</div>
+        <Link
+          to="/premium"
+          className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 p-5 text-white
+                     transition-all duration-300 hover:shadow-md flex items-center justify-between"
+        >
+          <div>
+            <p className="text-sm font-medium opacity-90">Seja Premium</p>
+            <p className="text-xs opacity-80">Desbloqueie benefícios exclusivos</p>
+          </div>
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20">
+            <Crown className="h-6 w-6" />
+          </div>
+        </Link>
         <div className="mb-6 flex flex-wrap gap-2">
           {categories.map((category) => {
             const Icon = category.icon;
@@ -233,6 +246,23 @@ const OffersPage = () => {
         </header>
       </div>
       <div className="relative -mt-4 rounded-t-3xl bg-background px-6 pt-6">
+        {/* Seja Premium Card */}
+        <Link
+          to="/premium"
+          className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 p-5 text-white
+                     transition-all duration-300 active:scale-[0.98] block animate-fade-in"
+          style={{ animationDelay: "120ms" }}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium opacity-90">Seja Premium</p>
+              <p className="text-sm opacity-80">Desbloqueie benefícios exclusivos</p>
+            </div>
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/20">
+              <Crown className="h-6 w-6" />
+            </div>
+          </div>
+        </Link>
         {/* Categories */}
         <div className="mb-6 overflow-x-auto">
           <div className="flex gap-2 pb-2 animate-fade-in" style={{ animationDelay: '150ms' }}>

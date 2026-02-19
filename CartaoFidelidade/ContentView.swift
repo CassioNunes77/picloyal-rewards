@@ -38,7 +38,7 @@ struct ContentView: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .transition(.slideFadeShort)
                     case "offers":
-                        OffersView(activeTab: $activeTab)
+                        OffersView(activeTab: $activeTab, showPremium: $showPremium)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .transition(.slideFadeShort)
                     case "profile":
