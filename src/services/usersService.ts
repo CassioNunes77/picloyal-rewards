@@ -549,12 +549,15 @@ export async function getUsersGrowthData(timeRange: UserGrowthTimeRange): Promis
         d.setDate(d.getDate() - i * 7);
         d.setHours(23, 59, 59, 999);
         const count = dates.filter((dt) => dt <= d).length;
-        const weekStart = new Date(d);
-        weekStart.setDate(weekStart.getDate() - 6);
-        result.push({
-          period: `${String(weekStart.getDate()).padStart(2, "0")}/${String(weekStart.getMonth() + 1).padStart(2, "0")}`,
-          value: count,
-        });
+        const period =
+          i === 0
+            ? `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`
+            : (() => {
+                const weekStart = new Date(d);
+                weekStart.setDate(weekStart.getDate() - 6);
+                return `${String(weekStart.getDate()).padStart(2, "0")}/${String(weekStart.getMonth() + 1).padStart(2, "0")}`;
+              })();
+        result.push({ period, value: count });
       }
     } else {
       for (let i = 11; i >= 0; i--) {
