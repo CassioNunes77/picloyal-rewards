@@ -54,13 +54,13 @@ const AdminDashboardPage = () => {
         console.log("🔍 [AdminDashboardPage] Carregando estatísticas do Firebase...");
         console.log("🔐 [AdminDashboardPage] Usuário Firebase Auth:", firebaseUser?.uid || "Nenhum");
         
-        // Buscar usuários, lojistas, lojas e regiões em paralelo
+        // Buscar usuários, lojistas (coleção merchants), lojas e regiões em paralelo
         const [activeUsersCount, totalUsersCount, activeRegionsCount, merchantsCount, storesCount] =
           await Promise.all([
             getActiveUsersCount(),
             getTotalUsersCount(),
             getActiveRegionsCount(),
-            getMerchantsCount(),
+            getMerchantsCount(), // quantidade de documentos na coleção merchants do Firebase
             getStoresCount(),
           ]);
 
