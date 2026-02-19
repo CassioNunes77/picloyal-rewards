@@ -48,8 +48,8 @@ export default function AdminLayout() {
     };
   }, []);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/sys-admin-panel-7x9k/login", { replace: true });
   };
 

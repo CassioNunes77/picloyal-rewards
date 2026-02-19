@@ -21,13 +21,13 @@ const AdminLoginPage = () => {
     };
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    setTimeout(() => {
-      const success = login(username, password);
+    try {
+      const success = await login(username, password);
       if (success) {
         toast.success("Login realizado com sucesso!");
         navigate("/sys-admin-panel-7x9k/dashboard");
@@ -35,8 +35,9 @@ const AdminLoginPage = () => {
         setError("Credenciais inválidas");
         toast.error("Credenciais inválidas");
       }
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   return (
