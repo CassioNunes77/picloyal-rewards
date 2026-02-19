@@ -533,7 +533,7 @@ export async function getUsersGrowthData(timeRange: UserGrowthTimeRange): Promis
         });
       }
     } else if (timeRange === "30d") {
-      for (let i = 29; i >= 0; i -= 2) {
+      for (let i = 28; i >= 0; i -= 2) {
         const d = new Date(now);
         d.setDate(d.getDate() - i);
         d.setHours(23, 59, 59, 999);
@@ -558,15 +558,21 @@ export async function getUsersGrowthData(timeRange: UserGrowthTimeRange): Promis
       }
     } else {
       for (let i = 11; i >= 0; i--) {
-        const d = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59, 999);
+        let d: Date;
+        let period: string;
+        if (i === 0) {
+          d = new Date(now);
+          d.setHours(23, 59, 59, 999);
+          period = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+        } else {
+          d = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59, 999);
+          const offset = now.getMonth() - i;
+          const m = ((offset % 12) + 12) % 12;
+          const y = now.getFullYear() + Math.floor(offset / 12);
+          period = `${MONTH_NAMES[m]} ${y}`;
+        }
         const count = dates.filter((dt) => dt <= d).length;
-        const offset = now.getMonth() - i;
-        const m = ((offset % 12) + 12) % 12;
-        const y = now.getFullYear() + Math.floor(offset / 12);
-        result.push({
-          period: `${MONTH_NAMES[m]} ${y}`,
-          value: count,
-        });
+        result.push({ period, value: count });
       }
     }
 
