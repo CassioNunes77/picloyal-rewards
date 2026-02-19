@@ -129,8 +129,12 @@ const AdminStoresPage = () => {
           >
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 flex-1 min-w-0">
-                <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-                  <Store className="h-4 w-4 text-primary" />
+                <div className="w-10 h-10 rounded-lg bg-primary/10 shrink-0 overflow-hidden flex items-center justify-center">
+                  {store.photoURL ? (
+                    <img src={store.photoURL} alt={store.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <Store className="h-4 w-4 text-primary" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-card-foreground text-sm truncate">{store.name}</h3>
