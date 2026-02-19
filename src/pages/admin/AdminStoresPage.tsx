@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Store, Search, Check, X, Loader2 } from "lucide-react";
+import { Store, Search, Check, X, Loader2, MapPin } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 import { getAllStores, updateStore, type StoreData } from "@/services/merchantsService";
 import { getStoreOffers } from "@/services/offersService";
+import { getAllRegions, type Region } from "@/services/regionsService";
 
 interface StoreWithOffers extends StoreData {
   offersCount: number;
@@ -15,13 +16,26 @@ const AdminStoresPage = () => {
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterActive, setFilterActive] = useState<"all" | "active" | "inactive">("all");
+  const [filterRegionId, setFilterRegionId] = useState<string>("");
+  const [regions, setRegions] = useState<Region[]>([]);
   const [stores, setStores] = useState<StoreWithOffers[]>([]);
   const [loading, setLoading] = useState(true);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadStores();
+    loadRegions();
   }, []);
+
+  const loadRegions = async () => {
+    try {
+      const data = await getAllRegions();
+      setRegions(data);
+    } catch (err) {
+      console.error("Erro ao carregar regiões:", err);
+      toast.error("Erro ao carregar regiões");
+    }
+  };
 
   const loadStores = async () => {
     setLoading(true);
@@ -53,7 +67,16 @@ const AdminStoresPage = () => {
       filterActive === "all" ||
       (filterActive === "active" && store.active) ||
       (filterActive === "inactive" && !store.active);
-    return matchesSearch && matchesFilter;
+    const matchesRegion =
+      !filterRegionId ||
+      (() => {
+        const region = regions.find((r) => r.id === filterRegionId);
+        if (!region) return true;
+        const storeCityNorm = (store.city ?? "").trim();
+        const regionCityNorm = `${region.city} - ${region.state}`.trim();
+        return storeCityNorm === regionCityNorm || storeCityNorm.toLowerCase() === regionCityNorm.toLowerCase();
+      })();
+    return matchesSearch && matchesFilter && matchesRegion;
   });
 
   const handleToggleActive = async (store: StoreWithOffers) => {
@@ -90,7 +113,22 @@ const AdminStoresPage = () => {
             className="w-full pl-10 pr-4 py-3 rounded-xl bg-card text-card-foreground placeholder:text-muted-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
+            <MapPin className="h-4 w-4 text-muted-foreground" />
+            <select
+              value={filterRegionId}
+              onChange={(e) => setFilterRegionId(e.target.value)}
+              className="px-3 py-2 rounded-xl text-sm font-medium bg-card text-card-foreground border border-border hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/30"
+            >
+              <option value="">Todas as regiões</option>
+              {regions.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
+                </option>
+              ))}
+            </select>
+          </div>
           {(["all", "active", "inactive"] as const).map((filter) => (
             <button
               key={filter}
