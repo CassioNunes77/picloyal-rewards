@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, useParams, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AdminAuthProvider, useAdminAuth } from "@/contexts/AdminAuthContext";
 import AppLayout from "./layouts/AppLayout";
@@ -45,6 +45,12 @@ import NotFound from "./pages/NotFound";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 
 const queryClient = new QueryClient();
+
+/** Wrapper para StoreDetailPage: usa key=id para forçar remount ao trocar de loja */
+function StoreDetailRoute() {
+  const { id } = useParams<{ id: string }>();
+  return <StoreDetailPage key={id ?? "none"} />;
+}
 
 /** Sem login, só a rota "/" é permitida — qualquer outra vai para splash/login. */
 function AuthGuard({ children }: { children: ReactNode }) {
@@ -158,7 +164,7 @@ const App = () => {
                       <Route element={<AppLayout />}>
                         <Route path="/home" element={<Index />} />
                         <Route path="/stores" element={<StoresPage />} />
-                        <Route path="/store/:id" element={<StoreDetailPage />} />
+                        <Route path="/store/:id" element={<StoreDetailRoute />} />
                         <Route path="/offers" element={<OffersPage />} />
                         <Route path="/offer" element={<OfferDetailPage />} />
                         <Route path="/profile" element={<ProfilePage />} />

@@ -11,7 +11,7 @@ import {
   Tag,
   Loader2
 } from "lucide-react";
-import { useNavigate, Link, useParams } from "react-router-dom";
+import { useNavigate, Link, useParams, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { OfferDetailData } from "./OfferDetailPage";
@@ -39,8 +39,11 @@ const categoryToIcon: Record<string, "coffee" | "pizza" | "gift" | "percent"> = 
 
 const StoreDetailPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const isMobile = useIsMobile();
-  const { id } = useParams<{ id: string }>();
+  const params = useParams<{ id: string }>();
+  // Garantir que o id venha da URL (params ou fallback do pathname)
+  const id = params.id ?? (location.pathname.match(/^\/store\/([^/]+)/)?.[1] ?? null);
   const [selectedTab, setSelectedTab] = useState<"info" | "offers" | "reviews">("offers");
   const [store, setStore] = useState<StoreDisplay | null>(null);
   const [storeOffers, setStoreOffers] = useState<OfferData[]>([]);
