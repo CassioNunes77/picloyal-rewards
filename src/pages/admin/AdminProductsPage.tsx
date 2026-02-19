@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Package, Search, Check, X, Loader2, MapPin, Tag } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
@@ -12,6 +13,7 @@ interface OfferWithStore extends OfferData {
 }
 
 const AdminProductsPage = () => {
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterActive, setFilterActive] = useState<"all" | "active" | "inactive">("all");
@@ -188,7 +190,8 @@ const AdminProductsPage = () => {
           {filteredOffers.map((offer) => (
             <div
               key={offer.id}
-              className="bg-card rounded-xl border border-border p-4 shadow-sm hover:shadow-md transition-all"
+              onClick={() => offer.id && navigate(`/sys-admin-panel-7x9k/products/${offer.id}`)}
+              className="bg-card rounded-xl border border-border p-4 shadow-sm hover:shadow-md transition-all cursor-pointer"
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -211,7 +214,10 @@ const AdminProductsPage = () => {
                   </div>
                 </div>
                 <button
-                  onClick={() => handleToggleActive(offer)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleActive(offer);
+                  }}
                   disabled={togglingId === offer.id}
                   className={`p-2 rounded-lg transition-all shrink-0 ${
                     offer.active

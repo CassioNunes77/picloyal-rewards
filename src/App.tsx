@@ -31,6 +31,7 @@ import AdminCategoriesPage from "./pages/admin/AdminCategoriesPage";
 import AdminStoresPage from "./pages/admin/AdminStoresPage";
 import AdminStoreDetailPage from "./pages/admin/AdminStoreDetailPage";
 import AdminProductsPage from "./pages/admin/AdminProductsPage";
+import AdminOfferDetailPage from "./pages/admin/AdminOfferDetailPage";
 import AdminActivitiesPage from "./pages/admin/AdminActivitiesPage";
 import AdminFeedbackPage from "./pages/admin/AdminFeedbackPage";
 import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
@@ -137,6 +138,7 @@ const App = () => {
                 <Route path="stores" element={<AdminStoresPage />} />
                 <Route path="stores/:storeId" element={<AdminStoreDetailPage />} />
                 <Route path="products" element={<AdminProductsPage />} />
+                <Route path="products/:offerId" element={<AdminOfferDetailPage />} />
                 <Route path="activities" element={<AdminActivitiesPage />} />
                 <Route path="feedback" element={<AdminFeedbackPage />} />
                 <Route path="analytics" element={<AdminAnalyticsPage />} />

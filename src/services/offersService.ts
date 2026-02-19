@@ -1,4 +1,4 @@
-import { doc, collection, getDocs, addDoc, updateDoc, deleteDoc, query, where, Timestamp } from "firebase/firestore";
+import { doc, collection, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, Timestamp } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import { getStoresByCity } from "./merchantsService";
 
@@ -143,6 +143,26 @@ export async function getOffersByCity(
   } catch (error: any) {
     console.error("❌ [offersService] Erro ao buscar ofertas por cidade:", error);
     return [];
+  }
+}
+
+/**
+ * Busca uma oferta pelo ID
+ */
+export async function getOfferById(offerId: string): Promise<OfferData | null> {
+  if (!firestore) {
+    console.error("❌ [offersService] Firestore não está configurado!");
+    return null;
+  }
+
+  try {
+    const offerRef = doc(firestore, OFFERS_COLLECTION, offerId);
+    const offerSnap = await getDoc(offerRef);
+    if (!offerSnap.exists()) return null;
+    return firestoreToOfferData(offerSnap.id, offerSnap.data());
+  } catch (error: any) {
+    console.error("❌ [offersService] Erro ao buscar oferta:", error);
+    return null;
   }
 }
 
