@@ -30,6 +30,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { LocationAutocomplete } from "@/components/LocationAutocomplete";
+import { fetchStates, fetchCitiesByState } from "@/services/ibgeService";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -38,6 +40,8 @@ const ProfilePage = () => {
   const [notifications, setNotifications] = useState(true);
   const [profilePhone, setProfilePhone] = useState("");
   const [profileAddress, setProfileAddress] = useState("");
+  const [profileCity, setProfileCity] = useState("");
+  const [profileState, setProfileState] = useState("");
   const [profileBirthDate, setProfileBirthDate] = useState("");
   const [profileDisplayName, setProfileDisplayName] = useState("");
   const [editDialog, setEditDialog] = useState<"email" | "phone" | "displayName" | "address" | "birthDate" | null>(null);
@@ -45,7 +49,14 @@ const ProfilePage = () => {
   const [tempPhone, setTempPhone] = useState("");
   const [tempDisplayName, setTempDisplayName] = useState("");
   const [tempAddress, setTempAddress] = useState("");
+  const [tempCity, setTempCity] = useState("");
+  const [tempState, setTempState] = useState("");
+  const [tempStateCode, setTempStateCode] = useState("");
   const [tempBirthDate, setTempBirthDate] = useState("");
+  const [addressStates, setAddressStates] = useState<{ id: string; name: string; sigla: string }[]>([]);
+  const [addressCities, setAddressCities] = useState<{ id: string; name: string }[]>([]);
+  const [loadingAddressStates, setLoadingAddressStates] = useState(false);
+  const [loadingAddressCities, setLoadingAddressCities] = useState(false);
   const [tempPassword, setTempPassword] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -56,6 +67,8 @@ const ProfilePage = () => {
         if (p && typeof p === "object") {
           setProfilePhone(p.phone ?? "");
           setProfileAddress(p.address ?? "");
+          setProfileCity(p.city ?? "");
+          setProfileState(p.state ?? "");
           setProfileBirthDate(p.birthDate ?? "");
           setProfileDisplayName(p.displayName ?? "");
         }
@@ -82,8 +95,58 @@ const ProfilePage = () => {
     setTempPhone("");
     setTempDisplayName("");
     setTempAddress("");
+    setTempCity("");
+    setTempState("");
+    setTempStateCode("");
     setTempBirthDate("");
   };
+
+  // Carregar estados IBGE ao montar (para o autocomplete de endereço)
+  useEffect(() => {
+    if (addressStates.length === 0) {
+      setLoadingAddressStates(true);
+      fetchStates()
+        .then((data) =>
+          setAddressStates(
+            data.map((s) => ({
+              id: s.id.toString(),
+              name: s.nome,
+              sigla: s.sigla,
+            }))
+          )
+        )
+        .catch(() => {})
+        .finally(() => setLoadingAddressStates(false));
+    }
+  }, []);
+
+  // Ao abrir dialog de endereço, definir tempStateCode a partir do profileState (quando states já carregaram)
+  useEffect(() => {
+    if (editDialog === "address" && profileState && !tempStateCode && addressStates.length > 0) {
+      const found = addressStates.find((s) => s.name === profileState || s.sigla === profileState);
+      if (found) setTempStateCode(found.sigla);
+    }
+  }, [editDialog, profileState, addressStates, tempStateCode]);
+
+  // Carregar cidades IBGE quando estado for selecionado
+  useEffect(() => {
+    if (!tempStateCode || editDialog !== "address") {
+      setAddressCities([]);
+      return;
+    }
+    setLoadingAddressCities(true);
+    fetchCitiesByState(tempStateCode)
+      .then((data) =>
+        setAddressCities(
+          data.map((c) => ({
+            id: c.id.toString(),
+            name: c.nome,
+          }))
+        )
+      )
+      .catch(() => toast.error("Erro ao carregar cidades"))
+      .finally(() => setLoadingAddressCities(false));
+  }, [tempStateCode, editDialog === "address"]);
 
   const handleSaveEmail = async () => {
     if (!tempEmail.trim()) {
@@ -146,8 +209,10 @@ const ProfilePage = () => {
   const handleSaveAddress = async () => {
     setSaving(true);
     try {
-      await updateAddress(tempAddress.trim());
+      await updateAddress(tempAddress.trim(), tempCity.trim() || undefined, tempState.trim() || undefined);
       setProfileAddress(tempAddress.trim());
+      setProfileCity(tempCity.trim());
+      setProfileState(tempState.trim());
       toast.success("Endereço atualizado.");
       closeEditDialog();
     } catch (e: unknown) {
@@ -156,6 +221,14 @@ const ProfilePage = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const formatAddressDisplay = () => {
+    const parts = [profileAddress].filter(Boolean);
+    if (profileCity || profileState) {
+      parts.push([profileCity, profileState].filter(Boolean).join(", "));
+    }
+    return parts.length > 0 ? parts.join(" - ") : "—";
   };
 
   const handleSaveBirthDate = async () => {
@@ -270,8 +343,11 @@ const ProfilePage = () => {
                     setTempPhone(profilePhone);
                     setEditDialog("phone");
                   }} />
-                  <ProfileInfoItem icon={MapPin} label="Endereço" value={profileAddress || "—"} delay={0} onEdit={() => {
+                  <ProfileInfoItem icon={MapPin} label="Endereço" value={formatAddressDisplay()} delay={0} onEdit={() => {
                     setTempAddress(profileAddress);
+                    setTempCity(profileCity);
+                    setTempState(profileState);
+                    setTempStateCode(addressStates.find((s) => s.name === profileState || s.sigla === profileState)?.sigla ?? "");
                     setEditDialog("address");
                   }} />
                   <ProfileInfoItem icon={Calendar} label="Data de Nascimento" value={profileBirthDate || "—"} delay={0} onEdit={() => {
@@ -438,10 +514,13 @@ const ProfilePage = () => {
                 <ProfileInfoItem
                   icon={MapPin}
                   label="Endereço"
-                  value={profileAddress || "—"}
+                  value={formatAddressDisplay()}
                   delay={500}
                   onEdit={() => {
                     setTempAddress(profileAddress);
+                    setTempCity(profileCity);
+                    setTempState(profileState);
+                    setTempStateCode(addressStates.find((s) => s.name === profileState || s.sigla === profileState)?.sigla ?? "");
                     setEditDialog("address");
                   }}
                 />
@@ -623,14 +702,48 @@ const ProfilePage = () => {
           {editDialog === "address" && (
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="edit-address">Endereço</Label>
+                <Label htmlFor="edit-address">Rua, número e bairro</Label>
                 <Input
                   id="edit-address"
                   type="text"
                   value={tempAddress}
                   onChange={(e) => setTempAddress(e.target.value)}
-                  placeholder="Rua, número - Bairro, Cidade, UF"
+                  placeholder="Rua Exemplo, 123 - Centro"
                 />
+              </div>
+              <div className="grid gap-2">
+                <Label>Estado</Label>
+                <LocationAutocomplete
+                  value={tempState}
+                  onChange={(name, code) => {
+                    setTempState(name);
+                    setTempStateCode(code ?? "");
+                    setTempCity("");
+                  }}
+                  options={addressStates}
+                  placeholder="Digite o estado..."
+                  loading={loadingAddressStates}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Cidade</Label>
+                {tempStateCode ? (
+                  <LocationAutocomplete
+                    value={tempCity}
+                    onChange={(name) => setTempCity(name)}
+                    options={addressCities}
+                    placeholder="Digite a cidade..."
+                    loading={loadingAddressCities}
+                    disabled={!tempStateCode}
+                  />
+                ) : (
+                  <Input
+                    type="text"
+                    disabled
+                    placeholder="Selecione um estado primeiro"
+                    className="bg-muted cursor-not-allowed"
+                  />
+                )}
               </div>
             </div>
           )}

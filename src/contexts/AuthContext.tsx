@@ -70,10 +70,10 @@ interface AuthContextType {
   /** Atualizar e-mail do usuário (requer senha para reautenticação). Não disponível para conta Google. */
   updateEmail: (newEmail: string, password: string) => Promise<void>;
   /** Perfil do usuário em Firestore. */
-  getProfile: () => Promise<{ phone?: string; address?: string; birthDate?: string; displayName?: string }>;
+  getProfile: () => Promise<{ phone?: string; address?: string; city?: string; state?: string; birthDate?: string; displayName?: string }>;
   updatePhone: (phone: string) => Promise<void>;
   updateDisplayName: (displayName: string) => Promise<void>;
-  updateAddress: (address: string) => Promise<void>;
+  updateAddress: (address: string, city?: string, state?: string) => Promise<void>;
   updateBirthDate: (birthDate: string) => Promise<void>;
   authError: string | null;
   clearError: () => void;
@@ -286,11 +286,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await firebaseUpdateEmail(u, newEmail);
   }, []);
 
-  const getProfile = useCallback(async (): Promise<{ phone?: string; address?: string; birthDate?: string; displayName?: string }> => {
+  const getProfile = useCallback(async (): Promise<{ phone?: string; address?: string; city?: string; state?: string; birthDate?: string; displayName?: string }> => {
     const u = auth?.currentUser;
     if (!u || !firestore) return {};
     const snap = await getDoc(doc(firestore, "users", u.uid));
-    const data = snap.data() as { phone?: string; address?: string; birthDate?: string; displayName?: string } | undefined;
+    const data = snap.data() as { phone?: string; address?: string; city?: string; state?: string; birthDate?: string; displayName?: string } | undefined;
     return {
       ...data,
       displayName: data?.displayName ?? u.displayName ?? undefined,
@@ -312,10 +312,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const updateAddress = useCallback(async (address: string) => {
+  const updateAddress = useCallback(async (address: string, city?: string, state?: string) => {
     const u = auth?.currentUser;
     if (!u || !firestore) throw new Error("Nenhum usuário logado.");
-    await setDoc(doc(firestore, "users", u.uid), { address }, { merge: true });
+    const data: Record<string, string> = { address };
+    if (city?.trim()) data.city = city.trim();
+    if (state?.trim()) data.state = state.trim();
+    await setDoc(doc(firestore, "users", u.uid), data, { merge: true });
   }, []);
 
   const updateBirthDate = useCallback(async (birthDate: string) => {

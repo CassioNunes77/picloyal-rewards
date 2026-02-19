@@ -32,6 +32,8 @@ enum ProfileServiceError: LocalizedError {
 struct UserProfile {
     var phone: String?
     var address: String?
+    var city: String?
+    var state: String?
     var birthDate: String?
     var displayName: String?
 }
@@ -56,9 +58,11 @@ final class ProfileService {
         let data = snapshot.data()
         let phone = data?["phone"] as? String
         let address = data?["address"] as? String
+        let city = data?["city"] as? String
+        let state = data?["state"] as? String
         let birthDate = data?["birthDate"] as? String
         let displayName = data?["displayName"] as? String ?? Auth.auth().currentUser?.displayName
-        return UserProfile(phone: phone, address: address, birthDate: birthDate, displayName: displayName)
+        return UserProfile(phone: phone, address: address, city: city, state: state, birthDate: birthDate, displayName: displayName)
     }
 
     /// Atualiza o telefone no Firestore.
@@ -67,10 +71,13 @@ final class ProfileService {
         try await doc.setData(["phone": phone], merge: true)
     }
 
-    /// Atualiza o endereço no Firestore.
-    func updateAddress(_ address: String) async throws {
+    /// Atualiza o endereço no Firestore (rua/número, cidade, estado via IBGE).
+    func updateAddress(_ address: String, city: String? = nil, state: String? = nil) async throws {
         let doc = try userDoc()
-        try await doc.setData(["address": address], merge: true)
+        var data: [String: Any] = ["address": address]
+        if let city = city, !city.isEmpty { data["city"] = city }
+        if let state = state, !state.isEmpty { data["state"] = state }
+        try await doc.setData(data, merge: true)
     }
 
     /// Atualiza a data de nascimento no Firestore (formato: dd/MM/yyyy).

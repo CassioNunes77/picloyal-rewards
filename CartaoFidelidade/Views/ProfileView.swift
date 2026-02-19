@@ -21,6 +21,8 @@ struct ProfileView: View {
 
     @State private var profilePhone = ""
     @State private var profileAddress = ""
+    @State private var profileCity = ""
+    @State private var profileState = ""
     @State private var profileBirthDate = ""
     @State private var profileDisplayName = ""
     @State private var showEmailSheet = false
@@ -33,7 +35,14 @@ struct ProfileView: View {
     @State private var tempPhone = ""
     @State private var tempDisplayName = ""
     @State private var tempAddress = ""
+    @State private var tempCity = ""
+    @State private var tempState = ""
+    @State private var tempStateCode = ""
     @State private var tempBirthDate = ""
+    @State private var addressStates: [IbgeState] = []
+    @State private var addressCities: [IbgeCity] = []
+    @State private var loadingAddressStates = false
+    @State private var loadingAddressCities = false
     @State private var saving = false
     @State private var errorMessage: String?
     
@@ -243,10 +252,17 @@ struct ProfileView: View {
                             ProfileInfoItem(
                                 icon: "location.fill",
                                 label: "Endereço",
-                                value: profileAddress.isEmpty ? "—" : profileAddress,
+                                value: formatAddressDisplay(),
                                 delay: 0.4,
                                 onEdit: {
                                     tempAddress = profileAddress
+                                    tempCity = profileCity
+                                    tempState = profileState
+                                    tempStateCode = ""
+                                    if !profileState.isEmpty, !addressStates.isEmpty {
+                                        tempStateCode = addressStates.first(where: { $0.nome == profileState || $0.sigla == profileState })?.sigla ?? ""
+                                    }
+                                    loadStatesIfNeeded()
                                     showAddressSheet = true
                                 }
                             )
@@ -441,6 +457,8 @@ struct ProfileView: View {
                 await MainActor.run {
                     profilePhone = profile.phone ?? ""
                     profileAddress = profile.address ?? ""
+                    profileCity = profile.city ?? ""
+                    profileState = profile.state ?? ""
                     profileBirthDate = profile.birthDate ?? ""
                     profileDisplayName = profile.displayName ?? ""
                     if !profileDisplayName.isEmpty {
@@ -549,10 +567,57 @@ struct ProfileView: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Endereço", text: $tempAddress)
+                    TextField("Rua, número e bairro", text: $tempAddress)
                         .textContentType(.fullStreetAddress)
                 } header: {
-                    Text("Alterar endereço")
+                    Text("Endereço")
+                }
+                Section {
+                    if loadingAddressStates {
+                        HStack {
+                            ProgressView()
+                            Text("Carregando estados...")
+                                .foregroundColor(.mutedForeground)
+                        }
+                    } else {
+                        Picker("Estado", selection: $tempStateCode) {
+                            Text("Selecione o estado").tag("")
+                            ForEach(addressStates, id: \.id) { state in
+                                Text("\(state.nome) (\(state.sigla))").tag(state.sigla)
+                            }
+                        }
+                        .onChange(of: tempStateCode) { _, newCode in
+                            tempState = addressStates.first(where: { $0.sigla == newCode })?.nome ?? newCode
+                            tempCity = ""
+                            addressCities = []
+                            if !newCode.isEmpty {
+                                loadCities(stateCode: newCode)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Estado")
+                }
+                Section {
+                    if tempStateCode.isEmpty {
+                        Text("Selecione um estado primeiro")
+                            .foregroundColor(.mutedForeground)
+                    } else if loadingAddressCities {
+                        HStack {
+                            ProgressView()
+                            Text("Carregando cidades...")
+                                .foregroundColor(.mutedForeground)
+                        }
+                    } else {
+                        Picker("Cidade", selection: $tempCity) {
+                            Text("Selecione a cidade").tag("")
+                            ForEach(addressCities, id: \.id) { city in
+                                Text(city.nome).tag(city.nome)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Cidade")
                 }
             }
             .navigationTitle("Alterar endereço")
@@ -567,6 +632,14 @@ struct ProfileView: View {
                 }
             }
             .disabled(saving)
+            .onAppear {
+                if tempStateCode.isEmpty && !profileState.isEmpty {
+                    tempStateCode = addressStates.first(where: { $0.nome == profileState || $0.sigla == profileState })?.sigla ?? ""
+                    if !tempStateCode.isEmpty {
+                        loadCities(stateCode: tempStateCode)
+                    }
+                }
+            }
         }
     }
 
@@ -661,11 +734,16 @@ struct ProfileView: View {
 
     private func saveAddress() {
         saving = true
+        let addr = tempAddress.trimmingCharacters(in: .whitespaces)
+        let city = tempCity.trimmingCharacters(in: .whitespaces)
+        let state = tempState.trimmingCharacters(in: .whitespaces)
         Task {
             do {
-                try await ProfileService.shared.updateAddress(tempAddress.trimmingCharacters(in: .whitespaces))
+                try await ProfileService.shared.updateAddress(addr, city: city.isEmpty ? nil : city, state: state.isEmpty ? nil : state)
                 await MainActor.run {
-                    profileAddress = tempAddress.trimmingCharacters(in: .whitespaces)
+                    profileAddress = addr
+                    profileCity = city
+                    profileState = state
                     showAddressSheet = false
                     showToast(message: "Endereço atualizado.")
                 }
@@ -675,6 +753,59 @@ struct ProfileView: View {
                 }
             }
             await MainActor.run { saving = false }
+        }
+    }
+
+    private func formatAddressDisplay() -> String {
+        var parts: [String] = []
+        if !profileAddress.isEmpty { parts.append(profileAddress) }
+        if !profileCity.isEmpty || !profileState.isEmpty {
+            parts.append([profileCity, profileState].filter { !$0.isEmpty }.joined(separator: ", "))
+        }
+        return parts.isEmpty ? "—" : parts.joined(separator: " - ")
+    }
+
+    private func loadStatesIfNeeded() {
+        guard addressStates.isEmpty else {
+            if !profileState.isEmpty && tempStateCode.isEmpty {
+                tempStateCode = addressStates.first(where: { $0.nome == profileState || $0.sigla == profileState })?.sigla ?? ""
+                if !tempStateCode.isEmpty { loadCities(stateCode: tempStateCode) }
+            }
+            return
+        }
+        loadingAddressStates = true
+        Task {
+            do {
+                let states = try await IbgeService.fetchStates()
+                await MainActor.run {
+                    addressStates = states
+                    if !profileState.isEmpty && tempStateCode.isEmpty {
+                        tempStateCode = states.first(where: { $0.nome == profileState || $0.sigla == profileState })?.sigla ?? ""
+                        if !tempStateCode.isEmpty { loadCities(stateCode: tempStateCode) }
+                    }
+                    loadingAddressStates = false
+                }
+            } catch {
+                await MainActor.run { loadingAddressStates = false }
+            }
+        }
+    }
+
+    private func loadCities(stateCode: String) {
+        guard !stateCode.isEmpty else { return }
+        loadingAddressCities = true
+        Task {
+            do {
+                let cities = try await IbgeService.fetchCities(stateCode: stateCode)
+                await MainActor.run {
+                    addressCities = cities
+                    loadingAddressCities = false
+                }
+            } catch {
+                await MainActor.run {
+                    loadingAddressCities = false
+                }
+            }
         }
     }
 
