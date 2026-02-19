@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Store, Search, Check, X, Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
@@ -10,6 +11,7 @@ interface StoreWithOffers extends StoreData {
 }
 
 const AdminStoresPage = () => {
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterActive, setFilterActive] = useState<"all" | "active" | "inactive">("all");
@@ -125,7 +127,8 @@ const AdminStoresPage = () => {
         {filteredStores.map((store) => (
           <div
             key={store.id}
-            className="bg-card rounded-xl border border-border p-4 shadow-sm hover:shadow-md transition-all"
+            onClick={() => store.id && navigate(`/sys-admin-panel-7x9k/stores/${store.id}`)}
+            className="bg-card rounded-xl border border-border p-4 shadow-sm hover:shadow-md transition-all cursor-pointer"
           >
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -143,7 +146,10 @@ const AdminStoresPage = () => {
                 </div>
               </div>
               <button
-                onClick={() => handleToggleActive(store)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleToggleActive(store);
+                }}
                 disabled={togglingId === store.id}
                 className={`p-2 rounded-lg transition-all shrink-0 ${
                   store.active

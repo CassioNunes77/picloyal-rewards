@@ -29,6 +29,7 @@ import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminLocationsPage from "./pages/admin/AdminLocationsPage";
 import AdminCategoriesPage from "./pages/admin/AdminCategoriesPage";
 import AdminStoresPage from "./pages/admin/AdminStoresPage";
+import AdminStoreDetailPage from "./pages/admin/AdminStoreDetailPage";
 import AdminProductsPage from "./pages/admin/AdminProductsPage";
 import AdminActivitiesPage from "./pages/admin/AdminActivitiesPage";
 import AdminFeedbackPage from "./pages/admin/AdminFeedbackPage";
@@ -134,6 +135,7 @@ const App = () => {
                 <Route path="locations" element={<AdminLocationsPage />} />
                 <Route path="categories" element={<AdminCategoriesPage />} />
                 <Route path="stores" element={<AdminStoresPage />} />
+                <Route path="stores/:storeId" element={<AdminStoreDetailPage />} />
                 <Route path="products" element={<AdminProductsPage />} />
                 <Route path="activities" element={<AdminActivitiesPage />} />
                 <Route path="feedback" element={<AdminFeedbackPage />} />
