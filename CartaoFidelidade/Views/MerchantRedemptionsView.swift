@@ -86,7 +86,9 @@ struct MerchantRedemptionsView: View {
                                     .foregroundColor(.mutedForeground)
                                 
                                 ForEach(filteredRedemptions) { r in
-                                    RedemptionCard(redemption: r)
+                                    RedemptionCard(redemption: r) {
+                                        confirmRedemption(r)
+                                    }
                                 }
                             }
                         }
@@ -165,10 +167,43 @@ struct MerchantRedemptionsView: View {
             }
         }
     }
+    
+    private func confirmRedemption(_ redemption: FirebaseRedemption) {
+        guard let user = Auth.auth().currentUser else { return }
+        
+        Task {
+            do {
+                try await RedemptionsService.shared.confirmRedemption(redemptionId: redemption.id, merchantId: user.uid)
+                await MainActor.run {
+                    if let idx = redemptions.firstIndex(where: { $0.id == redemption.id }) {
+                        redemptions[idx] = FirebaseRedemption(
+                            id: redemption.id,
+                            offerId: redemption.offerId,
+                            offerTitle: redemption.offerTitle,
+                            storeId: redemption.storeId,
+                            storeName: redemption.storeName,
+                            merchantId: redemption.merchantId,
+                            userId: redemption.userId,
+                            userName: redemption.userName,
+                            userEmail: redemption.userEmail,
+                            status: .confirmed,
+                            createdAt: redemption.createdAt
+                        )
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    errorMessage = error.localizedDescription
+                    showError = true
+                }
+            }
+        }
+    }
 }
 
 struct RedemptionCard: View {
     let redemption: FirebaseRedemption
+    var onConfirm: (() -> Void)? = nil
     
     private func formatDate(_ date: Date) -> String {
         let f = DateFormatter()
@@ -189,9 +224,20 @@ struct RedemptionCard: View {
                         .foregroundColor(.mutedForeground)
                 }
                 Spacer()
-                Text(formatDate(redemption.createdAt))
-                    .font(.system(size: 11))
-                    .foregroundColor(.mutedForeground)
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(formatDate(redemption.createdAt))
+                        .font(.system(size: 11))
+                        .foregroundColor(.mutedForeground)
+                    if redemption.status == .pending {
+                        Text("Solicitada")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(.orange)
+                    } else {
+                        Text("Resgatada")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(.green)
+                    }
+                }
             }
             
             HStack(spacing: AppSpacing.sm) {
@@ -209,6 +255,19 @@ struct RedemptionCard: View {
                         .foregroundColor(.mutedForeground)
                         .lineLimit(1)
                 }
+            }
+            
+            if redemption.status == .pending, let onConfirm = onConfirm {
+                Button(action: onConfirm) {
+                    Text("Confirmar resgate")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.primaryForeground)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, AppSpacing.sm)
+                        .background(AppGradients.primary)
+                        .cornerRadius(AppRadius.md)
+                }
+                .buttonStyle(PlainButtonStyle())
             }
         }
         .padding(AppSpacing.md)

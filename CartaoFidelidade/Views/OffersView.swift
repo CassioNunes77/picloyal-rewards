@@ -327,7 +327,7 @@ struct OffersView: View {
                                 print("❌ [OffersView] Erro ao registrar resgate: \(error.localizedDescription)")
                             }
                         }
-                        toastMessage = "🎉 Oferta \"\(offer.title)\" ativada!"
+                        toastMessage = "Oferta solicitada! Aguarde a confirmação do estabelecimento."
                         withAnimation { showToast = true }
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                             withAnimation { showToast = false }

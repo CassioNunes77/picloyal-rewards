@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getMerchantStores, type StoreData } from "@/services/merchantsService";
 import {
   getMerchantRedemptions,
+  confirmRedemption,
   type RedemptionData,
 } from "@/services/redemptionsService";
 import {
@@ -20,6 +21,7 @@ export default function MerchantRedemptionsPage() {
   const [stores, setStores] = useState<StoreData[]>([]);
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -63,6 +65,23 @@ export default function MerchantRedemptionsPage() {
       hour: "2-digit",
       minute: "2-digit",
     }).format(date);
+  };
+
+  const handleConfirm = async (r: RedemptionData) => {
+    if (!user?.uid || r.status === "confirmed") return;
+    setConfirmingId(r.id);
+    try {
+      await confirmRedemption(r.id, user.uid);
+      setRedemptions((prev) =>
+        prev.map((x) =>
+          x.id === r.id ? { ...x, status: "confirmed" as const } : x
+        )
+      );
+    } catch (err) {
+      console.error("Erro ao confirmar resgate:", err);
+    } finally {
+      setConfirmingId(null);
+    }
   };
 
   return (
@@ -143,9 +162,20 @@ export default function MerchantRedemptionsPage() {
                           {r.storeName}
                         </p>
                       </div>
-                      <span className="text-xs text-muted-foreground shrink-0">
-                        {formatDate(r.createdAt)}
-                      </span>
+                      <div className="text-right shrink-0">
+                        <span className="text-xs text-muted-foreground block">
+                          {formatDate(r.createdAt)}
+                        </span>
+                        <span
+                          className={`text-xs font-semibold ${
+                            r.status === "pending"
+                              ? "text-orange-500"
+                              : "text-green-500"
+                          }`}
+                        >
+                          {r.status === "pending" ? "Solicitada" : "Resgatada"}
+                        </span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <User className="h-4 w-4 shrink-0" />
@@ -157,6 +187,21 @@ export default function MerchantRedemptionsPage() {
                         </>
                       )}
                     </div>
+                    {r.status === "pending" && (
+                      <button
+                        type="button"
+                        onClick={() => handleConfirm(r)}
+                        disabled={confirmingId === r.id}
+                        className="mt-3 w-full py-2 rounded-lg gradient-primary text-primary-foreground font-semibold text-sm
+                                 transition-all duration-200 disabled:opacity-50"
+                      >
+                        {confirmingId === r.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                        ) : (
+                          "Confirmar resgate"
+                        )}
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>

@@ -9,6 +9,11 @@ import Foundation
 import FirebaseFirestore
 import FirebaseAuth
 
+enum RedemptionStatus: String {
+    case pending = "pending"   // Oferta Solicitada
+    case confirmed = "confirmed" // Oferta Resgatada
+}
+
 struct FirebaseRedemption: Identifiable {
     let id: String
     let offerId: String
@@ -19,6 +24,7 @@ struct FirebaseRedemption: Identifiable {
     let userId: String
     let userName: String
     let userEmail: String
+    let status: RedemptionStatus
     let createdAt: Date
 }
 
@@ -51,6 +57,7 @@ class RedemptionsService {
             "userId": user.uid,
             "userName": user.displayName ?? user.email?.components(separatedBy: "@").first ?? "Usuário",
             "userEmail": user.email ?? "",
+            "status": RedemptionStatus.pending.rawValue,
             "createdAt": Timestamp()
         ]
         
@@ -73,8 +80,33 @@ class RedemptionsService {
         }.sorted { $0.createdAt > $1.createdAt }
     }
     
+    /// Busca o resgate mais recente do usuário para uma oferta (para exibir status na tela de detalhes)
+    func getUserRedemptionForOffer(userId: String, offerId: String) async throws -> FirebaseRedemption? {
+        let snapshot = try await db.collection(collectionName)
+            .whereField("userId", isEqualTo: userId)
+            .whereField("offerId", isEqualTo: offerId)
+            .order(by: "createdAt", descending: true)
+            .limit(to: 1)
+            .getDocuments()
+        return snapshot.documents.first.flatMap { parseRedemption(docId: $0.documentID, data: $0.data()) }
+    }
+    
+    /// Confirma o resgate (lojista marca como atendido)
+    func confirmRedemption(redemptionId: String, merchantId: String) async throws {
+        guard let currentUser = Auth.auth().currentUser, currentUser.uid == merchantId else {
+            throw NSError(domain: "RedemptionsService", code: 401, userInfo: [NSLocalizedDescriptionKey: "Não autorizado"])
+        }
+        let ref = db.collection(collectionName).document(redemptionId)
+        try await ref.updateData([
+            "status": RedemptionStatus.confirmed.rawValue,
+            "confirmedAt": Timestamp()
+        ])
+    }
+    
     private func parseRedemption(docId: String, data: [String: Any]) -> FirebaseRedemption? {
         guard let createdAt = dateFromFirestore(data["createdAt"]) else { return nil }
+        let statusRaw = (data["status"] as? String) ?? RedemptionStatus.pending.rawValue
+        let status = RedemptionStatus(rawValue: statusRaw) ?? .pending
         return FirebaseRedemption(
             id: docId,
             offerId: (data["offerId"] as? String) ?? "",
@@ -85,6 +117,7 @@ class RedemptionsService {
             userId: (data["userId"] as? String) ?? "",
             userName: (data["userName"] as? String) ?? "",
             userEmail: (data["userEmail"] as? String) ?? "",
+            status: status,
             createdAt: createdAt
         )
     }

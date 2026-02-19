@@ -9,6 +9,7 @@ import SwiftUI
 
 struct Store: Identifiable, Equatable {
     let id: String
+    let merchantId: String
     let name: String
     let address: String
     let city: String
@@ -28,6 +29,7 @@ struct Store: Identifiable, Equatable {
     static func fromFirebase(_ fb: FirebaseStore) -> Store {
         Store(
             id: fb.id,
+            merchantId: fb.merchantId,
             name: fb.name,
             address: fb.address,
             city: fb.city,

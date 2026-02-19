@@ -235,7 +235,7 @@ struct StoreDetailView: View {
                             print("❌ [StoreDetailView] Erro ao registrar resgate: \(error.localizedDescription)")
                         }
                     }
-                    showToast(message: "🎉 Oferta \"\(offer.title)\" ativada!")
+                    showToast(message: "Oferta solicitada! Aguarde a confirmação do estabelecimento.")
                 },
                 onDismiss: { selectedOffer = nil }
             )
@@ -549,6 +549,7 @@ struct ReviewCard: View {
     StoreDetailView(
         store: Store(
             id: "1",
+            merchantId: "merchant1",
             name: "Café Central",
             address: "Rua das Flores, 123 - Centro",
             city: "São Paulo - SP",

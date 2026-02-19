@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   ChevronRight,
@@ -9,11 +10,12 @@ import {
   Gift,
   Coffee,
   Pizza,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
-import { createRedemption } from "@/services/redemptionsService";
+import { createRedemption, getUserRedemptionForOffer, type RedemptionStatus } from "@/services/redemptionsService";
 
 export interface OfferDetailData {
   id: string | number;
@@ -47,6 +49,22 @@ const OfferDetailPage = () => {
   const offer = state?.offer;
   const storeName = state?.storeName ?? offer?.storeName;
 
+  const [redemptionStatus, setRedemptionStatus] = useState<RedemptionStatus | null>(null);
+  const [loadingRedemption, setLoadingRedemption] = useState(true);
+
+  useEffect(() => {
+    if (!user?.uid || !offer?.id) {
+      setLoadingRedemption(false);
+      return;
+    }
+    getUserRedemptionForOffer(user.uid, String(offer.id))
+      .then((r) => {
+        setRedemptionStatus(r?.status ?? null);
+      })
+      .catch(() => setRedemptionStatus(null))
+      .finally(() => setLoadingRedemption(false));
+  }, [user?.uid, offer?.id]);
+
   if (!offer) {
     navigate("/offers", { replace: true });
     return null;
@@ -55,27 +73,30 @@ const OfferDetailPage = () => {
   const Icon = offer.icon && iconMap[offer.icon] ? iconMap[offer.icon] : Tag;
 
   const handleUseOffer = async () => {
-    if (offer.storeId && offer.merchantId && user) {
-      try {
-        await createRedemption(
-          String(offer.id),
-          offer.title,
-          offer.storeId,
-          storeName ?? offer.storeName ?? "",
-          offer.merchantId,
-          user.uid,
-          user.displayName ?? user.email?.split("@")[0] ?? "Usuário",
-          user.email ?? ""
-        );
-      } catch (err) {
-        console.error("Erro ao registrar resgate:", err);
-      }
+    if (!user) {
+      toast.error("Faça login para usar esta oferta");
+      return;
     }
-    toast.success(`🎉 Oferta "${offer.title}" ativada!`, {
-      description: storeName
-        ? `Apresente este cupom em ${storeName}`
-        : "Apresente este cupom no estabelecimento.",
-    });
+    if (!offer.storeId || !offer.merchantId) return;
+    try {
+      await createRedemption(
+        String(offer.id),
+        offer.title,
+        offer.storeId,
+        storeName ?? offer.storeName ?? "",
+        offer.merchantId,
+        user.uid,
+        user.displayName ?? user.email?.split("@")[0] ?? "Usuário",
+        user.email ?? ""
+      );
+      setRedemptionStatus("pending");
+      toast.success("Oferta solicitada! Aguarde a confirmação do estabelecimento.", {
+        description: storeName ? `Apresente em ${storeName}` : "Apresente no estabelecimento.",
+      });
+    } catch (err) {
+      console.error("Erro ao registrar resgate:", err);
+      toast.error("Erro ao solicitar oferta. Tente novamente.");
+    }
   };
 
   const detailContent = (
@@ -137,14 +158,28 @@ const OfferDetailPage = () => {
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={handleUseOffer}
-        className="w-full py-4 rounded-xl gradient-primary text-primary-foreground font-semibold text-base
-                 transition-all duration-200 active:scale-[0.98] shadow-md"
-      >
-        Usar oferta
-      </button>
+      {loadingRedemption ? (
+        <div className="w-full py-4 rounded-xl bg-muted flex items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : redemptionStatus === "confirmed" ? (
+        <div className="w-full py-4 rounded-xl bg-green-500/80 text-white font-semibold text-base text-center">
+          Oferta Resgatada
+        </div>
+      ) : redemptionStatus === "pending" ? (
+        <div className="w-full py-4 rounded-xl bg-orange-500/80 text-white font-semibold text-base text-center">
+          Oferta Solicitada
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={handleUseOffer}
+          className="w-full py-4 rounded-xl gradient-primary text-primary-foreground font-semibold text-base
+                   transition-all duration-200 active:scale-[0.98] shadow-md"
+        >
+          Usar oferta
+        </button>
+      )}
 
       <p className="text-center text-xs text-muted-foreground mt-4">
         Apresente esta tela ou o cupom ativado no estabelecimento

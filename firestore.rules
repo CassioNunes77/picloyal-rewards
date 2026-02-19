@@ -19,7 +19,7 @@ service cloud.firestore {
                        request.resource.data.city is string &&
                        request.resource.data.country is string &&
                        request.resource.data.active is bool &&
-                no       request.resource.data.createdAt is timestamp &&
+                       request.resource.data.createdAt is timestamp &&
                        request.resource.data.updatedAt is timestamp;
       
       allow update: if request.auth != null &&
@@ -206,6 +206,39 @@ service cloud.firestore {
                        && request.resource.data.updatedAt is timestamp;
       allow update, delete: if request.auth != null
                                && resource.data.merchantId == request.auth.uid;
+    }
+
+    // ============================================
+    // RESGATES DE OFERTAS (REDEMPTIONS)
+    // ============================================
+    match /offerRedemptions/{redemptionId} {
+      // Lojistas podem ler resgates das suas lojas; usuários podem ler seus próprios resgates
+      allow read: if request.auth != null &&
+                       (resource.data.merchantId == request.auth.uid ||
+                        resource.data.userId == request.auth.uid);
+      
+      // Usuários autenticados podem criar resgate (ao usar oferta)
+      // userId deve ser o próprio usuário; validar campos obrigatórios
+      allow create: if request.auth != null &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.keys().hasAll(['offerId', 'offerTitle', 'storeId', 'storeName', 'merchantId', 'userId', 'userName', 'userEmail', 'status', 'createdAt']) &&
+                       request.resource.data.offerId is string &&
+                       request.resource.data.offerTitle is string &&
+                       request.resource.data.storeId is string &&
+                       request.resource.data.storeName is string &&
+                       request.resource.data.merchantId is string &&
+                       request.resource.data.userId is string &&
+                       request.resource.data.userName is string &&
+                       request.resource.data.userEmail is string &&
+                       request.resource.data.status == 'pending' &&
+                       request.resource.data.createdAt is timestamp;
+      
+      // Lojista pode confirmar resgate (atualizar status para confirmed)
+      allow update: if request.auth != null &&
+                       resource.data.merchantId == request.auth.uid &&
+                       request.resource.data.status == 'confirmed';
+      
+      allow delete: if false;
     }
 
     // ============================================

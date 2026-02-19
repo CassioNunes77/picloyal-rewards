@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct OfferDetailView: View {
     let offer: Offer
@@ -13,6 +14,9 @@ struct OfferDetailView: View {
     var storeNameOverride: String?
     let onUseOffer: () -> Void
     let onDismiss: () -> Void
+    
+    @State private var redemptionStatus: RedemptionStatus? = nil
+    @State private var loadingRedemption = true
 
     private var displayStoreName: String {
         storeNameOverride ?? offer.storeName
@@ -140,21 +144,8 @@ struct OfferDetailView: View {
                 )
                 .appShadow(AppShadow.lg)
 
-                // Botão Usar oferta
-                Button(action: {
-                    onUseOffer()
-                    onDismiss()
-                }) {
-                    Text("Usar oferta")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.primaryForeground)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, AppSpacing.md)
-                        .background(AppGradients.primary)
-                        .cornerRadius(AppRadius.lg)
-                        .appShadow(AppShadow.md)
-                }
-                .buttonStyle(PlainButtonStyle())
+                // Botão Usar oferta / Oferta Solicitada / Oferta Resgatada
+                offerButton
 
                 // Texto informativo
                 Text("Apresente esta tela ou o cupom ativado no estabelecimento")
@@ -175,6 +166,80 @@ struct OfferDetailView: View {
                 }
             }
         }
+        .task {
+            await loadRedemptionStatus()
+        }
+    }
+    
+    @ViewBuilder
+    private var offerButton: some View {
+        if loadingRedemption {
+            ProgressView()
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, AppSpacing.md)
+        } else if redemptionStatus == .confirmed {
+            Text("Oferta Resgatada")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.primaryForeground)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, AppSpacing.md)
+                .background(Color.green.opacity(0.8))
+                .cornerRadius(AppRadius.lg)
+        } else if redemptionStatus == .pending {
+            Text("Oferta Solicitada")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.primaryForeground)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, AppSpacing.md)
+                .background(Color.orange.opacity(0.8))
+                .cornerRadius(AppRadius.lg)
+        } else if !isUserLoggedIn {
+            Text("Faça login para usar esta oferta")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.mutedForeground)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, AppSpacing.md)
+                .background(Color.muted.opacity(0.5))
+                .cornerRadius(AppRadius.lg)
+        } else {
+            Button(action: {
+                onUseOffer()
+                redemptionStatus = .pending
+            }) {
+                Text("Usar oferta")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.primaryForeground)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, AppSpacing.md)
+                    .background(AppGradients.primary)
+                    .cornerRadius(AppRadius.lg)
+                    .appShadow(AppShadow.md)
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+    }
+    
+    private var isUserLoggedIn: Bool {
+        Auth.auth().currentUser != nil
+    }
+    
+    private func loadRedemptionStatus() async {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            await MainActor.run { loadingRedemption = false }
+            return
+        }
+        do {
+            let redemption = try await RedemptionsService.shared.getUserRedemptionForOffer(userId: userId, offerId: offer.id)
+            await MainActor.run {
+                redemptionStatus = redemption?.status
+                loadingRedemption = false
+            }
+        } catch {
+            await MainActor.run {
+                redemptionStatus = nil
+                loadingRedemption = false
+            }
+        }
     }
 }
 
@@ -185,8 +250,10 @@ struct OfferDetailView: View {
             title: "20% OFF em Bebidas",
             description: "Desconto em todas as bebidas do cardápio",
             discount: "20%",
+            storeId: "store1",
             storeName: "Café Central",
             storeAddress: "Rua das Flores, 123",
+            merchantId: "merchant1",
             validUntil: "31/12/2024",
             icon: "cup.and.saucer.fill",
             category: "bebidas",

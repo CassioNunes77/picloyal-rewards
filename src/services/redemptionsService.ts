@@ -1,7 +1,9 @@
-import { collection, addDoc, query, where, getDocs, Timestamp } from "firebase/firestore";
+import { collection, addDoc, query, where, orderBy, limit, getDocs, doc, updateDoc, Timestamp } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 
 const REDEMPTIONS_COLLECTION = "offerRedemptions";
+
+export type RedemptionStatus = "pending" | "confirmed";
 
 export interface RedemptionData {
   id: string;
@@ -13,6 +15,7 @@ export interface RedemptionData {
   userId: string;
   userName: string;
   userEmail: string;
+  status: RedemptionStatus;
   createdAt: Date;
 }
 
@@ -48,6 +51,7 @@ export async function createRedemption(
     userId,
     userName,
     userEmail,
+    status: "pending",
     createdAt: Timestamp.now(),
   });
   return docRef.id;
@@ -71,10 +75,10 @@ export async function getMerchantRedemptions(
       q = query(q, where("storeId", "==", storeId));
     }
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => {
-      const d = doc.data();
+    return snapshot.docs.map((docSnap) => {
+      const d = docSnap.data();
       return {
-        id: doc.id,
+        id: docSnap.id,
         offerId: String(d?.offerId ?? ""),
         offerTitle: String(d?.offerTitle ?? ""),
         storeId: String(d?.storeId ?? ""),
@@ -83,6 +87,7 @@ export async function getMerchantRedemptions(
         userId: String(d?.userId ?? ""),
         userName: String(d?.userName ?? ""),
         userEmail: String(d?.userEmail ?? ""),
+        status: (d?.status as RedemptionStatus) ?? "pending",
         createdAt: toDate(d?.createdAt),
       };
     }).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
@@ -90,4 +95,58 @@ export async function getMerchantRedemptions(
     console.error("Erro ao buscar resgates:", error);
     return [];
   }
+}
+
+/**
+ * Busca o resgate mais recente do usuário para uma oferta (para exibir status na tela de detalhes)
+ */
+export async function getUserRedemptionForOffer(
+  userId: string,
+  offerId: string
+): Promise<RedemptionData | null> {
+  if (!firestore) return null;
+  try {
+    const q = query(
+      collection(firestore, REDEMPTIONS_COLLECTION),
+      where("userId", "==", userId),
+      where("offerId", "==", offerId),
+      orderBy("createdAt", "desc"),
+      limit(1)
+    );
+    const snapshot = await getDocs(q);
+    const docSnap = snapshot.docs[0];
+    if (!docSnap) return null;
+    const d = docSnap.data();
+    return {
+      id: docSnap.id,
+      offerId: String(d?.offerId ?? ""),
+      offerTitle: String(d?.offerTitle ?? ""),
+      storeId: String(d?.storeId ?? ""),
+      storeName: String(d?.storeName ?? ""),
+      merchantId: String(d?.merchantId ?? ""),
+      userId: String(d?.userId ?? ""),
+      userName: String(d?.userName ?? ""),
+      userEmail: String(d?.userEmail ?? ""),
+      status: (d?.status as RedemptionStatus) ?? "pending",
+      createdAt: toDate(d?.createdAt),
+    };
+  } catch (error) {
+    console.error("Erro ao buscar resgate do usuário:", error);
+    return null;
+  }
+}
+
+/**
+ * Confirma o resgate (lojista marca como atendido)
+ */
+export async function confirmRedemption(
+  redemptionId: string,
+  merchantId: string
+): Promise<void> {
+  if (!firestore) throw new Error("Firestore não está configurado");
+  const ref = doc(firestore, REDEMPTIONS_COLLECTION, redemptionId);
+  await updateDoc(ref, {
+    status: "confirmed",
+    confirmedAt: Timestamp.now(),
+  });
 }
