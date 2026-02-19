@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { BarChart3, Users, DollarSign } from "lucide-react";
+import { useState, useEffect } from "react";
+import { BarChart3, Users, DollarSign, Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   ChartContainer,
@@ -7,20 +7,32 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
+import { getUsersGrowthData, type UserGrowthPoint } from "@/services/usersService";
 
 const AdminAnalyticsPage = () => {
   const isMobile = useIsMobile();
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "1y">("30d");
+  const [userGrowth, setUserGrowth] = useState<UserGrowthPoint[]>([]);
+  const [loadingUserGrowth, setLoadingUserGrowth] = useState(true);
 
-  // Dados mockados - serão substituídos por dados reais depois
+  useEffect(() => {
+    const load = async () => {
+      setLoadingUserGrowth(true);
+      try {
+        const data = await getUsersGrowthData(timeRange);
+        setUserGrowth(data);
+      } catch (err) {
+        console.error("Erro ao carregar crescimento de usuários:", err);
+        setUserGrowth([]);
+      } finally {
+        setLoadingUserGrowth(false);
+      }
+    };
+    load();
+  }, [timeRange]);
+
+  // Dados mockados para outros gráficos
   const analytics = {
-    userGrowth: [
-      { period: "Jan", value: 8500 },
-      { period: "Fev", value: 9200 },
-      { period: "Mar", value: 10100 },
-      { period: "Abr", value: 11200 },
-      { period: "Mai", value: 12450 },
-    ],
     revenue: [
       { period: "Jan", value: 120000 },
       { period: "Fev", value: 145000 },
@@ -70,13 +82,22 @@ const AdminAnalyticsPage = () => {
           </div>
           <Users className="h-6 w-6 text-primary" />
         </div>
+        {loadingUserGrowth ? (
+          <div className="h-[280px] flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : userGrowth.length === 0 ? (
+          <div className="h-[280px] flex items-center justify-center text-muted-foreground text-sm">
+            Nenhum dado de usuários disponível
+          </div>
+        ) : (
         <ChartContainer
           config={{
             value: { label: "Usuários", color: "hsl(var(--chart-1))" },
           }}
           className="h-[280px] w-full"
         >
-          <LineChart data={analytics.userGrowth} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+          <LineChart data={userGrowth} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis
               dataKey="period"
@@ -103,6 +124,7 @@ const AdminAnalyticsPage = () => {
             />
           </LineChart>
         </ChartContainer>
+        )}
       </div>
 
       {/* Gráfico de Receita */}

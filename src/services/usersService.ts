@@ -475,6 +475,105 @@ export async function getTotalUsersCount(): Promise<number> {
 }
 
 /**
+ * Retorna dados de crescimento de usuários para o gráfico (baseado em createdAt)
+ * Agrupa por período conforme timeRange e retorna contagem acumulada
+ */
+export const MONTH_NAMES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"] as const;
+
+export type UserGrowthTimeRange = "7d" | "30d" | "90d" | "1y";
+
+export interface UserGrowthPoint {
+  period: string;
+  value: number;
+}
+
+const toDate = (v: any): Date | null => {
+  if (!v) return null;
+  if (typeof v?.toDate === "function") return v.toDate();
+  if (v instanceof Date) return v;
+  if (typeof v?.seconds === "number") return new Date(v.seconds * 1000);
+  const t = new Date(v);
+  return isNaN(t.getTime()) ? null : t;
+};
+
+export async function getUsersGrowthData(timeRange: UserGrowthTimeRange): Promise<UserGrowthPoint[]> {
+  if (!firestore) {
+    console.error("❌ [usersService] Firestore não está configurado!");
+    return [];
+  }
+
+  try {
+    const usersRef = collection(firestore, COLLECTION_NAME);
+    const snapshot = await getDocs(usersRef);
+
+    const dates: Date[] = [];
+    snapshot.docs.forEach((doc) => {
+      const data = doc.data();
+      const createdAt = toDate(data.createdAt);
+      if (createdAt) dates.push(createdAt);
+    });
+    dates.sort((a, b) => a.getTime() - b.getTime());
+
+    const now = new Date();
+    const result: UserGrowthPoint[] = [];
+
+    if (timeRange === "7d") {
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        d.setHours(23, 59, 59, 999);
+        const count = dates.filter((dt) => dt <= d).length;
+        result.push({
+          period: `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`,
+          value: count,
+        });
+      }
+    } else if (timeRange === "30d") {
+      for (let i = 29; i >= 0; i -= 2) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        d.setHours(23, 59, 59, 999);
+        const count = dates.filter((dt) => dt <= d).length;
+        result.push({
+          period: `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`,
+          value: count,
+        });
+      }
+    } else if (timeRange === "90d") {
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i * 7);
+        d.setHours(23, 59, 59, 999);
+        const count = dates.filter((dt) => dt <= d).length;
+        const weekStart = new Date(d);
+        weekStart.setDate(weekStart.getDate() - 6);
+        result.push({
+          period: `${String(weekStart.getDate()).padStart(2, "0")}/${String(weekStart.getMonth() + 1).padStart(2, "0")}`,
+          value: count,
+        });
+      }
+    } else {
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59, 999);
+        const count = dates.filter((dt) => dt <= d).length;
+        const offset = now.getMonth() - i;
+        const m = ((offset % 12) + 12) % 12;
+        const y = now.getFullYear() + Math.floor(offset / 12);
+        result.push({
+          period: `${MONTH_NAMES[m]} ${y}`,
+          value: count,
+        });
+      }
+    }
+
+    return result;
+  } catch (error: any) {
+    console.error("❌ [usersService] Erro ao buscar crescimento de usuários:", error);
+    return [];
+  }
+}
+
+/**
  * Verifica se o usuário existe na coleção users
  */
 export async function isUser(userId: string): Promise<boolean> {
