@@ -55,7 +55,7 @@ export default function StorePhotoUpload({ value, onChange, disabled }: StorePho
 
   return (
     <div className="space-y-2">
-      <Label className="text-card-foreground">Foto da Loja</Label>
+      <Label className="text-card-foreground">Logo da Loja</Label>
       <div
         className={`
           relative border-2 border-dashed rounded-xl overflow-hidden
@@ -83,7 +83,7 @@ export default function StorePhotoUpload({ value, onChange, disabled }: StorePho
           <div className="relative w-full h-full min-h-[120px] flex items-center justify-center p-4">
             <img
               src={value}
-              alt="Foto da loja"
+              alt="Logo da loja"
               className="max-h-32 object-contain rounded-lg"
             />
             {!disabled && (
@@ -105,7 +105,7 @@ export default function StorePhotoUpload({ value, onChange, disabled }: StorePho
               <Store className="h-7 w-7" />
             </div>
             <p className="text-sm text-center px-4">
-              Clique para enviar foto ou arraste aqui
+              Clique para enviar logo ou arraste aqui
             </p>
             <p className="text-xs opacity-80">JPG, PNG ou WebP • Máx. {MAX_SIZE_MB}MB</p>
           </div>

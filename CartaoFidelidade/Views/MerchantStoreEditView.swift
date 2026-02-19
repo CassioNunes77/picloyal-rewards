@@ -148,7 +148,7 @@ struct MerchantStoreEditView: View {
                         )
                     }
                     
-                    // Foto da Loja (ImgBB)
+                    // Logo da Loja (ImgBB)
                     StorePhotoPickerView(photoURL: $photoURL, disabled: loading)
                     
                     // Botões

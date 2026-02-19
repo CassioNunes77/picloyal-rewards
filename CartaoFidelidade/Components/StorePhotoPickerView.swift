@@ -20,7 +20,7 @@ struct StorePhotoPickerView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            Text("Foto da Loja")
+            Text("Logo da Loja")
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(.cardForeground)
             
@@ -99,7 +99,7 @@ struct StorePhotoPickerView: View {
             Image(systemName: "storefront.fill")
                 .font(.system(size: 32))
                 .foregroundColor(.mutedForeground)
-            Text("Clique para enviar foto")
+            Text("Clique para enviar logo")
                 .font(.system(size: 12))
                 .foregroundColor(.mutedForeground)
                 .multilineTextAlignment(.center)

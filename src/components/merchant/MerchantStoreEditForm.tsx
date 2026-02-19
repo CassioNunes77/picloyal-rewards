@@ -239,7 +239,7 @@ export default function MerchantStoreEditForm({ store, onCancel, onSuccess }: Me
           />
         </div>
 
-        {/* Foto da Loja */}
+        {/* Logo da Loja */}
         <StorePhotoUpload
           value={formData.photoURL}
           onChange={(url) => setFormData({ ...formData, photoURL: url })}

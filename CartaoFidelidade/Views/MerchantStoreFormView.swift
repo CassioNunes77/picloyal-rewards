@@ -114,7 +114,7 @@ struct MerchantStoreFormView: View {
                     // Horário de Funcionamento
                     BusinessHoursPicker(hours: $hours, disabled: loading)
                     
-                    // Foto da Loja (ImgBB)
+                    // Logo da Loja (ImgBB)
                     StorePhotoPickerView(photoURL: $photoURL, disabled: loading)
                     
                     // Botões
