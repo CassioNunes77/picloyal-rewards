@@ -13,6 +13,7 @@ struct RewardsView: View {
     @State private var selectedFilter = "all"
     @State private var showToast = false
     @State private var toastMessage = ""
+    @State private var navigationPath = NavigationPath()
     
     let rewards = [
         Reward(
@@ -101,6 +102,7 @@ struct RewardsView: View {
     }
     
     var body: some View {
+        NavigationStack {
         ZStack {
             Color.appBackground
                 .ignoresSafeArea()
@@ -209,18 +211,23 @@ struct RewardsView: View {
                             .padding(.top, AppSpacing.xl * 2)
                         } else {
                             ForEach(Array(filteredRewards.enumerated()), id: \.offset) { index, reward in
-                                RewardCard(
-                                    title: reward.title,
-                                    description: reward.description,
-                                    points: reward.points,
-                                    expiresIn: reward.expiresIn,
-                                    icon: reward.icon,
-                                    available: reward.available,
-                                    onClaim: {
-                                        showToast(message: "🎉 \(reward.title) resgatado com sucesso!")
-                                    }
-                                )
-                                .fadeIn(delay: 0.2 + Double(index) * 0.05)
+                                Button(action: {
+                                    navigationPath.append(reward)
+                                }) {
+                                    RewardCard(
+                                        title: reward.title,
+                                        description: reward.description,
+                                        points: reward.points,
+                                        expiresIn: reward.expiresIn,
+                                        icon: reward.icon,
+                                        available: reward.available,
+                                        onClaim: {
+                                            showToast(message: "🎉 \(reward.title) resgatado com sucesso!")
+                                        }
+                                    )
+                                    .fadeIn(delay: 0.2 + Double(index) * 0.05)
+                                }
+                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                         
@@ -254,6 +261,18 @@ struct RewardsView: View {
             }
         }
         .ignoresSafeArea(edges: .top)
+        .navigationDestination(for: Reward.self) { reward in
+            RewardDetailView(
+                reward: reward,
+                onResgatar: {
+                    showToast(message: "🎉 \(reward.title) resgatado com sucesso!")
+                },
+                onDismiss: {
+                    navigationPath.removeLast()
+                }
+            )
+        }
+        }
     }
     
     private func showToast(message: String) {

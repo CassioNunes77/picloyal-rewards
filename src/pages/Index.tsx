@@ -209,6 +209,7 @@ const Index = () => {
                       key={index}
                       {...reward}
                       onClaim={() => handleClaimReward(reward.title)}
+                      onClick={() => navigate("/reward", { state: { reward } })}
                     />
                   ))}
                 </div>
@@ -330,7 +331,11 @@ const Index = () => {
           <div className="space-y-3">
             {rewards.map((reward, index) => (
               <div key={index} className="animate-fade-in" style={{ animationDelay: `${350 + index * 50}ms` }}>
-                <RewardCard {...reward} onClaim={() => handleClaimReward(reward.title)} />
+                <RewardCard
+                  {...reward}
+                  onClaim={() => handleClaimReward(reward.title)}
+                  onClick={() => navigate("/reward", { state: { reward } })}
+                />
               </div>
             ))}
           </div>

@@ -20,15 +20,7 @@ struct RewardCard: View {
     @State private var isClaimPressed = false
     
     var body: some View {
-        Button(action: {
-            withAnimation(.bounceSmall) {
-                isPressed = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                isPressed = false
-            }
-        }) {
-            HStack(spacing: AppSpacing.md) {
+        HStack(spacing: AppSpacing.md) {
                 // Icon
                 ZStack {
                     RoundedRectangle(cornerRadius: AppRadius.md)
@@ -100,18 +92,16 @@ struct RewardCard: View {
                         .font(.system(size: 20))
                         .offset(x: isPressed ? 4 : 0)
                 }
-            }
-            .padding(AppSpacing.md)
-            .background(Color.card)
-            .cornerRadius(AppRadius.lg)
-            .overlay(
-                RoundedRectangle(cornerRadius: AppRadius.lg)
-                    .stroke(available ? Color.primary : Color.clear, lineWidth: 2)
-            )
-            .appShadow(isPressed ? AppShadow.sm : AppShadow.md)
-            .scaleEffect(isPressed ? 0.98 : 1.0)
         }
-        .buttonStyle(PlainButtonStyle())
+        .padding(AppSpacing.md)
+        .background(Color.card)
+        .cornerRadius(AppRadius.lg)
+        .overlay(
+            RoundedRectangle(cornerRadius: AppRadius.lg)
+                .stroke(available ? Color.primary : Color.clear, lineWidth: 2)
+        )
+        .appShadow(isPressed ? AppShadow.sm : AppShadow.md)
+        .scaleEffect(isPressed ? 0.98 : 1.0)
     }
 }
 

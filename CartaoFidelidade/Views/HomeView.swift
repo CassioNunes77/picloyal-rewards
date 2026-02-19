@@ -19,6 +19,7 @@ struct HomeView: View {
     @State private var toastMessage = ""
     @State private var stampRewards: [FirebaseStampReward] = []
     @State private var stampCarouselIndex: Int = 0
+    @State private var selectedReward: Reward? = nil
     
     let rewards = [
         Reward(
@@ -258,18 +259,21 @@ struct HomeView: View {
                             
                             VStack(spacing: AppSpacing.sm) {
                                 ForEach(Array(rewards.enumerated()), id: \.offset) { index, reward in
-                                    RewardCard(
-                                        title: reward.title,
-                                        description: reward.description,
-                                        points: reward.points,
-                                        expiresIn: reward.expiresIn,
-                                        icon: reward.icon,
-                                        available: reward.available,
-                                        onClaim: {
-                                            showToast(message: "🎉 \(reward.title) resgatado com sucesso!")
-                                        }
-                                    )
-                                    .fadeIn(delay: 0.35 + Double(index) * 0.05)
+                                    Button(action: { selectedReward = reward }) {
+                                        RewardCard(
+                                            title: reward.title,
+                                            description: reward.description,
+                                            points: reward.points,
+                                            expiresIn: reward.expiresIn,
+                                            icon: reward.icon,
+                                            available: reward.available,
+                                            onClaim: {
+                                                showToast(message: "🎉 \(reward.title) resgatado com sucesso!")
+                                            }
+                                        )
+                                        .fadeIn(delay: 0.35 + Double(index) * 0.05)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
                                 }
                             }
                             .padding(.horizontal, AppSpacing.lg)
@@ -391,6 +395,23 @@ struct HomeView: View {
             }
             
         }
+        .sheet(item: $selectedReward) { reward in
+            NavigationStack {
+                RewardDetailView(
+                    reward: reward,
+                    onResgatar: {
+                        showToast(message: "🎉 \(reward.title) resgatado com sucesso!")
+                        selectedReward = nil
+                    },
+                    onDismiss: { selectedReward = nil }
+                )
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Fechar") { selectedReward = nil }
+                    }
+                }
+            }
+        }
     }
     
     private func showToast(message: String) {
@@ -406,7 +427,8 @@ struct HomeView: View {
     }
 }
 
-struct Reward {
+struct Reward: Hashable, Identifiable {
+    var id: String { "\(title)-\(description)-\(points)" }
     let title: String
     let description: String
     let points: Int
