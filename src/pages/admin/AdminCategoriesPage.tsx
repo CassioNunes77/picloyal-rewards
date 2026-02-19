@@ -489,7 +489,7 @@ const AdminCategoriesPage = () => {
             }
           }}
         >
-          <div className="bg-card rounded-2xl border border-border shadow-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-card rounded-2xl border border-border shadow-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-xl font-bold text-card-foreground mb-4">Adicionar Categoria</h2>
             <div className="space-y-4">
               <div>
@@ -533,11 +533,11 @@ const AdminCategoriesPage = () => {
                   </button>
 
                   {showIconPicker && (
-                    <div className="absolute z-10 mt-2 w-full bg-card border border-border rounded-xl shadow-lg p-4 max-h-96 overflow-y-auto">
-                      <div className="space-y-4">
+                    <div className="absolute z-10 mt-2 w-full bg-card border border-border rounded-xl shadow-lg p-3 max-h-[min(200px,40vh)] overflow-y-auto overscroll-contain">
+                      <div className="space-y-2">
                         {Object.entries(iconCategories).map(([categoryName, icons]) => (
-                          <div key={categoryName}>
-                            <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-2 px-2">
+                          <div key={categoryName} className="mb-2 last:mb-0">
+                            <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1.5 px-1">
                               {categoryName === "compras" && "Compras"}
                               {categoryName === "comida" && "Comida"}
                               {categoryName === "saude" && "Saúde"}
@@ -545,7 +545,7 @@ const AdminCategoriesPage = () => {
                               {categoryName === "geral" && "Geral"}
                               {categoryName === "brindes" && "Brindes"}
                             </h4>
-                            <div className="grid grid-cols-4 gap-2">
+                            <div className="grid grid-cols-4 gap-1.5">
                               {icons.map((iconData) => {
                                 const IconComponent = iconData.icon;
                                 const isSelected = newCategory.icon === iconData.name;
@@ -558,7 +558,7 @@ const AdminCategoriesPage = () => {
                                       setShowIconPicker(false);
                                     }}
                                     className={`
-                                      flex flex-col items-center justify-center gap-1 p-3 rounded-lg
+                                      flex flex-col items-center justify-center gap-0.5 p-2 rounded-lg
                                       border-2 transition-all
                                       ${isSelected
                                         ? "border-primary bg-primary/10 text-primary"
@@ -566,8 +566,8 @@ const AdminCategoriesPage = () => {
                                       }
                                     `}
                                   >
-                                    <IconComponent className="h-5 w-5" />
-                                    <span className="text-xs">{iconData.label}</span>
+                                    <IconComponent className="h-4 w-4" />
+                                    <span className="text-[10px] leading-tight">{iconData.label}</span>
                                   </button>
                                 );
                               })}
@@ -615,7 +615,7 @@ const AdminCategoriesPage = () => {
             }
           }}
         >
-          <div className="bg-card rounded-2xl border border-border shadow-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-card rounded-2xl border border-border shadow-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-xl font-bold text-card-foreground mb-4">Editar Categoria</h2>
             <div className="space-y-4">
               <div>
@@ -661,11 +661,11 @@ const AdminCategoriesPage = () => {
                   </button>
 
                   {showEditIconPicker && (
-                    <div className="absolute z-10 mt-2 w-full bg-card border border-border rounded-xl shadow-lg p-4 max-h-96 overflow-y-auto">
-                      <div className="space-y-4">
+                    <div className="absolute z-10 mt-2 w-full bg-card border border-border rounded-xl shadow-lg p-3 max-h-[min(200px,40vh)] overflow-y-auto overscroll-contain">
+                      <div className="space-y-2">
                         {Object.entries(iconCategories).map(([categoryName, icons]) => (
-                          <div key={categoryName}>
-                            <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-2 px-2">
+                          <div key={categoryName} className="mb-2 last:mb-0">
+                            <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1.5 px-1">
                               {categoryName === "compras" && "Compras"}
                               {categoryName === "comida" && "Comida"}
                               {categoryName === "saude" && "Saúde"}
@@ -673,7 +673,7 @@ const AdminCategoriesPage = () => {
                               {categoryName === "geral" && "Geral"}
                               {categoryName === "brindes" && "Brindes"}
                             </h4>
-                            <div className="grid grid-cols-4 gap-2">
+                            <div className="grid grid-cols-4 gap-1.5">
                               {icons.map((iconData) => {
                                 const IconComponent = iconData.icon;
                                 const isSelected = editCategory.icon === iconData.name;
@@ -686,7 +686,7 @@ const AdminCategoriesPage = () => {
                                       setShowEditIconPicker(false);
                                     }}
                                     className={`
-                                      flex flex-col items-center justify-center gap-1 p-3 rounded-lg
+                                      flex flex-col items-center justify-center gap-0.5 p-2 rounded-lg
                                       border-2 transition-all
                                       ${isSelected
                                         ? "border-primary bg-primary/10 text-primary"
@@ -694,8 +694,8 @@ const AdminCategoriesPage = () => {
                                       }
                                     `}
                                   >
-                                    <IconComponent className="h-5 w-5" />
-                                    <span className="text-xs">{iconData.label}</span>
+                                    <IconComponent className="h-4 w-4" />
+                                    <span className="text-[10px] leading-tight">{iconData.label}</span>
                                   </button>
                                 );
                               })}
