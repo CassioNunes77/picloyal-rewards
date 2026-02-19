@@ -124,30 +124,24 @@ struct StoreDetailView: View {
                                     }
                                 }
                                 
-                                HStack(spacing: 4) {
-                                    Image(systemName: "star.fill")
-                                        .foregroundColor(.yellow)
-                                        .font(.system(size: 16))
-                                    Text(String(format: "%.1f", store.rating))
-                                        .font(.system(size: 16, weight: .semibold))
-                                        .foregroundColor(.heroForeground)
+                                if !store.city.isEmpty {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "mappin")
+                                            .font(.system(size: 14))
+                                        Text(store.city)
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.heroForegroundMuted)
+                                    }
                                 }
                                 
-                                HStack(spacing: 4) {
-                                    Image(systemName: "mappin")
-                                        .font(.system(size: 14))
-                                    Text(store.distance)
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.heroForegroundMuted)
-                                }
-                                
-                                if store.isOpen {
+                                if let hours = store.hours, !hours.isEmpty {
                                     HStack(spacing: 4) {
                                         Image(systemName: "clock")
                                             .font(.system(size: 14))
-                                        Text("Até \(store.openUntil)")
+                                        Text(hours)
                                             .font(.system(size: 14))
                                             .foregroundColor(.heroForegroundMuted)
+                                            .lineLimit(2)
                                     }
                                 }
                             }
@@ -331,6 +325,16 @@ struct InfoTab: View {
                 color: .primary
             )
             
+            // City
+            if !store.city.isEmpty {
+                InfoCard(
+                    icon: "building.2.fill",
+                    title: "Cidade",
+                    content: store.city,
+                    color: .primary
+                )
+            }
+            
             // Phone
             InfoCard(
                 icon: "phone.fill",
@@ -348,16 +352,8 @@ struct InfoTab: View {
             InfoCard(
                 icon: "clock.fill",
                 title: "Horário de Funcionamento",
-                content: (store.hours.flatMap { !$0.isEmpty ? $0 : nil } ?? (store.isOpen ? "Aberto até \(store.openUntil)" : "Fechado")),
+                content: (store.hours.flatMap { !$0.isEmpty ? $0 : nil } ?? (store.isOpen ? "Aberto" : "Fechado")),
                 color: store.isOpen ? Color.green : Color.red
-            )
-            
-            // Rating
-            InfoCard(
-                icon: "star.fill",
-                title: "Avaliação",
-                content: String(format: "%.1f de 5.0", store.rating),
-                color: .yellow
             )
         }
         .padding(.horizontal, AppSpacing.lg)
@@ -542,13 +538,14 @@ struct ReviewCard: View {
             id: "1",
             name: "Café Central",
             address: "Rua das Flores, 123 - Centro",
+            city: "São Paulo - SP",
             distance: "0.8 km",
             rating: 4.8,
             openUntil: "22:00",
             phone: "(11) 3456-7890",
             isOpen: true,
             offers: 5,
-            hours: nil,
+            hours: "Segunda a Sexta: 9h às 18h",
             photoURL: nil
         ),
         activeTab: .constant("stores"),

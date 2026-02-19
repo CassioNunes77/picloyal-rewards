@@ -11,6 +11,7 @@ struct Store: Identifiable, Equatable {
     let id: String
     let name: String
     let address: String
+    let city: String
     let distance: String
     let rating: Double
     let openUntil: String
@@ -29,11 +30,12 @@ struct Store: Identifiable, Equatable {
             id: fb.id,
             name: fb.name,
             address: fb.address,
+            city: fb.city,
             distance: "-",
             rating: 0,
             openUntil: "-",
             phone: fb.phone,
-            isOpen: true,
+            isOpen: fb.active,
             offers: 0,
             hours: fb.hours,
             photoURL: fb.photoURL

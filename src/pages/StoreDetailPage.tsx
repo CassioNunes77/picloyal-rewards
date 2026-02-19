@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { 
   ChevronRight, 
   MapPin, 
+  Building2,
   Phone, 
   Clock, 
-  Star, 
+  Star,
   Share2, 
   Store,
   Tag,
@@ -21,9 +22,8 @@ interface StoreDisplay {
   id: string;
   name: string;
   address: string;
-  distance: string;
-  rating: number;
-  openUntil: string;
+  city: string;
+  hours: string;
   phone: string;
   isOpen: boolean;
   offersCount: number;
@@ -61,9 +61,8 @@ const StoreDetailPage = () => {
             id: storeData.id!,
             name: storeData.name,
             address: storeData.address,
-            distance: "-",
-            rating: 0,
-            openUntil: "-",
+            city: storeData.city ?? "",
+            hours: storeData.hours ?? "",
             phone: storeData.phone,
             isOpen: storeData.active,
             offersCount: offers.filter((o) => o.active).length,
@@ -171,9 +170,9 @@ const StoreDetailPage = () => {
       {selectedTab === "info" && (
         <div className="space-y-3">
           <InfoCard icon={MapPin} title="Endereço" content={store.address} color="text-primary" />
+          {store.city && <InfoCard icon={Building2} title="Cidade" content={store.city} color="text-primary" />}
           <InfoCard icon={Phone} title="Telefone" content={store.phone} color="text-secondary" onClick={handlePhoneClick} />
-          <InfoCard icon={Clock} title="Horário de Funcionamento" content={store.isOpen ? `Aberto até ${store.openUntil}` : "Fechado"} color={store.isOpen ? "text-green-500" : "text-red-500"} />
-          <InfoCard icon={Star} title="Avaliação" content={`${store.rating.toFixed(1)} de 5.0`} color="text-yellow-500" />
+          <InfoCard icon={Clock} title="Horário de Funcionamento" content={store.hours || (store.isOpen ? "Aberto" : "Fechado")} color={store.isOpen ? "text-green-500" : "text-red-500"} />
         </div>
       )}
       {selectedTab === "offers" && (
@@ -300,18 +299,16 @@ const StoreDetailPage = () => {
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-1 mb-1">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-              <span className="text-base font-semibold text-card-foreground">{store.rating.toFixed(1)}</span>
-            </div>
-            <div className="flex items-center gap-1 text-sm text-muted-foreground mb-1">
-              <MapPin className="h-3.5 w-3.5" />
-              <span>{store.distance}</span>
-            </div>
-            {store.isOpen && (
+            {store.city && (
+              <div className="flex items-center gap-1 text-sm text-muted-foreground mb-1">
+                <MapPin className="h-3.5 w-3.5" />
+                <span>{store.city}</span>
+              </div>
+            )}
+            {store.hours && (
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <Clock className="h-3.5 w-3.5" />
-                <span>Até {store.openUntil}</span>
+                <span className="line-clamp-2">{store.hours}</span>
               </div>
             )}
           </div>
@@ -356,18 +353,16 @@ const StoreDetailPage = () => {
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-1 mb-1">
-                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                <span className="text-base font-semibold text-primary-foreground">{store.rating.toFixed(1)}</span>
-              </div>
-              <div className="flex items-center gap-1 text-sm text-primary-foreground/90 mb-1">
-                <MapPin className="h-3.5 w-3.5" />
-                <span>{store.distance}</span>
-              </div>
-              {store.isOpen && (
+              {store.city && (
+                <div className="flex items-center gap-1 text-sm text-primary-foreground/90 mb-1">
+                  <MapPin className="h-3.5 w-3.5" />
+                  <span>{store.city}</span>
+                </div>
+              )}
+              {store.hours && (
                 <div className="flex items-center gap-1 text-sm text-primary-foreground/90">
                   <Clock className="h-3.5 w-3.5" />
-                  <span>Até {store.openUntil}</span>
+                  <span className="line-clamp-2">{store.hours}</span>
                 </div>
               )}
             </div>
