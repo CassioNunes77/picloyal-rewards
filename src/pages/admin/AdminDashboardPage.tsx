@@ -14,8 +14,8 @@ import {
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getActiveUsersCount, getTotalUsersCount } from "@/services/usersService";
-import { getActiveRegionsCount } from "@/services/regionsService";
-import { getMerchantsCount, getStoresCount } from "@/services/merchantsService";
+import { getActiveRegionsCount, getAllRegions, type Region } from "@/services/regionsService";
+import { getMerchantsCount, getStoresCount, getAllStores, type StoreData } from "@/services/merchantsService";
 import { firestore } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -23,6 +23,8 @@ const AdminDashboardPage = () => {
   const isMobile = useIsMobile();
   const { user: firebaseUser } = useAuth(); // Usar Firebase Auth para acessar Firestore
   const [selectedRegion, setSelectedRegion] = useState("all");
+  const [regions, setRegions] = useState<Region[]>([]);
+  const [allStores, setAllStores] = useState<StoreData[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     activeUsers: 0,
@@ -54,28 +56,25 @@ const AdminDashboardPage = () => {
         console.log("🔍 [AdminDashboardPage] Carregando estatísticas do Firebase...");
         console.log("🔐 [AdminDashboardPage] Usuário Firebase Auth:", firebaseUser?.uid || "Nenhum");
         
-        // Buscar usuários, lojistas (coleção merchants), lojas e regiões em paralelo
-        const [activeUsersCount, totalUsersCount, activeRegionsCount, merchantsCount, storesCount] =
+        // Buscar usuários, lojistas, lojas, regiões em paralelo
+        const [activeUsersCount, totalUsersCount, activeRegionsCount, merchantsCount, storesCount, regionsData, storesData] =
           await Promise.all([
             getActiveUsersCount(),
             getTotalUsersCount(),
             getActiveRegionsCount(),
-            getMerchantsCount(), // quantidade de documentos na coleção merchants do Firebase
+            getMerchantsCount(),
             getStoresCount(),
+            getAllRegions(),
+            getAllStores(),
           ]);
 
-        console.log("✅ [AdminDashboardPage] Estatísticas carregadas:", {
-          activeUsers: activeUsersCount,
-          totalUsers: totalUsersCount,
-          activeRegions: activeRegionsCount,
-          merchants: merchantsCount,
-          stores: storesCount,
-        });
+        setRegions(regionsData);
+        setAllStores(storesData);
 
         setStats((prev) => ({
           ...prev,
           activeUsers: activeUsersCount,
-          onlineUsers: totalUsersCount, // Por enquanto, usando total como online
+          onlineUsers: totalUsersCount,
           activeRegions: activeRegionsCount,
           totalMerchants: merchantsCount,
           totalStores: storesCount,
@@ -91,13 +90,25 @@ const AdminDashboardPage = () => {
     loadStats();
   }, [firebaseUser]);
 
-  const regions = [
+  const regionOptions = [
     { id: "all", label: "Todas as Regiões" },
-    { id: "sp", label: "São Paulo" },
-    { id: "rj", label: "Rio de Janeiro" },
-    { id: "mg", label: "Minas Gerais" },
-    { id: "rs", label: "Rio Grande do Sul" },
+    ...regions.map((r) => ({ id: r.id, label: r.name })),
   ];
+
+  const storesInRegion =
+    selectedRegion === "all"
+      ? allStores
+      : (() => {
+          const region = regions.find((r) => r.id === selectedRegion);
+          if (!region) return allStores;
+          const regionCityNorm = `${region.city} - ${region.state}`.trim().toLowerCase();
+          return allStores.filter((s) => {
+            const storeCityNorm = (s.city ?? "").trim().toLowerCase();
+            return storeCityNorm === regionCityNorm;
+          });
+        })();
+
+  const merchantsInRegion = new Set(storesInRegion.map((s) => s.merchantId).filter(Boolean)).size;
 
   const recentActivity = [
     { type: "user", message: "Novo usuário cadastrado", time: "2 min atrás" },
@@ -153,7 +164,7 @@ const AdminDashboardPage = () => {
           Filtrar por Região
         </label>
         <div className="flex flex-wrap gap-2">
-          {regions.map((region) => (
+          {regionOptions.map((region) => (
             <button
               key={region.id}
               onClick={() => setSelectedRegion(region.id)}
@@ -193,17 +204,17 @@ const AdminDashboardPage = () => {
           />
           <StatCard
             title="Lojistas"
-            value={stats.totalMerchants.toLocaleString("pt-BR")}
+            value={selectedRegion === "all" ? stats.totalMerchants : merchantsInRegion}
             icon={Store}
           />
           <StatCard
             title="Lojas"
-            value={stats.totalStores.toLocaleString("pt-BR")}
+            value={selectedRegion === "all" ? stats.totalStores : storesInRegion.length}
             icon={Building2}
           />
           <StatCard
             title="Regiões Ativas"
-            value={stats.activeRegions}
+            value={selectedRegion === "all" ? stats.activeRegions : (selectedRegion ? 1 : 0)}
             icon={MapPin}
           />
         </div>

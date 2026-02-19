@@ -226,10 +226,11 @@ const AdminStoreDetailPage = () => {
                 return true;
               })
               .map((offer) => (
-                <li
-                  key={offer.id}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-background hover:bg-muted/50 border border-border"
-                >
+                <li key={offer.id}>
+                  <button
+                    onClick={() => offer.id && navigate(`/sys-admin-panel-7x9k/products/${offer.id}`)}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl bg-background hover:bg-muted/50 border border-border text-left transition-colors cursor-pointer"
+                  >
                   <Package className="h-4 w-4 text-primary shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-card-foreground truncate">{offer.title}</p>
@@ -245,6 +246,7 @@ const AdminStoreDetailPage = () => {
                     {offer.active ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
                     {offer.active ? "Ativa" : "Inativa"}
                   </span>
+                  </button>
                 </li>
               ))}
             {offers.filter((o) => {
