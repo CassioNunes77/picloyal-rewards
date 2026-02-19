@@ -60,7 +60,7 @@ struct MerchantLoginView: View {
                         .padding(.horizontal, 24)
                         .padding(.bottom, 48)
                         .background(
-                            AppGradients.hero
+                            AppGradients.primary
                                 .clipShape(BottomRoundedShape(radius: 32))
                         )
                         
@@ -130,7 +130,7 @@ struct MerchantLoginView: View {
                         .padding(.horizontal, 24)
                         .padding(.bottom, 48)
                         .background(
-                            AppGradients.hero
+                            AppGradients.primary
                                 .clipShape(BottomRoundedShape(radius: 32))
                         )
                         

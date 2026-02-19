@@ -8,12 +8,12 @@ export default function MerchantSignUpPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 animate-fade-in" style={{
-      background: 'linear-gradient(135deg, hsl(260 45% 20%) 0%, hsl(280 40% 25%) 50%, hsl(270 35% 30%) 100%)'
+      background: 'linear-gradient(135deg, hsl(155 50% 15%) 0%, hsl(160 45% 22%) 50%, hsl(155 55% 28%) 100%)'
     }}>
       <div className="w-full max-w-md">
         <div className="bg-card rounded-2xl border border-border shadow-lg overflow-hidden">
-          {/* Topo: gradiente + nome do app */}
-          <div className="gradient-hero pb-8 pt-10 px-6">
+          {/* Topo: gradiente verde + nome do app */}
+          <div className="gradient-primary pb-8 pt-10 px-6">
             <div className="flex items-center justify-center mb-4">
               <Store className="h-12 w-12 text-white" />
             </div>
