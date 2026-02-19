@@ -1,6 +1,12 @@
 import { useState } from "react";
-import { BarChart3, TrendingUp, Users, DollarSign, Calendar } from "lucide-react";
+import { BarChart3, Users, DollarSign } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
 
 const AdminAnalyticsPage = () => {
   const isMobile = useIsMobile();
@@ -64,23 +70,39 @@ const AdminAnalyticsPage = () => {
           </div>
           <Users className="h-6 w-6 text-primary" />
         </div>
-        <div className="space-y-3">
-          {analytics.userGrowth.map((item, index) => (
-            <div key={index} className="flex items-center gap-4">
-              <div className="w-16 text-sm text-muted-foreground shrink-0">{item.period}</div>
-              <div className="flex-1 bg-muted rounded-full h-8 relative overflow-hidden">
-                <div
-                  className="h-full gradient-primary rounded-full flex items-center justify-end pr-2"
-                  style={{ width: `${(item.value / 13000) * 100}%` }}
-                >
-                  <span className="text-xs font-medium text-primary-foreground">
-                    {item.value.toLocaleString("pt-BR")}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <ChartContainer
+          config={{
+            value: { label: "Usuários", color: "hsl(var(--chart-1))" },
+          }}
+          className="h-[280px] w-full"
+        >
+          <LineChart data={analytics.userGrowth} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            <XAxis
+              dataKey="period"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              className="text-xs"
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tickFormatter={(v) => v.toLocaleString("pt-BR")}
+              className="text-xs"
+            />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <Line
+              type="monotone"
+              dataKey="value"
+              stroke="hsl(var(--chart-1))"
+              strokeWidth={2}
+              dot={{ fill: "hsl(var(--chart-1))", r: 4 }}
+              activeDot={{ r: 6 }}
+            />
+          </LineChart>
+        </ChartContainer>
       </div>
 
       {/* Gráfico de Receita */}
