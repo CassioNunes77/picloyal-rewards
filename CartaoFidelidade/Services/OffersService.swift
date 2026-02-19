@@ -74,14 +74,14 @@ class OffersService {
     
     /// Busca ofertas ativas por cidade (para app do usuário)
     /// cityFilter: formato "Cidade, UF" (LocationSelector) ou "Cidade - UF" (store.city)
-    func getOffersByCity(cityFilter: String) async throws -> [(offer: FirebaseOffer, storeName: String, storeAddress: String)] {
+    func getOffersByCity(cityFilter: String) async throws -> [(offer: FirebaseOffer, storeId: String, storeName: String, storeAddress: String)] {
         let stores = try await StoresService.shared.getStoresByCity(cityFilter: cityFilter)
-        var result: [(FirebaseOffer, String, String)] = []
+        var result: [(FirebaseOffer, String, String, String)] = []
         for store in stores {
             do {
                 let offers = try await getStoreOffers(storeId: store.id)
                 for offer in offers where offer.active {
-                    result.append((offer, store.name, store.address))
+                    result.append((offer, store.id, store.name, store.address))
                 }
             } catch {
                 print("❌ [OffersService] Erro ao buscar ofertas da loja \(store.id): \(error.localizedDescription)")

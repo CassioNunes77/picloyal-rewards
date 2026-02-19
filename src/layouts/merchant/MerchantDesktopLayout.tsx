@@ -1,5 +1,5 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Store, Tag, User, Settings } from "lucide-react";
+import { LayoutDashboard, Store, Tag, Gift, User, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -7,7 +7,7 @@ const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", id: "dashboard", path: "/merchant/dashboard" },
   { icon: Store, label: "Lojas", id: "stores", path: "/merchant/stores" },
   { icon: Tag, label: "Ofertas", id: "offers", path: "/merchant/offers" },
-  { icon: User, label: "Perfil", id: "profile", path: "/merchant/profile" },
+  { icon: Gift, label: "Resgates", id: "redemptions", path: "/merchant/redemptions" },
   { icon: Settings, label: "Configurações", id: "settings", path: "/merchant/settings" },
 ];
 
@@ -18,8 +18,8 @@ export default function MerchantDesktopLayout() {
   const displayName = user?.displayName ?? user?.email?.split("@")[0] ?? "Lojista";
 
   const getActiveId = () => {
-    if (pathname.includes("/merchant/profile")) return "profile";
     if (pathname.includes("/merchant/settings")) return "settings";
+    if (pathname.includes("/merchant/redemptions")) return "redemptions";
     if (pathname.includes("/merchant/offers")) return "offers";
     if (pathname.includes("/merchant/stores") || pathname.includes("/merchant/store/")) return "stores";
     return "dashboard";

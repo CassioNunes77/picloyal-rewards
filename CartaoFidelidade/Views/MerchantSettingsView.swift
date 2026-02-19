@@ -11,6 +11,8 @@ import FirebaseAuth
 struct MerchantSettingsView: View {
     var onBack: (() -> Void)? = nil
     
+    @AppStorage("userDisplayName") private var userDisplayName = ""
+    @AppStorage("userEmail") private var userEmail = ""
     @AppStorage("isLoggedIn") private var isLoggedIn = false
     @AppStorage("isMerchant") private var isMerchant = false
     @AppStorage("showMerchantLogin") private var showMerchantLogin = false
@@ -33,6 +35,48 @@ struct MerchantSettingsView: View {
                     VStack(spacing: 0) {
                         // Card que engloba todo o conteúdo (como Suas Lojas)
                         VStack(spacing: AppSpacing.md) {
+                            // Informações da conta (ex-Perfil)
+                            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                                Text("Informações da Conta")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(.mutedForeground)
+                                
+                                VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                                    Text("Nome")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(.mutedForeground)
+                                    Text(userDisplayName.isEmpty ? "Não informado" : userDisplayName)
+                                        .font(.system(size: 16, weight: .regular))
+                                        .foregroundColor(.cardForeground)
+                                }
+                                .padding(AppSpacing.md)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color.muted.opacity(0.5))
+                                .cornerRadius(AppRadius.lg)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: AppRadius.lg)
+                                        .stroke(Color.border, lineWidth: 1)
+                                )
+                                
+                                VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                                    Text("E-mail")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(.mutedForeground)
+                                    Text(userEmail.isEmpty ? "Não informado" : userEmail)
+                                        .font(.system(size: 16, weight: .regular))
+                                        .foregroundColor(.cardForeground)
+                                }
+                                .padding(AppSpacing.md)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color.muted.opacity(0.5))
+                                .cornerRadius(AppRadius.lg)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: AppRadius.lg)
+                                        .stroke(Color.border, lineWidth: 1)
+                                )
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            
                             Button(action: { showPrivacyPolicy = true }) {
                                 HStack {
                                     Image(systemName: "shield.fill")
@@ -111,6 +155,21 @@ struct MerchantSettingsView: View {
         )
         .fullScreenCover(isPresented: $showPrivacyPolicy) {
             PrivacyPolicyView(onBack: { showPrivacyPolicy = false })
+        }
+        .onAppear {
+            loadUserProfile()
+        }
+    }
+    
+    private func loadUserProfile() {
+        guard let user = Auth.auth().currentUser else { return }
+        if let email = user.email, !email.isEmpty {
+            userEmail = email
+        }
+        if let name = user.displayName, !name.isEmpty {
+            userDisplayName = name
+        } else if userDisplayName.isEmpty, let email = user.email, !email.isEmpty {
+            userDisplayName = email.components(separatedBy: "@").first ?? "Usuário"
         }
     }
     

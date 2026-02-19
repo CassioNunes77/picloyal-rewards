@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Calendar, Tag, FileText, Percent, Gift, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Calendar, Tag, FileText, Percent, Gift, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,17 +12,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { createOffer, type OfferData } from "@/services/offersService";
+import { createOffer, updateOffer, type OfferData } from "@/services/offersService";
 
 interface OfferFormProps {
   storeId: string;
   merchantId: string;
+  offer?: OfferData | null;
   onCancel: () => void;
   onSuccess: () => void;
+  onDelete?: () => void;
 }
 
-export default function OfferForm({ storeId, merchantId, onCancel, onSuccess }: OfferFormProps) {
+export default function OfferForm({ storeId, merchantId, offer, onCancel, onSuccess, onDelete }: OfferFormProps) {
+  const isEdit = !!offer;
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [discount, setDiscount] = useState("");
@@ -31,6 +44,31 @@ export default function OfferForm({ storeId, merchantId, onCancel, onSuccess }: 
   const [pointsRequired, setPointsRequired] = useState("");
   const [active, setActive] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  useEffect(() => {
+    if (offer) {
+      setTitle(offer.title);
+      setDescription(offer.description);
+      setDiscount(offer.discount ?? "");
+      setCategory(offer.category);
+      setValidUntil(
+        offer.validUntil instanceof Date
+          ? offer.validUntil.toISOString().split("T")[0]
+          : new Date(offer.validUntil).toISOString().split("T")[0]
+      );
+      setPointsRequired(offer.pointsRequired?.toString() ?? "");
+      setActive(offer.active ?? true);
+    } else {
+      setTitle("");
+      setDescription("");
+      setDiscount("");
+      setCategory("geral");
+      setValidUntil("");
+      setPointsRequired("");
+      setActive(true);
+    }
+  }, [offer]);
 
   const categories = [
     { value: "geral", label: "Geral" },
@@ -55,7 +93,7 @@ export default function OfferForm({ storeId, merchantId, onCancel, onSuccess }: 
 
     setLoading(true);
     try {
-      const offerData: Omit<OfferData, "id" | "storeId" | "merchantId" | "createdAt" | "updatedAt"> = {
+      const offerData = {
         title: title.trim(),
         description: description.trim(),
         discount: discount.trim() || undefined,
@@ -65,11 +103,15 @@ export default function OfferForm({ storeId, merchantId, onCancel, onSuccess }: 
         active,
       };
 
-      await createOffer(storeId, merchantId, offerData);
+      if (isEdit && offer?.id) {
+        await updateOffer(offer.id, merchantId, offerData);
+      } else {
+        await createOffer(storeId, merchantId, offerData);
+      }
       onSuccess();
     } catch (error: any) {
-      console.error("Erro ao criar oferta:", error);
-      toast.error("Erro ao criar oferta. Tente novamente.");
+      console.error("Erro ao salvar oferta:", error);
+      toast.error("Erro ao salvar oferta. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -80,7 +122,9 @@ export default function OfferForm({ storeId, merchantId, onCancel, onSuccess }: 
   return (
     <div className="bg-background rounded-xl p-6 border border-border">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-card-foreground">Nova Oferta</h3>
+        <h3 className="text-lg font-semibold text-card-foreground">
+          {isEdit ? "Editar Oferta" : "Nova Oferta"}
+        </h3>
         <Button
           variant="ghost"
           size="icon"
@@ -203,25 +247,68 @@ export default function OfferForm({ storeId, merchantId, onCancel, onSuccess }: 
         </div>
 
         {/* Botões */}
-        <div className="flex gap-3 pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={loading}
-            className="flex-1"
-          >
-            Cancelar
-          </Button>
-          <Button
-            type="submit"
-            disabled={loading || !title.trim() || !description.trim() || !validUntil}
-            className="flex-1 gradient-primary text-primary-foreground hover:opacity-95"
-          >
-            {loading ? "Criando..." : "Criar Oferta"}
-          </Button>
+        <div className="space-y-3 pt-4">
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={loading}
+              className="flex-1"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              disabled={loading || !title.trim() || !description.trim() || !validUntil}
+              className="flex-1 gradient-primary text-primary-foreground hover:opacity-95"
+            >
+              {loading
+                ? isEdit
+                  ? "Salvando..."
+                  : "Criando..."
+                : isEdit
+                  ? "Salvar"
+                  : "Criar Oferta"}
+            </Button>
+          </div>
+          {isEdit && onDelete && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={loading}
+              className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Excluir Oferta
+            </Button>
+          )}
         </div>
       </form>
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Oferta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta oferta? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowDeleteConfirm(false);
+                onDelete?.();
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

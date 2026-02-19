@@ -112,7 +112,7 @@ export async function createOffer(
  */
 export async function getOffersByCity(
   cityFilter: string
-): Promise<Array<{ offer: OfferData; storeName: string; storeAddress: string }>> {
+): Promise<Array<{ offer: OfferData; storeId: string; storeName: string; storeAddress: string }>> {
   if (!firestore) {
     console.error("❌ [offersService] Firestore não está configurado!");
     return [];
@@ -120,7 +120,7 @@ export async function getOffersByCity(
 
   try {
     const stores = await getStoresByCity(cityFilter);
-    const result: Array<{ offer: OfferData; storeName: string; storeAddress: string }> = [];
+    const result: Array<{ offer: OfferData; storeId: string; storeName: string; storeAddress: string }> = [];
 
     for (const store of stores) {
       const storeId = store.id;
@@ -130,6 +130,7 @@ export async function getOffersByCity(
         if (offer.active) {
           result.push({
             offer,
+            storeId,
             storeName: store.name,
             storeAddress: store.address,
           });

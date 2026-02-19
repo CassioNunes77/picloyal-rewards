@@ -88,7 +88,7 @@ struct StoreCardView: View {
                                     .font(.system(size: 12))
                                     .foregroundColor(.mutedForeground)
                                     .padding(.top, 2)
-                                Text(store.hours)
+                                Text(summarizeBusinessHours(store.hours))
                                     .font(.system(size: 13, weight: .regular))
                                     .foregroundColor(.cardForeground)
                                     .lineLimit(2)

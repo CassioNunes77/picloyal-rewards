@@ -93,7 +93,7 @@ func parseBusinessHoursString(_ str: String) -> [DaySchedule]? {
     guard !lines.isEmpty else { return nil }
     
     let dayToIndex: [String: Int] = [
-        "segunda": 0, "seg": 0, "terça": 1, "ter": 1, "quarta": 2, "qua": 2,
+        "segunda": 0, "seg": 0, "terça": 1, "terca": 1, "ter": 1, "quarta": 2, "qua": 2,
         "quinta": 3, "qui": 3, "sexta": 4, "sex": 4, "sábado": 5, "sabado": 5, "sáb": 5, "sab": 5,
         "domingo": 6, "dom": 6
     ]
@@ -103,9 +103,10 @@ func parseBusinessHoursString(_ str: String) -> [DaySchedule]? {
     for line in lines {
         let lower = line.lowercased()
         if lower.contains("fechado") || lower.contains("closed") {
-            if let first = line.split(separator: " ").first {
-                let key = String(first).lowercased()
-                if let idx = dayToIndex[key] {
+            // "Terça: Fechado" -> dayPart = "Terça", key = "terça"
+            if let colonIdx = line.firstIndex(of: ":") {
+                let dayPart = String(line[..<colonIdx]).trimmingCharacters(in: .whitespaces).lowercased()
+                if let idx = dayToIndex[dayPart] {
                     result[idx] = DaySchedule(id: idx, isOpen: false, openTime: result[idx].openTime, closeTime: result[idx].closeTime)
                 }
             }
@@ -191,6 +192,48 @@ func defaultDaySchedules() -> [DaySchedule] {
     }
 }
 
+/// Nomes dos dias em minúsculo para resumo (ex: "de terça a sábado")
+private let DAY_NAMES_LOWER = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]
+
+/// Nomes no plural para "Aberto todas as terças"
+private let DAY_NAMES_PLURAL = ["segundas", "terças", "quartas", "quintas", "sextas", "sábados", "domingos"]
+
+/// Gera um resumo inteligente do horário de funcionamento para exibição.
+/// Ex: "Aberto todas as terças", "Aberto de terça a sábado", "Aberto todos os dias"
+func summarizeBusinessHours(_ hours: String) -> String {
+    let trimmed = hours.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty else { return "Horário não informado" }
+    
+    guard let schedule = parseBusinessHoursString(hours) else { return trimmed }
+    
+    let openIndices = schedule.enumerated().filter { $0.element.isOpen }.map { $0.offset }
+    guard !openIndices.isEmpty else { return "Fechado" }
+    
+    // Todos os 7 dias abertos
+    if openIndices.count == 7 {
+        return "Aberto todos os dias"
+    }
+    
+    // Um único dia aberto
+    if openIndices.count == 1 {
+        let idx = openIndices[0]
+        return "Aberto todas as \(DAY_NAMES_PLURAL[idx])"
+    }
+    
+    // Verifica se os dias abertos formam um intervalo consecutivo
+    let minIdx = openIndices.min()!
+    let maxIdx = openIndices.max()!
+    let isConsecutive = (minIdx...maxIdx).allSatisfy { openIndices.contains($0) }
+    
+    if isConsecutive {
+        return "Aberto de \(DAY_NAMES_LOWER[minIdx]) a \(DAY_NAMES_LOWER[maxIdx])"
+    }
+    
+    // Dias não consecutivos: lista os dias
+    let dayNames = openIndices.map { DAY_NAMES_LOWER[$0] }
+    return "Aberto " + dayNames.joined(separator: ", ")
+}
+
 // MARK: - View
 
 struct BusinessHoursPicker: View {
@@ -208,22 +251,13 @@ struct BusinessHoursPicker: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            HStack {
-                HStack(spacing: AppSpacing.sm) {
-                    Image(systemName: "clock.fill")
-                        .font(.system(size: 14))
-                        .foregroundColor(.mutedForeground)
-                    Text("Horário de Funcionamento *")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.cardForeground)
-                }
-                Spacer()
-                HStack(spacing: AppSpacing.xs) {
-                    shortcutButton("Dias úteis") { applyWeekdays() }
-                    shortcutButton("Sáb 9h-13h") { applySaturday() }
-                    shortcutButton("Dom fechado") { applySundayClosed() }
-                    shortcutButton("Todos 9h-18h") { applyAllSame() }
-                }
+            HStack(spacing: AppSpacing.sm) {
+                Image(systemName: "clock.fill")
+                    .font(.system(size: 14))
+                    .foregroundColor(.mutedForeground)
+                Text("Horário de Funcionamento *")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.cardForeground)
             }
             
             VStack(spacing: 0) {
@@ -273,8 +307,13 @@ struct BusinessHoursPicker: View {
                     .stroke(Color.border, lineWidth: 1)
             )
         }
+        .frame(minWidth: 0, maxWidth: .infinity)
         .onAppear { syncFromHours() }
         .onChange(of: hours) { _, newValue in
+            // Só sincronizar se a mudança veio de fora (ex: pai preencheu no onAppear).
+            // Se formatação atual bate com hours, foi nós que atualizamos — não sobrescrever.
+            let formatted = formatBusinessHoursString(schedule)
+            guard newValue != formatted else { return }
             syncFromHours()
         }
     }
@@ -286,56 +325,6 @@ struct BusinessHoursPicker: View {
         }
     }
     
-    private func shortcutButton(_ title: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 11, weight: .medium))
-        }
-        .buttonStyle(.bordered)
-        .controlSize(.small)
-        .disabled(disabled)
-    }
-    
-    private func syncToHours() {
-        let formatted = formatBusinessHoursString(schedule)
-        if hours != formatted {
-            hours = formatted
-        }
-    }
-    
-    private func applyWeekdays() {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        let open = formatter.date(from: "09:00")!
-        let close = formatter.date(from: "18:00")!
-        for i in 0..<5 {
-            schedule[i] = DaySchedule(id: i, isOpen: true, openTime: open, closeTime: close)
-        }
-        syncToHours()
-    }
-    
-    private func applySaturday() {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        schedule[5] = DaySchedule(id: 5, isOpen: true, openTime: formatter.date(from: "09:00")!, closeTime: formatter.date(from: "13:00")!)
-        syncToHours()
-    }
-    
-    private func applySundayClosed() {
-        schedule[6] = DaySchedule(id: 6, isOpen: false, openTime: schedule[6].openTime, closeTime: schedule[6].closeTime)
-        syncToHours()
-    }
-    
-    private func applyAllSame() {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        let open = formatter.date(from: "09:00")!
-        let close = formatter.date(from: "18:00")!
-        for i in 0..<7 {
-            schedule[i] = DaySchedule(id: i, isOpen: true, openTime: open, closeTime: close)
-        }
-        syncToHours()
-    }
 }
 
 struct BusinessHoursRow: View {
@@ -358,12 +347,14 @@ struct BusinessHoursRow: View {
             if isOpen {
                 DatePicker("", selection: $openTime, displayedComponents: .hourAndMinute)
                     .labelsHidden()
+                    .datePickerStyle(.compact)
                     .disabled(disabled)
                 Text("às")
                     .font(.system(size: 12))
                     .foregroundColor(.mutedForeground)
                 DatePicker("", selection: $closeTime, displayedComponents: .hourAndMinute)
                     .labelsHidden()
+                    .datePickerStyle(.compact)
                     .disabled(disabled)
             } else {
                 Text("Fechado")
@@ -372,5 +363,6 @@ struct BusinessHoursRow: View {
             }
         }
         .padding(AppSpacing.md)
+        .frame(minWidth: 0, maxWidth: .infinity)
     }
 }

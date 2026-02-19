@@ -7,8 +7,8 @@ export default function MerchantMobileLayout() {
   
   // Determinar tab ativo baseado na rota atual
   const getActiveTab = () => {
-    if (pathname.includes("/merchant/profile")) return "profile";
     if (pathname.includes("/merchant/settings")) return "settings";
+    if (pathname.includes("/merchant/redemptions")) return "redemptions";
     if (pathname.includes("/merchant/offers")) return "offers";
     if (pathname.includes("/merchant/stores") || pathname.includes("/merchant/store/")) return "stores";
     return "dashboard";

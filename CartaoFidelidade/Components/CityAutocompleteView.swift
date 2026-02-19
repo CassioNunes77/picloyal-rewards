@@ -117,6 +117,7 @@ struct CityAutocompleteView: View {
                     .padding(.leading, AppSpacing.sm)
             }
         }
+        .frame(minWidth: 0, maxWidth: .infinity)
         .onAppear {
             loadCities()
         }

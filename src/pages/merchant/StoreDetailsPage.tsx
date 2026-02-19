@@ -1,17 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Store, Plus, MapPin, Phone, Clock, Tag, Calendar, Gift, Trash2, ArrowLeft, Loader2, Pencil, ChevronDown, Stamp } from "lucide-react";
+import { Store, Plus, MapPin, Phone, Clock, Tag, Calendar, Gift, ArrowLeft, Loader2, Pencil, ChevronDown, Stamp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,7 +29,7 @@ export default function StoreDetailsPage() {
   const [showOfferForm, setShowOfferForm] = useState(false);
   const [showStampForm, setShowStampForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
-  const [offerToDelete, setOfferToDelete] = useState<string | null>(null);
+  const [offerToEdit, setOfferToEdit] = useState<OfferData | null>(null);
 
   useEffect(() => {
     if (storeId && user?.uid) {
@@ -100,13 +90,13 @@ export default function StoreDetailsPage() {
     toast.success("Carimbo cadastrado com sucesso!");
   };
 
-  const handleDeleteOffer = async () => {
-    if (!offerToDelete || !user?.uid) return;
+  const handleDeleteOffer = async (offerId: string) => {
+    if (!user?.uid) return;
     
     try {
-      await deleteOffer(offerToDelete, user.uid);
+      await deleteOffer(offerId, user.uid);
       toast.success("Oferta excluída com sucesso!");
-      setOfferToDelete(null);
+      setOfferToEdit(null);
       loadOffers();
     } catch (error) {
       console.error("Erro ao excluir oferta:", error);
@@ -271,7 +261,20 @@ export default function StoreDetailsPage() {
             </DropdownMenu>
           </div>
 
-          {showOfferForm ? (
+          {offerToEdit ? (
+            <OfferForm
+              storeId={store.id}
+              merchantId={user?.uid || ""}
+              offer={offerToEdit}
+              onCancel={() => setOfferToEdit(null)}
+              onSuccess={() => {
+                setOfferToEdit(null);
+                loadOffers();
+                toast.success("Oferta atualizada com sucesso!");
+              }}
+              onDelete={() => offerToEdit?.id && handleDeleteOffer(offerToEdit.id)}
+            />
+          ) : showOfferForm ? (
             <OfferForm
               storeId={store.id}
               merchantId={user?.uid || ""}
@@ -402,10 +405,10 @@ export default function StoreDetailsPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setOfferToDelete(offer.id || null)}
-                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      onClick={() => setOfferToEdit(offer)}
+                      className="h-8 w-8 p-0 text-primary hover:text-primary/80"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Pencil className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -419,26 +422,6 @@ export default function StoreDetailsPage() {
         </div>
       </div>
 
-      {/* Dialog de confirmação de exclusão */}
-      <AlertDialog open={!!offerToDelete} onOpenChange={(open) => !open && setOfferToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Oferta?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir esta oferta? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteOffer}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

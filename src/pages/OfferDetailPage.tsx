@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext";
+import { createRedemption } from "@/services/redemptionsService";
 
 export interface OfferDetailData {
   id: string | number;
@@ -19,8 +21,10 @@ export interface OfferDetailData {
   description: string;
   discount: string;
   validUntil: string;
+  storeId?: string;
   storeName?: string;
   storeAddress?: string;
+  merchantId?: string;
   icon?: "percent" | "gift" | "coffee" | "pizza";
   category?: string;
   pointsRequired?: number;
@@ -38,6 +42,7 @@ const OfferDetailPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
+  const { user } = useAuth();
   const state = location.state as { offer: OfferDetailData; storeName?: string } | null;
   const offer = state?.offer;
   const storeName = state?.storeName ?? offer?.storeName;
@@ -49,7 +54,23 @@ const OfferDetailPage = () => {
 
   const Icon = offer.icon && iconMap[offer.icon] ? iconMap[offer.icon] : Tag;
 
-  const handleUseOffer = () => {
+  const handleUseOffer = async () => {
+    if (offer.storeId && offer.merchantId && user) {
+      try {
+        await createRedemption(
+          String(offer.id),
+          offer.title,
+          offer.storeId,
+          storeName ?? offer.storeName ?? "",
+          offer.merchantId,
+          user.uid,
+          user.displayName ?? user.email?.split("@")[0] ?? "Usuário",
+          user.email ?? ""
+        );
+      } catch (err) {
+        console.error("Erro ao registrar resgate:", err);
+      }
+    }
     toast.success(`🎉 Oferta "${offer.title}" ativada!`, {
       description: storeName
         ? `Apresente este cupom em ${storeName}`

@@ -26,6 +26,8 @@ struct MerchantStoreEditView: View {
     @State private var errorMessage: String? = nil
     @State private var showError = false
     
+    private let maxContentWidth = UIScreen.main.bounds.width - 48
+    
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.lg) {
             // Header do formulário
@@ -42,8 +44,9 @@ struct MerchantStoreEditView: View {
                         .foregroundColor(.mutedForeground)
                 }
             }
+            .frame(minWidth: 0, maxWidth: .infinity)
             
-            ScrollView {
+            ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: AppSpacing.md) {
                     // Nome
                     FormField(
@@ -127,7 +130,7 @@ struct MerchantStoreEditView: View {
                                 .foregroundColor(.cardForeground)
                         }
                         
-                        HStack {
+                        HStack(spacing: AppSpacing.md) {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(active ? "Loja visível para clientes" : "Loja oculta para clientes")
                                     .font(.system(size: 12))
@@ -139,6 +142,7 @@ struct MerchantStoreEditView: View {
                             Toggle("", isOn: $active)
                                 .disabled(loading)
                         }
+                        .frame(minWidth: 0, maxWidth: .infinity)
                         .padding(AppSpacing.md)
                         .background(Color.appBackground)
                         .cornerRadius(AppRadius.lg)
@@ -147,6 +151,7 @@ struct MerchantStoreEditView: View {
                                 .stroke(Color.border, lineWidth: 1)
                         )
                     }
+                    .frame(minWidth: 0, maxWidth: .infinity)
                     
                     // Logo da Loja (ImgBB)
                     StorePhotoPickerView(photoURL: $photoURL, disabled: loading)
@@ -189,12 +194,17 @@ struct MerchantStoreEditView: View {
                     }
                     .padding(.top, AppSpacing.lg)
                 }
+                .frame(minWidth: 0, maxWidth: .infinity)
+                .fixedSize(horizontal: false, vertical: true)
             }
+            .frame(maxWidth: .infinity)
         }
         .padding(AppSpacing.lg)
         .background(Color.card)
         .cornerRadius(24)
         .appShadow(AppShadow.lg)
+        .frame(maxWidth: maxContentWidth)
+        .clipped()
         .onAppear {
             // Preencher campos com dados da loja
             name = store.name

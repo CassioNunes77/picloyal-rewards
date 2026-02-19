@@ -19,6 +19,7 @@ struct MerchantStoreDetailsView: View {
     @State private var showOfferForm = false
     @State private var showStampForm = false
     @State private var showOfferTypeMenu = false
+    @State private var offerToEdit: FirebaseOffer? = nil
     @State private var errorMessage: String? = nil
     @State private var showError = false
     
@@ -136,7 +137,7 @@ struct MerchantStoreDetailsView: View {
                                 Image(systemName: "clock.fill")
                                     .font(.system(size: 16))
                                     .foregroundColor(.mutedForeground)
-                                Text(store.hours)
+                                Text(summarizeBusinessHours(store.hours))
                                     .font(.system(size: 14, weight: .regular))
                                     .foregroundColor(.cardForeground)
                             }
@@ -199,7 +200,21 @@ struct MerchantStoreDetailsView: View {
                         .padding(.horizontal, AppSpacing.lg)
                         .padding(.top, AppSpacing.lg)
                         
-                        if showOfferForm {
+                        if let editOffer = offerToEdit {
+                            MerchantOfferEditView(
+                                offer: editOffer,
+                                onCancel: { offerToEdit = nil },
+                                onSuccess: {
+                                    offerToEdit = nil
+                                    loadOffers()
+                                },
+                                onDelete: {
+                                    deleteOffer(editOffer)
+                                    offerToEdit = nil
+                                }
+                            )
+                            .padding(.horizontal, AppSpacing.lg)
+                        } else if showOfferForm {
                             MerchantOfferFormView(
                                 storeId: store.id,
                                 merchantId: store.merchantId,
@@ -291,7 +306,7 @@ struct MerchantStoreDetailsView: View {
                                                 .foregroundColor(.mutedForeground)
                                         }
                                         ForEach(offers) { offer in
-                                            OfferCardView(offer: offer) { deleteOffer(offer) }
+                                            OfferCardView(offer: offer) { offerToEdit = offer }
                                         }
                                     }
                                 }
@@ -404,100 +419,87 @@ struct StampRewardCardView: View {
 
 struct OfferCardView: View {
     let offer: FirebaseOffer
-    let onDelete: () -> Void
-    
-    @State private var showDeleteConfirmation = false
+    let onEdit: () -> Void
     
     var body: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    HStack(spacing: AppSpacing.sm) {
-                        Text(getCategoryEmoji(offer.category))
-                            .font(.system(size: 24))
-                        
-                        Text(offer.title)
-                            .font(.system(size: 16, weight: .semibold, design: .rounded))
-                            .foregroundColor(.cardForeground)
-                        
-                        if let discount = offer.discount {
-                            Text(discount)
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.primary)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color.primary.opacity(0.1))
-                                .cornerRadius(AppRadius.sm)
+        Button(action: onEdit) {
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                        HStack(spacing: AppSpacing.sm) {
+                            Text(getCategoryEmoji(offer.category))
+                                .font(.system(size: 24))
+                            
+                            Text(offer.title)
+                                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                .foregroundColor(.cardForeground)
+                            
+                            if let discount = offer.discount {
+                                Text(discount)
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(.primary)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color.primary.opacity(0.1))
+                                    .cornerRadius(AppRadius.sm)
+                            }
+                            
+                            if !offer.active {
+                                Text("Inativa")
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(.gray)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color.gray.opacity(0.1))
+                                    .cornerRadius(AppRadius.sm)
+                            }
                         }
                         
-                        if !offer.active {
-                            Text("Inativa")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.gray)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color.gray.opacity(0.1))
-                                .cornerRadius(AppRadius.sm)
-                        }
-                    }
-                    
-                    Text(offer.description)
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundColor(.mutedForeground)
-                        .lineLimit(2)
-                    
-                    HStack(spacing: AppSpacing.md) {
-                        HStack(spacing: AppSpacing.xs) {
-                            Image(systemName: "calendar")
-                                .font(.system(size: 12))
-                                .foregroundColor(.mutedForeground)
-                            Text(formatDate(offer.validUntil))
-                                .font(.system(size: 12))
-                                .foregroundColor(.mutedForeground)
-                        }
+                        Text(offer.description)
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundColor(.mutedForeground)
+                            .lineLimit(2)
                         
-                        if let pointsRequired = offer.pointsRequired {
+                        HStack(spacing: AppSpacing.md) {
                             HStack(spacing: AppSpacing.xs) {
-                                Image(systemName: "gift.fill")
+                                Image(systemName: "calendar")
                                     .font(.system(size: 12))
                                     .foregroundColor(.mutedForeground)
-                                Text("\(pointsRequired) pontos")
+                                Text(formatDate(offer.validUntil))
                                     .font(.system(size: 12))
                                     .foregroundColor(.mutedForeground)
                             }
+                            
+                            if let pointsRequired = offer.pointsRequired {
+                                HStack(spacing: AppSpacing.xs) {
+                                    Image(systemName: "gift.fill")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.mutedForeground)
+                                    Text("\(pointsRequired) pontos")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.mutedForeground)
+                                }
+                            }
                         }
                     }
-                }
-                
-                Spacer()
-                
-                Button(action: {
-                    showDeleteConfirmation = true
-                }) {
-                    Image(systemName: "trash.fill")
+                    
+                    Spacer()
+                    
+                    Image(systemName: "pencil")
                         .font(.system(size: 16))
-                        .foregroundColor(.red)
+                        .foregroundColor(.primary)
                 }
             }
+            .padding(AppSpacing.md)
+            .background(Color.card)
+            .cornerRadius(AppRadius.lg)
+            .overlay(
+                RoundedRectangle(cornerRadius: AppRadius.lg)
+                    .stroke(Color.border, lineWidth: 1)
+            )
+            .appShadow(AppShadow.sm)
         }
-        .padding(AppSpacing.md)
-        .background(Color.card)
-        .cornerRadius(AppRadius.lg)
-        .overlay(
-            RoundedRectangle(cornerRadius: AppRadius.lg)
-                .stroke(Color.border, lineWidth: 1)
-        )
-        .appShadow(AppShadow.sm)
-        .appConfirmation(
-            isPresented: $showDeleteConfirmation,
-            title: "Excluir Oferta",
-            message: "Tem certeza que deseja excluir esta oferta?",
-            primaryTitle: "Excluir",
-            primaryStyle: .destructive,
-            primaryAction: onDelete,
-            secondaryTitle: "Cancelar",
-            secondaryAction: nil
-        )
+        .buttonStyle(PlainButtonStyle())
     }
     
     private func getCategoryEmoji(_ category: String) -> String {

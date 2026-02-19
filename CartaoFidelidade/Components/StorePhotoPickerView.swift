@@ -27,6 +27,7 @@ struct StorePhotoPickerView: View {
             ZStack {
                 RoundedRectangle(cornerRadius: AppRadius.lg)
                     .stroke(Color.border, style: StrokeStyle(lineWidth: 2, dash: [5]))
+                    .frame(maxWidth: .infinity)
                     .frame(height: 120)
                 
                 if uploading {
@@ -81,6 +82,7 @@ struct StorePhotoPickerView: View {
                 }
             }
         }
+        .frame(minWidth: 0, maxWidth: .infinity)
         .padding(.top, AppSpacing.sm)
         .appConfirmation(
             isPresented: $showError,

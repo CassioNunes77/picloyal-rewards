@@ -12,8 +12,10 @@ struct Offer: Identifiable, Hashable {
     let title: String
     let description: String
     let discount: String
+    let storeId: String
     let storeName: String
     let storeAddress: String
+    let merchantId: String
     let validUntil: String
     let icon: String
     let category: String
@@ -37,7 +39,7 @@ struct Offer: Identifiable, Hashable {
         }
     }
     
-    static func fromFirebase(_ fb: FirebaseOffer, storeName: String, storeAddress: String) -> Offer {
+    static func fromFirebase(_ fb: FirebaseOffer, storeId: String, storeName: String, storeAddress: String) -> Offer {
         let df = DateFormatter()
         df.dateFormat = "dd/MM/yyyy"
         return Offer(
@@ -45,8 +47,10 @@ struct Offer: Identifiable, Hashable {
             title: fb.title,
             description: fb.description,
             discount: fb.discount ?? "—",
+            storeId: storeId,
             storeName: storeName,
             storeAddress: storeAddress,
+            merchantId: fb.merchantId,
             validUntil: df.string(from: fb.validUntil),
             icon: iconForCategory(fb.category),
             category: fb.category,
@@ -310,6 +314,19 @@ struct OffersView: View {
                     offer: offer,
                     storeNameOverride: nil,
                     onUseOffer: {
+                        Task {
+                            do {
+                                _ = try await RedemptionsService.shared.createRedemption(
+                                    offerId: offer.id,
+                                    offerTitle: offer.title,
+                                    storeId: offer.storeId,
+                                    storeName: offer.storeName,
+                                    merchantId: offer.merchantId
+                                )
+                            } catch {
+                                print("❌ [OffersView] Erro ao registrar resgate: \(error.localizedDescription)")
+                            }
+                        }
                         toastMessage = "🎉 Oferta \"\(offer.title)\" ativada!"
                         withAnimation { showToast = true }
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
@@ -333,7 +350,7 @@ struct OffersView: View {
             do {
                 let items = try await OffersService.shared.getOffersByCity(cityFilter: selectedLocation)
                 await MainActor.run {
-                    offers = items.map { Offer.fromFirebase($0.offer, storeName: $0.storeName, storeAddress: $0.storeAddress) }
+                    offers = items.map { Offer.fromFirebase($0.offer, storeId: $0.storeId, storeName: $0.storeName, storeAddress: $0.storeAddress) }
                     loadingOffers = false
                 }
             } catch {

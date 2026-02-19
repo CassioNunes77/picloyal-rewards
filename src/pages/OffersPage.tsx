@@ -11,8 +11,10 @@ interface Offer {
   title: string;
   description: string;
   discount: string;
+  storeId: string;
   storeName: string;
   storeAddress: string;
+  merchantId: string;
   validUntil: string;
   icon: "percent" | "gift" | "coffee" | "pizza";
   category: string;
@@ -52,7 +54,7 @@ const OffersPage = () => {
       .then((items) => {
         if (!cancelled) {
           setOffers(
-            items.map(({ offer, storeName, storeAddress }) => {
+            items.map(({ offer, storeId, storeName, storeAddress }) => {
               const validUntil = offer.validUntil
                 ? new Date(offer.validUntil).toLocaleDateString("pt-BR")
                 : "—";
@@ -61,8 +63,10 @@ const OffersPage = () => {
                 title: offer.title,
                 description: offer.description,
                 discount: offer.discount ?? "—",
+                storeId: storeId ?? "",
                 storeName,
                 storeAddress,
+                merchantId: offer.merchantId ?? "",
                 validUntil,
                 icon: iconForCategory(offer.category),
                 category: offer.category,

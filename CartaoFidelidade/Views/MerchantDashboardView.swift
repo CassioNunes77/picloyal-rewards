@@ -54,8 +54,8 @@ struct MerchantDashboardView: View {
                     }
                 case "offers":
                     offersContent
-                case "profile":
-                    MerchantProfileView(onBack: {
+                case "redemptions":
+                    MerchantRedemptionsView(onBack: {
                         withAnimation {
                             activeTab = "dashboard"
                         }
@@ -413,6 +413,7 @@ struct MerchantDashboardView: View {
                                     loadStores()
                                 }
                             )
+                            .frame(maxWidth: UIScreen.main.bounds.width - 48)
                             .padding(.top, 24)
                             .transition(.move(edge: .trailing))
                         } else if showStoreForm {

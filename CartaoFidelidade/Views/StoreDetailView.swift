@@ -138,7 +138,7 @@ struct StoreDetailView: View {
                                     HStack(spacing: 4) {
                                         Image(systemName: "clock")
                                             .font(.system(size: 14))
-                                        Text(hours)
+                                        Text(summarizeBusinessHours(hours))
                                             .font(.system(size: 14))
                                             .foregroundColor(.heroForegroundMuted)
                                             .lineLimit(2)
@@ -222,6 +222,19 @@ struct StoreDetailView: View {
                 offer: offer,
                 storeNameOverride: store.name,
                 onUseOffer: {
+                    Task {
+                        do {
+                            _ = try await RedemptionsService.shared.createRedemption(
+                                offerId: offer.id,
+                                offerTitle: offer.title,
+                                storeId: store.id,
+                                storeName: store.name,
+                                merchantId: store.merchantId
+                            )
+                        } catch {
+                            print("❌ [StoreDetailView] Erro ao registrar resgate: \(error.localizedDescription)")
+                        }
+                    }
                     showToast(message: "🎉 Oferta \"\(offer.title)\" ativada!")
                 },
                 onDismiss: { selectedOffer = nil }
@@ -237,7 +250,7 @@ struct StoreDetailView: View {
                 let fbOffers = try await OffersService.shared.getStoreOffers(storeId: store.id)
                 let offers = fbOffers
                     .filter { $0.active }
-                    .map { Offer.fromFirebase($0, storeName: store.name, storeAddress: store.address) }
+                    .map { Offer.fromFirebase($0, storeId: store.id, storeName: store.name, storeAddress: store.address) }
                 await MainActor.run {
                     storeOffers = offers
                     loadingOffers = false
@@ -352,7 +365,7 @@ struct InfoTab: View {
             InfoCard(
                 icon: "clock.fill",
                 title: "Horário de Funcionamento",
-                content: (store.hours.flatMap { !$0.isEmpty ? $0 : nil } ?? (store.isOpen ? "Aberto" : "Fechado")),
+                content: (store.hours.flatMap { !$0.isEmpty ? summarizeBusinessHours($0) : nil } ?? (store.isOpen ? "Aberto" : "Fechado")),
                 color: store.isOpen ? Color.green : Color.red
             )
         }

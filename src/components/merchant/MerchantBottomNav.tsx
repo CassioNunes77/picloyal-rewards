@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, Store, Tag, User, Settings } from "lucide-react";
+import { LayoutDashboard, Store, Tag, Gift, Settings } from "lucide-react";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", id: "dashboard", path: "/merchant/dashboard" },
   { icon: Store, label: "Lojas", id: "stores", path: "/merchant/stores" },
   { icon: Tag, label: "Ofertas", id: "offers", path: "/merchant/offers" },
-  { icon: User, label: "Perfil", id: "profile", path: "/merchant/profile" },
+  { icon: Gift, label: "Resgates", id: "redemptions", path: "/merchant/redemptions" },
   { icon: Settings, label: "Configurações", id: "settings", path: "/merchant/settings" },
 ];
 
@@ -22,8 +22,8 @@ export default function MerchantBottomNav({ activeTab }: MerchantBottomNavProps)
   // Determinar tab ativo baseado na rota atual
   const getActiveTab = () => {
     if (activeTab) return activeTab;
-    if (location.pathname.includes("/merchant/profile")) return "profile";
     if (location.pathname.includes("/merchant/settings")) return "settings";
+    if (location.pathname.includes("/merchant/redemptions")) return "redemptions";
     if (location.pathname.includes("/merchant/offers")) return "offers";
     if (location.pathname.includes("/merchant/stores") || location.pathname.includes("/merchant/store/")) return "stores";
     return "dashboard";

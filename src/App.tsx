@@ -38,8 +38,8 @@ import MerchantSignUpPage from "./pages/merchant/MerchantSignUpPage";
 import MerchantDashboardPage from "./pages/merchant/MerchantDashboardPage";
 import MerchantStoresPage from "./pages/merchant/MerchantStoresPage";
 import MerchantOffersPage from "./pages/merchant/MerchantOffersPage";
-import MerchantProfilePage from "./pages/merchant/MerchantProfilePage";
 import MerchantSettingsPage from "./pages/merchant/MerchantSettingsPage";
+import MerchantRedemptionsPage from "./pages/merchant/MerchantRedemptionsPage";
 import StoreDetailsPage from "./pages/merchant/StoreDetailsPage";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
@@ -149,7 +149,8 @@ const App = () => {
                 <Route path="/merchant/stores" element={<MerchantStoresPage />} />
                 <Route path="/merchant/offers" element={<MerchantOffersPage />} />
                 <Route path="/merchant/store/:storeId" element={<StoreDetailsPage />} />
-                <Route path="/merchant/profile" element={<MerchantProfilePage />} />
+                <Route path="/merchant/profile" element={<Navigate to="/merchant/settings" replace />} />
+                <Route path="/merchant/redemptions" element={<MerchantRedemptionsPage />} />
                 <Route path="/merchant/settings" element={<MerchantSettingsPage />} />
                 <Route path="/merchant/privacy-policy" element={<PrivacyPolicyPage />} />
               </Route>

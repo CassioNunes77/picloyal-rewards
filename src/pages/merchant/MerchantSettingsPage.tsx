@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogOut, ShieldCheck } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -18,6 +19,7 @@ import { auth } from "@/lib/firebase";
 
 export default function MerchantSettingsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const handleLogout = async () => {
@@ -45,7 +47,27 @@ export default function MerchantSettingsPage() {
       <div className="px-6 -mt-6 pb-8 max-w-7xl mx-auto w-full">
         <div>
           <div className="bg-card rounded-2xl shadow-lg border border-border p-6 max-w-2xl">
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Informações da conta (ex-Perfil) */}
+              <div>
+                <h2 className="text-lg font-semibold text-card-foreground mb-4">
+                  Informações da Conta
+                </h2>
+                <div className="space-y-2">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Nome</p>
+                    <p className="text-base text-card-foreground">
+                      {user?.displayName || "Não informado"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p className="text-base text-card-foreground">
+                      {user?.email || "Não informado"}
+                    </p>
+                  </div>
+                </div>
+              </div>
               <div>
                 <h2 className="text-lg font-semibold text-card-foreground mb-4">
                   Legal

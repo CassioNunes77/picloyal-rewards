@@ -308,6 +308,7 @@ struct FormField<Content: View>: View {
             }
             
             content
+                .frame(minWidth: 0, maxWidth: .infinity)
                 .padding(AppSpacing.md)
                 .background(Color.appBackground)
                 .cornerRadius(AppRadius.lg)
@@ -316,6 +317,7 @@ struct FormField<Content: View>: View {
                         .stroke(Color.border, lineWidth: 1)
                 )
         }
+        .frame(minWidth: 0, maxWidth: .infinity)
     }
 }
 
