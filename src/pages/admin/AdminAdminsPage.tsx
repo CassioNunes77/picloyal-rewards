@@ -47,15 +47,12 @@ const AdminAdminsPage = () => {
                     <th className="text-left py-4 px-4 text-sm font-medium text-card-foreground">
                       E-mail
                     </th>
-                    <th className="text-left py-4 px-4 text-sm font-medium text-card-foreground">
-                      UID
-                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {admins.length === 0 ? (
                     <tr>
-                      <td colSpan={2} className="py-8 text-center text-muted-foreground">
+                      <td className="py-8 text-center text-muted-foreground">
                         Nenhum administrador cadastrado
                       </td>
                     </tr>
@@ -72,9 +69,6 @@ const AdminAdminsPage = () => {
                               {admin.email || "(sem e-mail)"}
                             </span>
                           </div>
-                        </td>
-                        <td className="py-4 px-4 text-sm text-muted-foreground font-mono">
-                          {admin.id}
                         </td>
                       </tr>
                     ))
