@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   ChevronRight, 
   MapPin, 
@@ -8,15 +8,17 @@ import {
   Share2, 
   Store,
   Tag,
-  MessageSquare
+  Loader2
 } from "lucide-react";
 import { useNavigate, Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { OfferDetailData } from "./OfferDetailPage";
+import { getStoreById } from "@/services/merchantsService";
+import { getStoreOffers, type OfferData } from "@/services/offersService";
 
-interface Store {
-  id: number;
+interface StoreDisplay {
+  id: string;
   name: string;
   address: string;
   distance: string;
@@ -24,58 +26,65 @@ interface Store {
   openUntil: string;
   phone: string;
   isOpen: boolean;
-  offers: number;
+  offersCount: number;
+  image?: string;
 }
 
-interface Offer {
-  id: number;
-  title: string;
-  description: string;
-  discount: string;
-  validUntil: string;
-  icon: string;
-  category: string;
-}
+const categoryToIcon: Record<string, "coffee" | "pizza" | "gift" | "percent"> = {
+  bebidas: "coffee",
+  comida: "pizza",
+  brinde: "gift",
+  geral: "percent",
+};
 
 const StoreDetailPage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { id } = useParams<{ id: string }>();
   const [selectedTab, setSelectedTab] = useState<"info" | "offers" | "reviews">("offers");
+  const [store, setStore] = useState<StoreDisplay | null>(null);
+  const [storeOffers, setStoreOffers] = useState<OfferData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - em produção, buscar pelo ID
-  const store: Store = {
-    id: parseInt(id || "1"),
-    name: "Café Central",
-    address: "Rua das Flores, 123 - Centro",
-    distance: "0.8 km",
-    rating: 4.8,
-    openUntil: "22:00",
-    phone: "(11) 3456-7890",
-    isOpen: true,
-    offers: 5,
-  };
-
-  const storeOffers: Offer[] = [
-    {
-      id: 1,
-      title: "20% OFF em Bebidas",
-      description: "Desconto em todas as bebidas do cardápio",
-      discount: "20%",
-      validUntil: "31/12/2024",
-      icon: "coffee",
-      category: "bebidas",
-    },
-    {
-      id: 2,
-      title: "Café Expresso Grátis",
-      description: "Um café expresso grátis com qualquer compra",
-      discount: "100%",
-      validUntil: "27/12/2024",
-      icon: "coffee",
-      category: "bebidas",
-    },
-  ];
+  useEffect(() => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    Promise.all([getStoreById(id), getStoreOffers(id)])
+      .then(([storeData, offers]) => {
+        if (cancelled) return;
+        if (storeData) {
+          setStore({
+            id: storeData.id!,
+            name: storeData.name,
+            address: storeData.address,
+            distance: "-",
+            rating: 0,
+            openUntil: "-",
+            phone: storeData.phone,
+            isOpen: storeData.active,
+            offersCount: offers.filter((o) => o.active).length,
+            image: storeData.photoURL,
+          });
+          setStoreOffers(offers.filter((o) => o.active));
+        } else {
+          setStore(null);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error("Erro ao carregar loja:", err);
+          setStore(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [id]);
 
   const reviews = [
     { name: "João Silva", comment: "Ótimo atendimento e produtos de qualidade!", rating: 5, date: "Há 2 dias" },
@@ -84,10 +93,11 @@ const StoreDetailPage = () => {
   ];
 
   const handlePhoneClick = () => {
-    window.location.href = `tel:${store.phone.replace(/[^0-9]/g, "")}`;
+    if (store) window.location.href = `tel:${store.phone.replace(/[^0-9]/g, "")}`;
   };
 
   const handleShare = () => {
+    if (!store) return;
     if (navigator.share) {
       navigator.share({
         title: store.name,
@@ -98,6 +108,30 @@ const StoreDetailPage = () => {
       toast.success("Link copiado para a área de transferência!");
     }
   };
+
+  const formatValidUntil = (date: Date) => {
+    return new Date(date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!store) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6">
+        <Store className="h-16 w-16 text-muted-foreground mb-4" />
+        <p className="text-card-foreground font-medium mb-2">Loja não encontrada</p>
+        <button onClick={() => navigate("/stores")} className="text-primary font-medium hover:underline">
+          Voltar para lojas
+        </button>
+      </div>
+    );
+  }
 
   const tabsAndContent = (
     <>
@@ -110,9 +144,9 @@ const StoreDetailPage = () => {
             }`}
           >
             Ofertas
-            {store.offers > 0 && (
+            {store.offersCount > 0 && (
               <span className="absolute -top-1 -right-1 flex h-4 w-4 min-w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
-                {store.offers}
+                {store.offersCount}
               </span>
             )}
           </button>
@@ -150,13 +184,24 @@ const StoreDetailPage = () => {
               <p className="text-sm text-muted-foreground">Nenhuma oferta disponível</p>
             </div>
           ) : (
-            storeOffers.map((offer, index) => (
+            storeOffers.map((offer) => (
               <div key={offer.id}>
                 <button
                   onClick={() => {
                     navigate("/offer", {
                       state: {
-                        offer: { ...offer, storeName: store.name } as OfferDetailData,
+                        offer: {
+                          id: offer.id!,
+                          title: offer.title,
+                          description: offer.description,
+                          discount: offer.discount ?? "—",
+                          validUntil: formatValidUntil(offer.validUntil),
+                          storeName: store.name,
+                          storeAddress: store.address,
+                          icon: categoryToIcon[offer.category] ?? "percent",
+                          category: offer.category,
+                          pointsRequired: offer.pointsRequired,
+                        } as OfferDetailData,
                         storeName: store.name,
                       },
                     });
@@ -164,8 +209,14 @@ const StoreDetailPage = () => {
                   className="w-full text-left bg-card rounded-2xl p-4 shadow-md transition-all duration-300 hover:shadow-lg active:scale-[0.98] border-2 border-transparent hover:border-primary/20"
                 >
                   <div className="flex gap-4">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-xl shrink-0 gradient-primary">
-                      <span className="text-xl">☕</span>
+                    <div className={`flex h-14 w-14 items-center justify-center rounded-xl shrink-0 ${
+                      offer.category === "bebidas" ? "gradient-primary" :
+                      offer.category === "comida" ? "bg-orange-500" :
+                      offer.category === "brinde" ? "gradient-secondary" : "bg-blue-500"
+                    }`}>
+                      <span className="text-xl">
+                        {offer.category === "bebidas" ? "☕" : offer.category === "comida" ? "🍕" : offer.category === "brinde" ? "🎁" : "🏷️"}
+                      </span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-1.5">
@@ -174,12 +225,12 @@ const StoreDetailPage = () => {
                           <p className="text-xs text-muted-foreground line-clamp-2">{offer.description}</p>
                         </div>
                         <div className="gradient-secondary text-secondary-foreground font-bold text-sm px-2.5 py-1.5 rounded-lg shrink-0">
-                          {offer.discount}
+                          {offer.discount ?? "—"}
                         </div>
                       </div>
                       <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                         <Clock className="h-3 w-3 shrink-0" />
-                        <span>Válido até {offer.validUntil}</span>
+                        <span>Válido até {formatValidUntil(offer.validUntil)}</span>
                       </div>
                     </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 self-center" />
@@ -228,8 +279,12 @@ const StoreDetailPage = () => {
           </div>
         </div>
         <div className="flex gap-4 items-start mb-6">
-          <div className="w-24 h-24 rounded-2xl gradient-primary flex items-center justify-center shrink-0">
-            <Store className="h-12 w-12 text-primary-foreground" />
+          <div className="w-24 h-24 rounded-2xl gradient-primary flex items-center justify-center shrink-0 overflow-hidden">
+            {store.image ? (
+              <img src={store.image} alt={store.name} className="w-full h-full object-cover" />
+            ) : (
+              <Store className="h-12 w-12 text-primary-foreground" />
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
@@ -280,8 +335,12 @@ const StoreDetailPage = () => {
             </button>
           </div>
           <div className="flex gap-4 items-start">
-            <div className="w-24 h-24 rounded-2xl gradient-primary flex items-center justify-center shrink-0">
-              <Store className="h-12 w-12 text-primary-foreground" />
+            <div className="w-24 h-24 rounded-2xl gradient-primary flex items-center justify-center shrink-0 overflow-hidden">
+              {store.image ? (
+                <img src={store.image} alt={store.name} className="w-full h-full object-cover" />
+              ) : (
+                <Store className="h-12 w-12 text-primary-foreground" />
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2">

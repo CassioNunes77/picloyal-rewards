@@ -15,35 +15,8 @@ struct StoreDetailView: View {
     @State private var toastMessage = ""
     @State private var selectedTab = "offers"
     @State private var selectedOffer: Offer?
-    
-    let storeOffers = [
-        Offer(
-            id: "1",
-            title: "20% OFF em Bebidas",
-            description: "Desconto em todas as bebidas do cardápio",
-            discount: "20%",
-            storeName: "",
-            storeAddress: "",
-            validUntil: "31/12/2024",
-            icon: "cup.and.saucer.fill",
-            category: "bebidas",
-            pointsRequired: nil,
-            isNew: true
-        ),
-        Offer(
-            id: "2",
-            title: "Café Expresso Grátis",
-            description: "Um café expresso grátis com qualquer compra",
-            discount: "100%",
-            storeName: "",
-            storeAddress: "",
-            validUntil: "27/12/2024",
-            icon: "cup.and.saucer.fill",
-            category: "bebidas",
-            pointsRequired: nil,
-            isNew: false
-        )
-    ]
+    @State private var storeOffers: [Offer] = []
+    @State private var loadingOffers = false
     
     var body: some View {
         ZStack {
@@ -195,7 +168,7 @@ struct StoreDetailView: View {
                     VStack(spacing: AppSpacing.lg) {
                         // Tabs
                         HStack(spacing: 0) {
-                            TabButton(title: "Ofertas", isSelected: selectedTab == "offers", badge: store.offers > 0 ? "\(store.offers)" : nil) {
+                            TabButton(title: "Ofertas", isSelected: selectedTab == "offers", badge: storeOffers.count > 0 ? "\(storeOffers.count)" : nil) {
                                 selectedTab = "offers"
                             }
                             
@@ -215,7 +188,7 @@ struct StoreDetailView: View {
                         if selectedTab == "info" {
                             InfoTab(store: store)
                         } else if selectedTab == "offers" {
-                            OffersTab(offers: storeOffers, showToast: $showToast, toastMessage: $toastMessage, onOfferTap: { selectedOffer = $0 })
+                            OffersTab(offers: storeOffers, loading: loadingOffers, showToast: $showToast, toastMessage: $toastMessage, onOfferTap: { selectedOffer = $0 })
                         } else {
                             ReviewsTab(store: store)
                         }
@@ -247,6 +220,9 @@ struct StoreDetailView: View {
                 .animation(.easeInOut, value: showToast)
             }
         }
+        .onAppear {
+            loadOffers()
+        }
         .sheet(item: $selectedOffer) { offer in
             OfferDetailView(
                 offer: offer,
@@ -260,6 +236,28 @@ struct StoreDetailView: View {
         .ignoresSafeArea(edges: .top)
     }
 
+    private func loadOffers() {
+        loadingOffers = true
+        Task {
+            do {
+                let fbOffers = try await OffersService.shared.getStoreOffers(storeId: store.id)
+                let offers = fbOffers
+                    .filter { $0.active }
+                    .map { Offer.fromFirebase($0, storeName: store.name, storeAddress: store.address) }
+                await MainActor.run {
+                    storeOffers = offers
+                    loadingOffers = false
+                }
+            } catch {
+                print("❌ [StoreDetailView] Erro ao carregar ofertas: \(error.localizedDescription)")
+                await MainActor.run {
+                    storeOffers = []
+                    loadingOffers = false
+                }
+            }
+        }
+    }
+    
     private func showToast(message: String) {
         toastMessage = message
         withAnimation {
@@ -424,13 +422,23 @@ struct InfoCard: View {
 
 struct OffersTab: View {
     let offers: [Offer]
+    var loading: Bool = false
     @Binding var showToast: Bool
     @Binding var toastMessage: String
     var onOfferTap: ((Offer) -> Void)?
 
     var body: some View {
         VStack(spacing: AppSpacing.md) {
-            if offers.isEmpty {
+            if loading {
+                VStack(spacing: AppSpacing.md) {
+                    ProgressView()
+                        .scaleEffect(1.2)
+                    Text("Carregando ofertas...")
+                        .font(.appCaption)
+                        .foregroundColor(.mutedForeground)
+                }
+                .padding(.top, AppSpacing.xl)
+            } else if offers.isEmpty {
                 VStack(spacing: AppSpacing.md) {
                     Image(systemName: "tag")
                         .font(.system(size: 40))
