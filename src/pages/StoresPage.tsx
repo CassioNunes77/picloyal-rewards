@@ -51,6 +51,7 @@ const StoresPage = () => {
               rating: 0,
               openUntil: "-",
               phone: s.phone,
+              image: s.photoURL ?? undefined,
               isOpen: true,
               offers: 0,
             }))
@@ -137,8 +138,12 @@ const StoresPage = () => {
                 className="w-full text-left bg-card rounded-2xl p-4 shadow-md transition-all duration-300 hover:shadow-lg active:scale-[0.98]"
               >
                 <div className="flex gap-4">
-                  <div className="w-20 h-20 rounded-xl gradient-primary flex items-center justify-center shrink-0">
-                    <Store className="h-10 w-10 text-primary-foreground" />
+                  <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-muted flex items-center justify-center">
+                    {store.image ? (
+                      <img src={store.image} alt={store.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <Store className="h-10 w-10 text-muted-foreground" />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0 overflow-hidden">
                     <div className="flex items-start justify-between gap-2 mb-1.5">
@@ -227,8 +232,12 @@ const StoresPage = () => {
                     className="w-full text-left bg-card rounded-2xl p-4 shadow-md transition-all duration-300 hover:shadow-lg active:scale-[0.98]"
                   >
                     <div className="flex gap-4">
-                      <div className="w-20 h-20 rounded-xl gradient-primary flex items-center justify-center shrink-0">
-                        <Store className="h-10 w-10 text-primary-foreground" />
+                      <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-muted flex items-center justify-center">
+                        {store.image ? (
+                          <img src={store.image} alt={store.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <Store className="h-10 w-10 text-muted-foreground" />
+                        )}
                       </div>
                       <div className="flex-1 min-w-0 overflow-hidden">
                         <div className="flex items-start justify-between gap-2 mb-1.5">

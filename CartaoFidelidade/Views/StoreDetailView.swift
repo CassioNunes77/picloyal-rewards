@@ -105,9 +105,27 @@ struct StoreDetailView: View {
                                     .fill(AppGradients.primary)
                                     .frame(width: 100, height: 100)
                                 
-                                Image(systemName: "storefront.fill")
-                                    .foregroundColor(.primaryForeground)
-                                    .font(.system(size: 50))
+                                if let urlString = store.photoURL, let url = URL(string: urlString) {
+                                    AsyncImage(url: url) { phase in
+                                        switch phase {
+                                        case .success(let image):
+                                            image
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(width: 100, height: 100)
+                                                .clipped()
+                                                .cornerRadius(AppRadius.xl)
+                                        default:
+                                            Image(systemName: "storefront.fill")
+                                                .foregroundColor(.primaryForeground)
+                                                .font(.system(size: 50))
+                                        }
+                                    }
+                                } else {
+                                    Image(systemName: "storefront.fill")
+                                        .foregroundColor(.primaryForeground)
+                                        .font(.system(size: 50))
+                                }
                             }
                             
                             VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -522,7 +540,8 @@ struct ReviewCard: View {
             phone: "(11) 3456-7890",
             isOpen: true,
             offers: 5,
-            hours: nil
+            hours: nil,
+            photoURL: nil
         ),
         activeTab: .constant("stores"),
         isPresented: .constant(true)

@@ -18,6 +18,7 @@ struct MerchantStoreFormView: View {
     @State private var city = ""
     @State private var phone = ""
     @State private var hours = ""
+    @State private var photoURL: String? = nil
     @State private var loading = false
     @State private var validCities: [String] = []
     @State private var errorMessage: String? = nil
@@ -113,29 +114,8 @@ struct MerchantStoreFormView: View {
                     // Horário de Funcionamento
                     BusinessHoursPicker(hours: $hours, disabled: loading)
                     
-                    // Logo - Placeholder
-                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                        Text("Logo da Loja")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.cardForeground)
-                        
-                        RoundedRectangle(cornerRadius: AppRadius.lg)
-                            .stroke(Color.border, style: StrokeStyle(lineWidth: 2, dash: [5]))
-                            .frame(height: 120)
-                            .overlay(
-                                VStack(spacing: AppSpacing.sm) {
-                                    Image(systemName: "photo.fill")
-                                        .font(.system(size: 32))
-                                        .foregroundColor(.mutedForeground)
-                                    Text("Funcionalidade de upload de logo será implementada em breve")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.mutedForeground)
-                                        .multilineTextAlignment(.center)
-                                        .padding(.horizontal)
-                                }
-                            )
-                    }
-                    .padding(.top, AppSpacing.sm)
+                    // Foto da Loja (ImgBB)
+                    StorePhotoPickerView(photoURL: $photoURL, disabled: loading)
                     
                     // Botões
                     HStack(spacing: AppSpacing.md) {
@@ -281,7 +261,7 @@ struct MerchantStoreFormView: View {
                     city: city.trimmingCharacters(in: .whitespaces),
                     phone: phone.trimmingCharacters(in: .whitespaces),
                     hours: hours.trimmingCharacters(in: .whitespaces),
-                    photoURL: nil,
+                    photoURL: photoURL,
                     active: true
                 )
                 

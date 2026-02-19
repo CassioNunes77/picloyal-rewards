@@ -25,13 +25,16 @@ struct MerchantStoreDetailsView: View {
     /// Header roxo — 120pt altura, texto 15pt do topo (padrão painel lojista)
     private var storeDetailsHeader: some View {
         ZStack(alignment: .topLeading) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(store.name)
+            HStack(alignment: .top, spacing: AppSpacing.md) {
+                storeHeaderIcon
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(store.name)
                     .font(.system(size: 24, weight: .bold, design: .rounded))
                                     .foregroundColor(.heroForeground)
                 Text("Gerencie suas ofertas")
                     .font(.system(size: 14, weight: .regular))
                                     .foregroundColor(.heroForegroundMuted)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, AppSpacing.lg)
@@ -54,6 +57,32 @@ struct MerchantStoreDetailsView: View {
         .frame(maxWidth: .infinity)
         .frame(minHeight: 120)
         .background(AppGradients.hero)
+    }
+    
+    private var storeHeaderIcon: some View {
+        Group {
+            if let urlString = store.photoURL, let url = URL(string: urlString) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 48, height: 48)
+                            .clipped()
+                            .cornerRadius(AppRadius.md)
+                    default:
+                        Image(systemName: "storefront.fill")
+                            .font(.system(size: 32))
+                            .foregroundColor(.heroForeground)
+                    }
+                }
+            } else {
+                Image(systemName: "storefront.fill")
+                    .font(.system(size: 32))
+                    .foregroundColor(.heroForeground)
+            }
+        }
     }
     
     var body: some View {

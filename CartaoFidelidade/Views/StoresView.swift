@@ -18,6 +18,7 @@ struct Store: Identifiable, Equatable {
     let isOpen: Bool
     let offers: Int
     let hours: String?
+    let photoURL: String?
     
     static func == (lhs: Store, rhs: Store) -> Bool {
         lhs.id == rhs.id
@@ -34,7 +35,8 @@ struct Store: Identifiable, Equatable {
             phone: fb.phone,
             isOpen: true,
             offers: 0,
-            hours: fb.hours
+            hours: fb.hours,
+            photoURL: fb.photoURL
         )
     }
 }
@@ -288,9 +290,27 @@ struct StoreCard: View {
                         .fill(AppGradients.primary)
                         .frame(width: 80, height: 80)
                     
-                    Image(systemName: "storefront.fill")
-                        .foregroundColor(.primaryForeground)
-                        .font(.system(size: 40))
+                    if let urlString = store.photoURL, let url = URL(string: urlString) {
+                        AsyncImage(url: url) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 80, height: 80)
+                                    .clipped()
+                                    .cornerRadius(AppRadius.lg)
+                            default:
+                                Image(systemName: "storefront.fill")
+                                    .foregroundColor(.primaryForeground)
+                                    .font(.system(size: 40))
+                            }
+                        }
+                    } else {
+                        Image(systemName: "storefront.fill")
+                            .foregroundColor(.primaryForeground)
+                            .font(.system(size: 40))
+                    }
                 }
                 
                 // Store Info

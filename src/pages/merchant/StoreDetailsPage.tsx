@@ -163,6 +163,13 @@ export default function StoreDetailsPage() {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
+            <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-white/20 flex items-center justify-center">
+              {store.photoURL ? (
+                <img src={store.photoURL} alt={store.name} className="w-full h-full object-cover" />
+              ) : (
+                <Store className="h-7 w-7 text-white" />
+              )}
+            </div>
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-white tracking-tight">
                 {store.name}

@@ -21,9 +21,7 @@ struct StoreCardView: View {
                     VStack(alignment: .leading, spacing: AppSpacing.xs) {
                         // Nome e status — conforme imagem de referência
                         HStack(spacing: AppSpacing.sm) {
-                            Image(systemName: "storefront.fill")
-                                .font(.system(size: 16))
-                                .foregroundColor(.primary)
+                            storeIcon
                             
                             Text(store.name)
                                 .font(.system(size: 16, weight: .bold, design: .rounded))
@@ -114,6 +112,32 @@ struct StoreCardView: View {
             )
         }
         .buttonStyle(PlainButtonStyle())
+    }
+    
+    private var storeIcon: some View {
+        Group {
+            if let urlString = store.photoURL, let url = URL(string: urlString) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 24, height: 24)
+                            .clipped()
+                            .cornerRadius(6)
+                    default:
+                        Image(systemName: "storefront.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.primary)
+                    }
+                }
+            } else {
+                Image(systemName: "storefront.fill")
+                    .font(.system(size: 16))
+                    .foregroundColor(.primary)
+            }
+        }
     }
 }
 

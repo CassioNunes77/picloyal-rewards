@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Store, MapPin, Phone, Building2, X, Power } from "lucide-react";
+import StorePhotoUpload from "./StorePhotoUpload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +30,7 @@ export default function MerchantStoreEditForm({ store, onCancel, onSuccess }: Me
       ? store.hours
       : formatBusinessHours(DEFAULT_SCHEDULE),
     active: store.active ?? true,
+    photoURL: store.photoURL ?? null,
   });
   const [loading, setLoading] = useState(false);
 
@@ -73,6 +75,7 @@ export default function MerchantStoreEditForm({ store, onCancel, onSuccess }: Me
         phone: formData.phone.trim(),
         hours: formData.hours.trim(),
         active: formData.active,
+        photoURL: formData.photoURL ?? undefined,
       });
       toast.success("Loja atualizada com sucesso!");
       onSuccess();
@@ -236,17 +239,12 @@ export default function MerchantStoreEditForm({ store, onCancel, onSuccess }: Me
           />
         </div>
 
-        {/* Logo - Placeholder para futuro */}
-        <div className="space-y-2">
-          <Label className="text-card-foreground">
-            Logo da Loja
-          </Label>
-          <div className="border-2 border-dashed border-border rounded-xl p-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              Funcionalidade de upload de logo será implementada em breve
-            </p>
-          </div>
-        </div>
+        {/* Foto da Loja */}
+        <StorePhotoUpload
+          value={formData.photoURL}
+          onChange={(url) => setFormData({ ...formData, photoURL: url })}
+          disabled={loading}
+        />
 
         {/* Botões */}
         <div className="flex gap-3 pt-4">
