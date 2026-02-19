@@ -273,7 +273,17 @@ struct BusinessHoursPicker: View {
                     .stroke(Color.border, lineWidth: 1)
             )
         }
-        .onAppear { syncToHours() }
+        .onAppear { syncFromHours() }
+        .onChange(of: hours) { _, newValue in
+            syncFromHours()
+        }
+    }
+    
+    /// Sincroniza o schedule a partir do binding hours (quando o pai atualiza, ex: onAppear)
+    private func syncFromHours() {
+        if let parsed = parseBusinessHoursString(hours) {
+            schedule = parsed
+        }
     }
     
     private func shortcutButton(_ title: String, action: @escaping () -> Void) -> some View {
@@ -287,7 +297,10 @@ struct BusinessHoursPicker: View {
     }
     
     private func syncToHours() {
-        hours = formatBusinessHoursString(schedule)
+        let formatted = formatBusinessHoursString(schedule)
+        if hours != formatted {
+            hours = formatted
+        }
     }
     
     private func applyWeekdays() {
