@@ -6,7 +6,8 @@ import LoyaltyCard from "@/components/LoyaltyCard";
 import LocationSelector from "@/components/LocationSelector";
 import { useQR } from "@/contexts/QRContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { User, Bell, Settings } from "lucide-react";
+import { User, Bell, Settings, Crown } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function DesktopLayout() {
   const { pathname } = useLocation();
@@ -99,6 +100,19 @@ export default function DesktopLayout() {
               userName={displayName}
               cardNumber="**** **** **** 4589"
             />
+            <Link
+              to="/premium"
+              className="w-full overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 p-5 text-white
+                         transition-all duration-300 hover:shadow-md flex items-center justify-between"
+            >
+              <div>
+                <p className="text-sm font-medium opacity-90">Seja Premium</p>
+                <p className="text-xs opacity-80">Desbloqueie benefícios exclusivos</p>
+              </div>
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20">
+                <Crown className="h-6 w-6" />
+              </div>
+            </Link>
           </div>
           <div
             className="flex-1 min-w-0 min-h-[60vh] flex flex-col overflow-auto bg-background rounded-lg"

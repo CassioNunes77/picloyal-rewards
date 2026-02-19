@@ -123,7 +123,7 @@ const Index = () => {
     return (
       <div className="min-h-full bg-background">
         <div className="max-w-5xl mx-auto space-y-6">
-          {/* Linha 1: Acesso rápido + Promo */}
+          {/* Linha 1: Acesso rápido + Oferta Especial */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             <div className="md:col-span-7">
               <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
@@ -136,20 +136,7 @@ const Index = () => {
                 </div>
               </div>
             </div>
-            <div className="md:col-span-5 flex flex-col gap-4">
-              <Link
-                to="/premium"
-                className="min-h-[100px] overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 p-5 text-white
-                           transition-all duration-300 hover:shadow-md flex items-center justify-between"
-              >
-                <div>
-                  <p className="text-sm font-medium opacity-90">Seja Premium</p>
-                  <p className="text-xs opacity-80">Desbloqueie benefícios exclusivos</p>
-                </div>
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20">
-                  <Crown className="h-6 w-6" />
-                </div>
-              </Link>
+            <div className="md:col-span-5">
               <Link
                 to="/premium"
                 className="h-full min-h-[140px] overflow-hidden rounded-2xl gradient-secondary p-5 text-secondary-foreground
@@ -205,8 +192,8 @@ const Index = () => {
             <div className="md:col-span-7">
               <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
                 <div className="mb-4 flex items-center justify-between">
-                  <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
-                    <Sparkles className="h-5 w-5 text-secondary" />
+                  <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                    <Sparkles className="h-4 w-4 text-secondary" />
                     Suas Recompensas
                   </h2>
                   <button
