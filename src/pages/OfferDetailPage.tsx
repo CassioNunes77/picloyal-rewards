@@ -53,19 +53,21 @@ const OfferDetailPage = () => {
   const [loadingRedemption, setLoadingRedemption] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Busca status ao abrir: lembra se usuário já solicitou ou resgatou
+  // Busca status ao abrir e ao voltar: lembra se usuário já solicitou ou resgatou
+  // location.key garante refetch ao navegar de volta para esta página
   useEffect(() => {
     if (!user?.uid || !offer?.id) {
       setLoadingRedemption(false);
       return;
     }
+    setLoadingRedemption(true);
     getUserRedemptionForOffer(user.uid, String(offer.id))
       .then((r) => {
         setRedemptionStatus(r?.status ?? null);
       })
       .catch(() => setRedemptionStatus(null))
       .finally(() => setLoadingRedemption(false));
-  }, [user?.uid, offer?.id]);
+  }, [user?.uid, offer?.id, location.key]);
 
   if (!offer) {
     navigate("/offers", { replace: true });

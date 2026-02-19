@@ -166,9 +166,12 @@ struct OfferDetailView: View {
                 }
             }
         }
-        .task(id: offer.id) {
-            // Busca status ao abrir: lembra se usuário já solicitou ou resgatou
-            await loadRedemptionStatus()
+        .onAppear {
+            // Busca status ao abrir e ao voltar: lembra se usuário já solicitou ou resgatou
+            Task {
+                loadingRedemption = true
+                await loadRedemptionStatus()
+            }
         }
     }
     
