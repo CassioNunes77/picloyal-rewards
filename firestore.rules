@@ -149,13 +149,15 @@ service cloud.firestore {
                        request.resource.data.updatedAt is timestamp;
       
       // Lojistas podem atualizar apenas suas próprias lojas
-      // Não permitir alteração do merchantId
-      allow update: if request.auth != null &&
-                       resource.data.merchantId == request.auth.uid &&
-                       request.resource.data.merchantId == resource.data.merchantId &&
-                       request.resource.data.updatedAt is timestamp &&
-                       // Validar campos obrigatórios
-                       request.resource.data.keys().hasAll(['merchantId', 'name', 'cnpj', 'address', 'city', 'phone', 'hours', 'active']);
+      // Admins (users com isAdmin: true) podem atualizar qualquer loja (ex.: habilitar/desabilitar)
+      allow update: if request.auth != null && (
+                       (resource.data.merchantId == request.auth.uid &&
+                        request.resource.data.merchantId == resource.data.merchantId &&
+                        request.resource.data.updatedAt is timestamp &&
+                        request.resource.data.keys().hasAll(['merchantId', 'name', 'cnpj', 'address', 'city', 'phone', 'hours', 'active'])) ||
+                       (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+                        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true &&
+                        request.resource.data.updatedAt is timestamp));
       
       // Lojistas podem deletar apenas suas próprias lojas
       allow delete: if request.auth != null && 

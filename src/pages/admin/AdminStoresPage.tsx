@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Store, Search, Check, X, Edit, Eye, Loader2 } from "lucide-react";
+import { Store, Search, Check, X, Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
-import { getAllStores, type StoreData } from "@/services/merchantsService";
+import { getAllStores, updateStore, type StoreData } from "@/services/merchantsService";
 import { getStoreOffers } from "@/services/offersService";
 
 interface StoreWithOffers extends StoreData {
@@ -15,6 +15,7 @@ const AdminStoresPage = () => {
   const [filterActive, setFilterActive] = useState<"all" | "active" | "inactive">("all");
   const [stores, setStores] = useState<StoreWithOffers[]>([]);
   const [loading, setLoading] = useState(true);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadStores();
@@ -53,9 +54,20 @@ const AdminStoresPage = () => {
     return matchesSearch && matchesFilter;
   });
 
-  const handleToggleActive = (id: string) => {
-    setStores(stores.map((s) => (s.id === id ? { ...s, active: !s.active } : s)));
-    toast.success("Status da loja atualizado");
+  const handleToggleActive = async (store: StoreWithOffers) => {
+    if (!store.id || !store.merchantId) return;
+    const newActive = !store.active;
+    setTogglingId(store.id);
+    try {
+      await updateStore(store.id, store.merchantId, { active: newActive });
+      setStores(stores.map((s) => (s.id === store.id ? { ...s, active: newActive } : s)));
+      toast.success(newActive ? "Loja habilitada" : "Loja desabilitada");
+    } catch (err) {
+      console.error("Erro ao atualizar status da loja:", err);
+      toast.error("Erro ao atualizar status da loja");
+    } finally {
+      setTogglingId(null);
+    }
   };
 
   return (
@@ -109,43 +121,40 @@ const AdminStoresPage = () => {
           </p>
         </div>
       ) : (
-      <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-3"} gap-4`}>
+      <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-4"} gap-3`}>
         {filteredStores.map((store) => (
           <div
             key={store.id}
-            className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-all"
+            className="bg-card rounded-xl border border-border p-4 shadow-sm hover:shadow-md transition-all"
           >
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-start gap-3 flex-1 min-w-0">
-                <div className="p-3 rounded-xl bg-primary/10 shrink-0">
-                  <Store className="h-5 w-5 text-primary" />
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                  <Store className="h-4 w-4 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-card-foreground mb-1 truncate">{store.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">{store.city || store.address || "—"}</p>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span>{store.offersCount} ofertas</span>
-                    {store.phone && <span>{store.phone}</span>}
-                  </div>
+                  <h3 className="font-semibold text-card-foreground text-sm truncate">{store.name}</h3>
+                  <p className="text-xs text-muted-foreground truncate">{store.city || store.address || "—"}</p>
+                  <span className="text-xs text-muted-foreground">{store.offersCount} ofertas</span>
                 </div>
               </div>
               <button
-                onClick={() => handleToggleActive(store.id)}
+                onClick={() => handleToggleActive(store)}
+                disabled={togglingId === store.id}
                 className={`p-2 rounded-lg transition-all shrink-0 ${
                   store.active
                     ? "bg-green-100 text-green-700 hover:bg-green-200"
                     : "bg-muted text-muted-foreground hover:bg-muted/80"
-                }`}
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                title={store.active ? "Desabilitar loja" : "Habilitar loja"}
               >
-                {store.active ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
-              </button>
-            </div>
-            <div className="flex items-center justify-end gap-2 pt-4 border-t border-border">
-              <button className="p-2 rounded-lg text-muted-foreground hover:bg-muted transition-all">
-                <Eye className="h-4 w-4" />
-              </button>
-              <button className="p-2 rounded-lg text-muted-foreground hover:bg-muted transition-all">
-                <Edit className="h-4 w-4" />
+                {togglingId === store.id ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : store.active ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  <X className="h-4 w-4" />
+                )}
               </button>
             </div>
           </div>
