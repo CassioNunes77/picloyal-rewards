@@ -493,6 +493,28 @@ export async function getStoresCount(): Promise<number> {
 }
 
 /**
+ * Busca todos os lojistas (para painel administrativo - atividades)
+ */
+export async function getAllMerchants(): Promise<MerchantData[]> {
+  if (!firestore) {
+    console.error("❌ [merchantsService] Firestore não está configurado!");
+    return [];
+  }
+
+  try {
+    const merchantsRef = collection(firestore, MERCHANTS_COLLECTION);
+    const querySnapshot = await getDocs(merchantsRef);
+
+    return querySnapshot.docs
+      .map((docSnap) => firestoreToMerchantData(docSnap.id, docSnap.data()))
+      .sort((a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0));
+  } catch (error: any) {
+    console.error("❌ [merchantsService] Erro ao buscar lojistas:", error);
+    return [];
+  }
+}
+
+/**
  * Retorna a quantidade de lojistas cadastrados (para painel administrativo)
  */
 export async function getMerchantsCount(): Promise<number> {

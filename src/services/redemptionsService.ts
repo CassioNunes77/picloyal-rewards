@@ -65,6 +65,42 @@ export async function createRedemption(
 }
 
 /**
+ * Busca resgates recentes (para painel administrativo - atividades)
+ * Requer regra Firestore que permita leitura por admin
+ */
+export async function getRecentRedemptions(limitCount: number = 50): Promise<RedemptionData[]> {
+  if (!firestore) return [];
+
+  try {
+    const q = query(
+      collection(firestore, REDEMPTIONS_COLLECTION),
+      orderBy("createdAt", "desc"),
+      limit(limitCount)
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((docSnap) => {
+      const d = docSnap.data();
+      return {
+        id: docSnap.id,
+        offerId: String(d?.offerId ?? ""),
+        offerTitle: String(d?.offerTitle ?? ""),
+        storeId: String(d?.storeId ?? ""),
+        storeName: String(d?.storeName ?? ""),
+        merchantId: String(d?.merchantId ?? ""),
+        userId: String(d?.userId ?? ""),
+        userName: String(d?.userName ?? ""),
+        userEmail: String(d?.userEmail ?? ""),
+        status: (d?.status as RedemptionStatus) ?? "pending",
+        createdAt: toDate(d?.createdAt),
+      };
+    });
+  } catch (error) {
+    console.error("Erro ao buscar resgates recentes:", error);
+    return [];
+  }
+}
+
+/**
  * Busca resgates do merchant, opcionalmente filtrados por loja
  */
 export async function getMerchantRedemptions(

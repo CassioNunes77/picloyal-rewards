@@ -49,8 +49,8 @@ const AdminProductsPage = () => {
   return (
     <div className="min-h-full bg-background">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-card-foreground mb-2">Produtos</h1>
-        <p className="text-sm text-muted-foreground">Gerenciar produtos, ofertas e descontos</p>
+        <h1 className="text-2xl font-bold text-card-foreground mb-2">Ofertas</h1>
+        <p className="text-sm text-muted-foreground">Gerenciar ofertas e descontos</p>
       </div>
 
       <div className="mb-6 space-y-4">
@@ -58,7 +58,7 @@ const AdminProductsPage = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Buscar produto..."
+            placeholder="Buscar oferta..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-3 rounded-xl bg-card text-card-foreground placeholder:text-muted-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary/30"

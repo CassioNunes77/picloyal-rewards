@@ -14,6 +14,7 @@ import {
   X,
   BarChart3,
   Shield,
+  Activity,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -23,7 +24,8 @@ const adminNavItems = [
   { id: "locations", label: "Localização", icon: MapPin, path: "locations" },
   { id: "categories", label: "Categorias", icon: Tag, path: "categories" },
   { id: "stores", label: "Lojas", icon: Store, path: "stores" },
-  { id: "products", label: "Produtos", icon: Package, path: "products" },
+  { id: "products", label: "Ofertas", icon: Package, path: "products" },
+  { id: "activities", label: "Atividades", icon: Activity, path: "activities" },
   { id: "feedback", label: "Feedback", icon: MessageSquare, path: "feedback" },
   { id: "privacy", label: "Política de Privacidade", icon: Shield, path: "privacy" },
 ];
