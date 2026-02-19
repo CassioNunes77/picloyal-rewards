@@ -3,7 +3,7 @@ import {
   Users,
   UserCheck,
   Store,
-  TrendingUp,
+  Building2,
   Gift,
   MapPin,
   DollarSign,
@@ -15,6 +15,7 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getActiveUsersCount, getTotalUsersCount } from "@/services/usersService";
 import { getActiveRegionsCount } from "@/services/regionsService";
+import { getMerchantsCount, getStoresCount } from "@/services/merchantsService";
 import { firestore } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -26,7 +27,8 @@ const AdminDashboardPage = () => {
   const [stats, setStats] = useState({
     activeUsers: 0,
     onlineUsers: 0,
-    totalStores: 856,
+    totalMerchants: 0,
+    totalStores: 0,
     totalSavings: 2450000,
     totalRedemptions: 18934,
     activeRegions: 0,
@@ -52,17 +54,22 @@ const AdminDashboardPage = () => {
         console.log("🔍 [AdminDashboardPage] Carregando estatísticas do Firebase...");
         console.log("🔐 [AdminDashboardPage] Usuário Firebase Auth:", firebaseUser?.uid || "Nenhum");
         
-        // Buscar usuários ativos e total de usuários em paralelo
-        const [activeUsersCount, totalUsersCount, activeRegionsCount] = await Promise.all([
-          getActiveUsersCount(),
-          getTotalUsersCount(),
-          getActiveRegionsCount(),
-        ]);
+        // Buscar usuários, lojistas, lojas e regiões em paralelo
+        const [activeUsersCount, totalUsersCount, activeRegionsCount, merchantsCount, storesCount] =
+          await Promise.all([
+            getActiveUsersCount(),
+            getTotalUsersCount(),
+            getActiveRegionsCount(),
+            getMerchantsCount(),
+            getStoresCount(),
+          ]);
 
         console.log("✅ [AdminDashboardPage] Estatísticas carregadas:", {
           activeUsers: activeUsersCount,
           totalUsers: totalUsersCount,
           activeRegions: activeRegionsCount,
+          merchants: merchantsCount,
+          stores: storesCount,
         });
 
         setStats((prev) => ({
@@ -70,6 +77,8 @@ const AdminDashboardPage = () => {
           activeUsers: activeUsersCount,
           onlineUsers: totalUsersCount, // Por enquanto, usando total como online
           activeRegions: activeRegionsCount,
+          totalMerchants: merchantsCount,
+          totalStores: storesCount,
         }));
       } catch (error) {
         console.error("❌ [AdminDashboardPage] Erro ao carregar estatísticas:", error);
@@ -167,7 +176,7 @@ const AdminDashboardPage = () => {
           <span className="ml-3 text-muted-foreground">Carregando estatísticas...</span>
         </div>
       ) : (
-        <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-4"} gap-4 mb-6`}>
+        <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"} gap-4 mb-6`}>
           <StatCard
             title="Usuários Ativos"
             value={stats.activeUsers.toLocaleString("pt-BR")}
@@ -184,10 +193,13 @@ const AdminDashboardPage = () => {
           />
           <StatCard
             title="Lojistas"
-            value={stats.totalStores.toLocaleString("pt-BR")}
+            value={stats.totalMerchants.toLocaleString("pt-BR")}
             icon={Store}
-            change="+3.1%"
-            trend="up"
+          />
+          <StatCard
+            title="Lojas"
+            value={stats.totalStores.toLocaleString("pt-BR")}
+            icon={Building2}
           />
           <StatCard
             title="Regiões Ativas"

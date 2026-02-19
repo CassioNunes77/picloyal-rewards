@@ -429,6 +429,28 @@ export async function getStoresByCity(cityFilter: string): Promise<StoreData[]> 
 }
 
 /**
+ * Busca todas as lojas cadastradas (para painel administrativo)
+ */
+export async function getAllStores(): Promise<StoreData[]> {
+  if (!firestore) {
+    console.error("❌ [merchantsService] Firestore não está configurado!");
+    return [];
+  }
+
+  try {
+    const storesRef = collection(firestore, STORES_COLLECTION);
+    const querySnapshot = await getDocs(storesRef);
+
+    return querySnapshot.docs
+      .map((docSnap) => firestoreToStoreData(docSnap.id, docSnap.data()))
+      .sort((a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0));
+  } catch (error: any) {
+    console.error("❌ [merchantsService] Erro ao buscar lojas:", error);
+    return [];
+  }
+}
+
+/**
  * Busca todas as lojas de um lojista
  */
 export async function getMerchantStores(merchantId: string): Promise<StoreData[]> {
@@ -448,6 +470,44 @@ export async function getMerchantStores(merchantId: string): Promise<StoreData[]
   } catch (error: any) {
     console.error("❌ [merchantsService] Erro ao buscar lojas do lojista:", error);
     return [];
+  }
+}
+
+/**
+ * Retorna a quantidade de lojas cadastradas (para painel administrativo)
+ */
+export async function getStoresCount(): Promise<number> {
+  if (!firestore) {
+    console.error("❌ [merchantsService] Firestore não está configurado!");
+    return 0;
+  }
+
+  try {
+    const storesRef = collection(firestore, STORES_COLLECTION);
+    const querySnapshot = await getDocs(storesRef);
+    return querySnapshot.size;
+  } catch (error: any) {
+    console.error("❌ [merchantsService] Erro ao contar lojas:", error);
+    return 0;
+  }
+}
+
+/**
+ * Retorna a quantidade de lojistas cadastrados (para painel administrativo)
+ */
+export async function getMerchantsCount(): Promise<number> {
+  if (!firestore) {
+    console.error("❌ [merchantsService] Firestore não está configurado!");
+    return 0;
+  }
+
+  try {
+    const merchantsRef = collection(firestore, MERCHANTS_COLLECTION);
+    const querySnapshot = await getDocs(merchantsRef);
+    return querySnapshot.size;
+  } catch (error: any) {
+    console.error("❌ [merchantsService] Erro ao contar lojistas:", error);
+    return 0;
   }
 }
 

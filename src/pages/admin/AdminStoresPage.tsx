@@ -1,34 +1,51 @@
-import { useState } from "react";
-import { Store, Search, Check, X, Edit, Eye } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Store, Search, Check, X, Edit, Eye, Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
+import { getAllStores, type StoreData } from "@/services/merchantsService";
+import { getStoreOffers } from "@/services/offersService";
 
-interface Store {
-  id: string;
-  name: string;
-  region: string;
-  active: boolean;
+interface StoreWithOffers extends StoreData {
   offersCount: number;
-  rating: number;
 }
 
 const AdminStoresPage = () => {
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterActive, setFilterActive] = useState<"all" | "active" | "inactive">("all");
+  const [stores, setStores] = useState<StoreWithOffers[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [stores, setStores] = useState<Store[]>([
-    { id: "1", name: "Café Central", region: "São Paulo - Centro", active: true, offersCount: 5, rating: 4.8 },
-    { id: "2", name: "Restaurante Sabor", region: "Rio de Janeiro - Zona Sul", active: true, offersCount: 3, rating: 4.6 },
-    { id: "3", name: "Padaria Doce Vida", region: "Belo Horizonte - Centro", active: true, offersCount: 8, rating: 4.9 },
-    { id: "4", name: "Supermercado Bom Preço", region: "São Paulo - Centro", active: false, offersCount: 12, rating: 4.5 },
-    { id: "5", name: "Farmácia Saúde", region: "Porto Alegre - Centro", active: true, offersCount: 2, rating: 4.7 },
-  ]);
+  useEffect(() => {
+    loadStores();
+  }, []);
+
+  const loadStores = async () => {
+    setLoading(true);
+    try {
+      const storesData = await getAllStores();
+      const withOffers = await Promise.all(
+        storesData.map(async (s) => {
+          const offers = await getStoreOffers(s.id!);
+          return { ...s, offersCount: offers.filter((o) => o.active).length };
+        })
+      );
+      setStores(withOffers);
+    } catch (err) {
+      console.error("Erro ao carregar lojas:", err);
+      toast.error("Erro ao carregar lojas");
+      setStores([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredStores = stores.filter((store) => {
+    const searchLower = searchQuery.toLowerCase();
     const matchesSearch =
-      store.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      store.region.toLowerCase().includes(searchQuery.toLowerCase());
+      store.name.toLowerCase().includes(searchLower) ||
+      (store.city ?? "").toLowerCase().includes(searchLower) ||
+      (store.address ?? "").toLowerCase().includes(searchLower);
     const matchesFilter =
       filterActive === "all" ||
       (filterActive === "active" && store.active) ||
@@ -76,6 +93,22 @@ const AdminStoresPage = () => {
         </div>
       </div>
 
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-16">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+          <p className="text-sm text-muted-foreground">Carregando lojas...</p>
+        </div>
+      ) : filteredStores.length === 0 ? (
+        <div className="text-center py-16">
+          <Store className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <p className="text-card-foreground font-medium mb-2">Nenhuma loja encontrada</p>
+          <p className="text-sm text-muted-foreground">
+            {stores.length === 0
+              ? "Não há lojas cadastradas no Firebase."
+              : "Nenhuma loja corresponde aos filtros."}
+          </p>
+        </div>
+      ) : (
       <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-3"} gap-4`}>
         {filteredStores.map((store) => (
           <div
@@ -89,10 +122,10 @@ const AdminStoresPage = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-card-foreground mb-1 truncate">{store.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">{store.region}</p>
+                  <p className="text-sm text-muted-foreground mb-2">{store.city || store.address || "—"}</p>
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span>⭐ {store.rating}</span>
                     <span>{store.offersCount} ofertas</span>
+                    {store.phone && <span>{store.phone}</span>}
                   </div>
                 </div>
               </div>
@@ -118,6 +151,7 @@ const AdminStoresPage = () => {
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 };
