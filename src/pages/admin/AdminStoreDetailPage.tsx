@@ -11,10 +11,15 @@ import {
   Loader2,
   Check,
   X,
+  Package,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getStoreById, getMerchantData, updateStore, type StoreData } from "@/services/merchantsService";
-import { getStoreOffers } from "@/services/offersService";
+import { getStoreOffers, type OfferData } from "@/services/offersService";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+type OfferFilter = "all" | "active" | "inactive";
 
 const AdminStoreDetailPage = () => {
   const { storeId } = useParams<{ storeId: string }>();
@@ -22,7 +27,8 @@ const AdminStoreDetailPage = () => {
   const [store, setStore] = useState<StoreData | null>(null);
   const [merchantEmail, setMerchantEmail] = useState<string>("");
   const [merchantName, setMerchantName] = useState<string>("");
-  const [offersCount, setOffersCount] = useState(0);
+  const [offers, setOffers] = useState<OfferData[]>([]);
+  const [offerFilter, setOfferFilter] = useState<OfferFilter>("all");
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
 
@@ -40,7 +46,7 @@ const AdminStoreDetailPage = () => {
       ]);
       if (storeData) {
         setStore(storeData);
-        setOffersCount(offers.filter((o) => o.active).length);
+        setOffers(offers);
         if (storeData.merchantId) {
           const merchant = await getMerchantData(storeData.merchantId);
           if (merchant) {
@@ -120,7 +126,9 @@ const AdminStoreDetailPage = () => {
                   {store.active ? "Ativa" : "Inativa"}
                 </span>
               </div>
-              <p className="text-sm text-muted-foreground mb-4">{offersCount} ofertas ativas</p>
+              <p className="text-sm text-muted-foreground mb-4">
+                {offers.filter((o) => o.active).length} ofertas ativas · {offers.length} total
+              </p>
               <button
                 onClick={handleToggleActive}
                 disabled={toggling}
@@ -191,6 +199,64 @@ const AdminStoreDetailPage = () => {
               </div>
             </dl>
           </div>
+        </div>
+
+        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-card-foreground mb-4">Ofertas cadastradas</h2>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {(["all", "active", "inactive"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setOfferFilter(f)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                  offerFilter === f
+                    ? "bg-primary text-primary-foreground shadow-md"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                }`}
+              >
+                {f === "all" ? "Todas" : f === "active" ? "Ativas" : "Inativas"}
+              </button>
+            ))}
+          </div>
+          <ul className="space-y-2">
+            {offers
+              .filter((o) => {
+                if (offerFilter === "active") return o.active;
+                if (offerFilter === "inactive") return !o.active;
+                return true;
+              })
+              .map((offer) => (
+                <li
+                  key={offer.id}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-background hover:bg-muted/50 border border-border"
+                >
+                  <Package className="h-4 w-4 text-primary shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-card-foreground truncate">{offer.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {offer.category} · Válida até {format(offer.validUntil, "dd/MM/yyyy", { locale: ptBR })}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${
+                      offer.active ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {offer.active ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                    {offer.active ? "Ativa" : "Inativa"}
+                  </span>
+                </li>
+              ))}
+            {offers.filter((o) => {
+              if (offerFilter === "active") return o.active;
+              if (offerFilter === "inactive") return !o.active;
+              return true;
+            }).length === 0 && (
+              <li className="py-8 text-center text-muted-foreground text-sm">
+                Nenhuma oferta encontrada
+              </li>
+            )}
+          </ul>
         </div>
       </div>
     </div>
