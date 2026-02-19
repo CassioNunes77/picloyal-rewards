@@ -259,7 +259,9 @@ export async function addCategory(
     
     // Mensagem de erro mais amigável
     if (error?.code === "permission-denied") {
-      throw new Error("Permissão negada. Verifique as regras de segurança do Firestore.");
+      throw new Error(
+        "Permissão negada. Verifique se está logado como administrador (e-mail na coleção admins do Firestore)."
+      );
     } else if (error?.code === "unavailable") {
       throw new Error("Firestore indisponível. Verifique sua conexão com a internet.");
     } else {
@@ -412,7 +414,7 @@ export function subscribeToCategories(
         
         // Mensagens de erro mais específicas
         if (error?.code === "permission-denied") {
-          console.error("❌ [categoriesService] Permissão negada. Verifique as regras de segurança do Firestore.");
+          console.error("❌ [categoriesService] Permissão negada. Verifique se está logado como administrador.");
         } else if (error?.code === "unavailable") {
           console.error("❌ [categoriesService] Firestore indisponível. Verifique sua conexão.");
         }

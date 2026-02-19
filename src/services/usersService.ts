@@ -231,7 +231,9 @@ export async function createOrUpdateUser(user: User): Promise<void> {
     });
     
     if (error?.code === "permission-denied") {
-      throw new Error("Permissão negada. Verifique as regras de segurança do Firestore.");
+      throw new Error(
+        "Permissão negada. Verifique se está logado como administrador (e-mail na coleção admins do Firestore)."
+      );
     } else if (error?.code === "unavailable") {
       throw new Error("Firestore indisponível. Verifique sua conexão com a internet.");
     } else {
@@ -306,7 +308,9 @@ export async function updateUserData(
     console.error("❌ [usersService] Erro ao atualizar dados do usuário:", error);
     
     if (error?.code === "permission-denied") {
-      throw new Error("Permissão negada. Verifique as regras de segurança do Firestore.");
+      throw new Error(
+        "Permissão negada. Verifique se está logado como administrador (e-mail na coleção admins do Firestore)."
+      );
     } else if (error?.code === "unavailable") {
       throw new Error("Firestore indisponível. Verifique sua conexão com a internet.");
     } else {

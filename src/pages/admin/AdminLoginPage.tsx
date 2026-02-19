@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Lock, User, AlertCircle } from "lucide-react";
+import { Lock, Mail, AlertCircle } from "lucide-react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { toast } from "sonner";
 
 const AdminLoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAdminAuth();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,13 +27,13 @@ const AdminLoginPage = () => {
     setLoading(true);
 
     try {
-      const success = await login(username, password);
+      const success = await login(email, password);
       if (success) {
         toast.success("Login realizado com sucesso!");
         navigate("/sys-admin-panel-7x9k/dashboard");
       } else {
-        setError("Credenciais inválidas");
-        toast.error("Credenciais inválidas");
+        setError("E-mail ou senha incorretos, ou usuário não é administrador.");
+        toast.error("E-mail ou senha incorretos, ou usuário não é administrador.");
       }
     } finally {
       setLoading(false);
@@ -68,20 +68,20 @@ const AdminLoginPage = () => {
             )}
 
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-card-foreground mb-2">
-                Usuário
+              <label htmlFor="email" className="block text-sm font-medium text-card-foreground mb-2">
+                E-mail
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 rounded-xl bg-background text-card-foreground placeholder:text-muted-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  placeholder="Digite seu usuário"
+                  placeholder="Digite seu e-mail"
                   required
-                  autoComplete="username"
+                  autoComplete="email"
                 />
               </div>
             </div>

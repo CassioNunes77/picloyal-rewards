@@ -36,6 +36,7 @@ import AdminActivitiesPage from "./pages/admin/AdminActivitiesPage";
 import AdminFeedbackPage from "./pages/admin/AdminFeedbackPage";
 import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
 import AdminPrivacyPage from "./pages/admin/AdminPrivacyPage";
+import AdminAdminsPage from "./pages/admin/AdminAdminsPage";
 import MerchantLoginPage from "./pages/merchant/MerchantLoginPage";
 import MerchantSignUpPage from "./pages/merchant/MerchantSignUpPage";
 import MerchantDashboardPage from "./pages/merchant/MerchantDashboardPage";
@@ -133,6 +134,7 @@ const App = () => {
                 }
               >
                 <Route path="dashboard" element={<AdminDashboardPage />} />
+                <Route path="admins" element={<AdminAdminsPage />} />
                 <Route path="locations" element={<AdminLocationsPage />} />
                 <Route path="categories" element={<AdminCategoriesPage />} />
                 <Route path="stores" element={<AdminStoresPage />} />

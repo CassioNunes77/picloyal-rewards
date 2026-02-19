@@ -68,6 +68,19 @@ service cloud.firestore {
     }
     
     // ============================================
+    // ADMINISTRADORES (painel admin)
+    // ============================================
+    // Coleção admins: documento com ID = uid do Firebase Auth.
+    // Usuário pode ler seu próprio doc; admins podem ler todos (para tela de administradores).
+    // Criação/edição de admins: manual via Firebase Console (ou script create-admin-user).
+    match /admins/{adminId} {
+      allow read: if request.auth != null &&
+        (request.auth.uid == adminId ||
+         exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+      allow write: if false;
+    }
+
+    // ============================================
     // USUÁRIOS
     // ============================================
     match /users/{userId} {

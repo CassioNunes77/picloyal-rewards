@@ -1,30 +1,39 @@
-# Configuração do Painel Administrativo com Firebase
+# Configuração do Painel Administrativo
 
-Para que o painel administrativo possa **adicionar regiões**, **categorias** e outras operações que exigem autenticação no Firestore, é necessário configurar uma conta de administrador no Firebase Auth.
+O painel administrativo usa **Firebase Auth** (e-mail/senha) e a coleção **admins** no Firestore para controlar quem pode acessar.
 
-## Passos
+## Passos para configurar o primeiro administrador
 
-1. **Criar usuário no Firebase Auth**
-   - Acesse o [Firebase Console](https://console.firebase.google.com)
-   - Vá em **Authentication** > **Users** > **Add user**
-   - Crie um usuário com **email** e **senha** (ex.: `admin@seudominio.com`)
+### 1. Criar usuário no Firebase Auth
 
-2. **Configurar variáveis de ambiente**
-   - Copie o `.env.example` para `.env` (se ainda não tiver)
-   - Adicione as credenciais do admin:
-   ```
-   VITE_ADMIN_FIREBASE_EMAIL=admin@seudominio.com
-   VITE_ADMIN_FIREBASE_PASSWORD=sua_senha_segura
-   ```
+1. Acesse o [Firebase Console](https://console.firebase.google.com)
+2. Vá em **Authentication** > **Users** > **Add user**
+3. Crie um usuário com **e-mail** e **senha** (ex.: `admin@seudominio.com`)
+4. **Copie o UID** do usuário criado (aparece na lista de usuários)
 
-3. **Reiniciar o servidor de desenvolvimento**
-   - Após alterar o `.env`, reinicie o `npm run dev` ou `yarn dev`
+### 2. Adicionar à coleção admins no Firestore
 
-4. **Fazer login no painel admin**
-   - Acesse o painel administrativo e faça login com as credenciais do admin (usuário/senha do painel)
-   - O sistema fará login automático no Firebase Auth com a conta configurada
-   - Agora você poderá adicionar regiões, categorias, alterar a política de privacidade, etc.
+1. No Firebase Console, vá em **Firestore Database**
+2. Clique em **Start collection** (ou use a coleção existente)
+3. **Collection ID**: `admins`
+4. **Document ID**: use o **UID** do usuário criado no passo 1 (ex.: `abc123xyz`)
+5. Adicione um campo (opcional): `email` (string) = e-mail do admin
+6. Clique em **Save**
+
+### 3. Fazer login no painel
+
+1. Acesse o painel administrativo (ex.: `/sys-admin-panel-7x9k/login`)
+2. Faça login com o **e-mail** e **senha** do usuário criado no Firebase Auth
+3. Se o UID estiver na coleção `admins`, o acesso será liberado
+
+## Adicionar mais administradores
+
+Repita os passos 1 e 2 para cada novo admin: crie o usuário no Firebase Auth e adicione um documento em `admins` com o ID = UID do usuário.
+
+## Deploy no Netlify
+
+Não é necessário configurar variáveis de ambiente para o painel admin. O login é feito diretamente com as credenciais do Firebase Auth. Basta garantir que o Firebase está configurado (`VITE_FIREBASE_*`).
 
 ## Observação
 
-As regras de segurança do Firestore exigem `request.auth != null` para operações de escrita em regiões, categorias e política de privacidade. O painel admin usa autenticação própria (usuário/senha), mas as requisições ao Firestore precisam de um usuário autenticado no Firebase Auth. Por isso, ao fazer login no painel, o sistema também autentica no Firebase com a conta configurada em `VITE_ADMIN_FIREBASE_EMAIL` e `VITE_ADMIN_FIREBASE_PASSWORD`.
+As regras do Firestore permitem que um usuário autenticado leia apenas seu próprio documento em `admins` (para verificar se é admin). A criação de novos admins é feita manualmente via Firebase Console.
