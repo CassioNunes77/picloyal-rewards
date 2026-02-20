@@ -60,6 +60,13 @@ const StoreDetailPage = () => {
       .then(([storeData, offers]) => {
         if (cancelled) return;
         if (storeData) {
+          const now = new Date();
+          const availableOffers = offers.filter((o) => {
+            if (!o.active) return false;
+            if (o.validFrom && o.validFrom > now) return false;
+            if (o.validUntil < now) return false;
+            return true;
+          });
           setStore({
             id: storeData.id!,
             name: storeData.name,
@@ -68,10 +75,10 @@ const StoreDetailPage = () => {
             hours: storeData.hours ?? "",
             phone: storeData.phone,
             isOpen: storeData.active,
-            offersCount: offers.filter((o) => o.active).length,
+            offersCount: availableOffers.length,
             image: storeData.photoURL,
           });
-          setStoreOffers(offers.filter((o) => o.active));
+          setStoreOffers(availableOffers);
         } else {
           setStore(null);
         }

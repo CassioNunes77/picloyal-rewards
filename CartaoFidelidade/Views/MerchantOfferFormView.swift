@@ -18,6 +18,8 @@ struct MerchantOfferFormView: View {
     @State private var description = ""
     @State private var discount = ""
     @State private var category = "geral"
+    @State private var startImmediate = true
+    @State private var validFrom = Date()
     @State private var validUntil = Date()
     @State private var pointsRequired = ""
     @State private var active = true
@@ -135,6 +137,54 @@ struct MerchantOfferFormView: View {
                         }
                     )
                     
+                    // Quando a oferta estará disponível
+                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "calendar.badge.clock")
+                                .font(.system(size: 14))
+                                .foregroundColor(.mutedForeground)
+                            Text("Quando a oferta estará disponível")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.cardForeground)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                            HStack(spacing: AppSpacing.lg) {
+                                Button(action: { startImmediate = true }) {
+                                    HStack(spacing: AppSpacing.xs) {
+                                        Image(systemName: startImmediate ? "checkmark.circle.fill" : "circle")
+                                            .foregroundColor(startImmediate ? .primary : .mutedForeground)
+                                        Text("Disponível ao salvar")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(.cardForeground)
+                                    }
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                
+                                Button(action: { startImmediate = false }) {
+                                    HStack(spacing: AppSpacing.xs) {
+                                        Image(systemName: !startImmediate ? "checkmark.circle.fill" : "circle")
+                                            .foregroundColor(!startImmediate ? .primary : .mutedForeground)
+                                        Text("Agendar data de início")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(.cardForeground)
+                                    }
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                            
+                            if !startImmediate {
+                                DatePicker("", selection: $validFrom, in: Date()..., displayedComponents: .date)
+                                    .datePickerStyle(.compact)
+                                    .disabled(loading)
+                            }
+                            
+                            Text(startImmediate ? "A oferta ficará visível assim que for salva" : "A oferta só aparecerá para clientes a partir da data escolhida")
+                                .font(.system(size: 12))
+                                .foregroundColor(.mutedForeground)
+                        }
+                    }
+                    
                     // Data de Validade
                     VStack(alignment: .leading, spacing: AppSpacing.sm) {
                         HStack(spacing: AppSpacing.sm) {
@@ -221,9 +271,11 @@ struct MerchantOfferFormView: View {
     }
     
     private var isFormValid: Bool {
-        !title.trimmingCharacters(in: .whitespaces).isEmpty &&
-        !description.trimmingCharacters(in: .whitespaces).isEmpty &&
-        validUntil >= Date()
+        guard !title.trimmingCharacters(in: .whitespaces).isEmpty,
+              !description.trimmingCharacters(in: .whitespaces).isEmpty,
+              validUntil >= Date() else { return false }
+        if !startImmediate { return validFrom >= Date() }
+        return true
     }
     
     private func submit() {
@@ -246,6 +298,7 @@ struct MerchantOfferFormView: View {
                     discount: discount.trimmingCharacters(in: .whitespaces).isEmpty ? nil : discount.trimmingCharacters(in: .whitespaces),
                     category: category,
                     validUntil: validUntil,
+                    validFrom: startImmediate ? nil : validFrom,
                     pointsRequired: pointsRequired.isEmpty ? nil : Int(pointsRequired),
                     active: active
                 )
@@ -286,6 +339,8 @@ struct MerchantOfferEditView: View {
     @State private var description = ""
     @State private var discount = ""
     @State private var category = "geral"
+    @State private var startImmediate = true
+    @State private var validFrom = Date()
     @State private var validUntil = Date()
     @State private var pointsRequired = ""
     @State private var active = true
@@ -404,6 +459,54 @@ struct MerchantOfferEditView: View {
                         }
                     )
                     
+                    // Quando a oferta estará disponível
+                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "calendar.badge.clock")
+                                .font(.system(size: 14))
+                                .foregroundColor(.mutedForeground)
+                            Text("Quando a oferta estará disponível")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.cardForeground)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                            HStack(spacing: AppSpacing.lg) {
+                                Button(action: { startImmediate = true }) {
+                                    HStack(spacing: AppSpacing.xs) {
+                                        Image(systemName: startImmediate ? "checkmark.circle.fill" : "circle")
+                                            .foregroundColor(startImmediate ? .primary : .mutedForeground)
+                                        Text("Disponível ao salvar")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(.cardForeground)
+                                    }
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                
+                                Button(action: { startImmediate = false }) {
+                                    HStack(spacing: AppSpacing.xs) {
+                                        Image(systemName: !startImmediate ? "checkmark.circle.fill" : "circle")
+                                            .foregroundColor(!startImmediate ? .primary : .mutedForeground)
+                                        Text("Agendar data de início")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(.cardForeground)
+                                    }
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                            
+                            if !startImmediate {
+                                DatePicker("", selection: $validFrom, in: Date()..., displayedComponents: .date)
+                                    .datePickerStyle(.compact)
+                                    .disabled(loading)
+                            }
+                            
+                            Text(startImmediate ? "A oferta ficará visível assim que for salva" : "A oferta só aparecerá para clientes a partir da data escolhida")
+                                .font(.system(size: 12))
+                                .foregroundColor(.mutedForeground)
+                        }
+                    }
+                    
                     // Data de Validade
                     VStack(alignment: .leading, spacing: AppSpacing.sm) {
                         HStack(spacing: AppSpacing.sm) {
@@ -497,6 +600,8 @@ struct MerchantOfferEditView: View {
             description = offer.description
             discount = offer.discount ?? ""
             category = offer.category
+            startImmediate = offer.validFrom == nil
+            validFrom = offer.validFrom ?? Date()
             validUntil = offer.validUntil
             pointsRequired = offer.pointsRequired.map { "\($0)" } ?? ""
             active = offer.active
@@ -527,9 +632,11 @@ struct MerchantOfferEditView: View {
     }
     
     private var isFormValid: Bool {
-        !title.trimmingCharacters(in: .whitespaces).isEmpty &&
-        !description.trimmingCharacters(in: .whitespaces).isEmpty &&
-        validUntil >= Date()
+        guard !title.trimmingCharacters(in: .whitespaces).isEmpty,
+              !description.trimmingCharacters(in: .whitespaces).isEmpty,
+              validUntil >= Date() else { return false }
+        if !startImmediate { return validFrom >= Date() }
+        return true
     }
     
     private func submit() {
@@ -552,6 +659,8 @@ struct MerchantOfferEditView: View {
                     discount: discount.trimmingCharacters(in: .whitespaces).isEmpty ? nil : discount.trimmingCharacters(in: .whitespaces),
                     category: category,
                     validUntil: validUntil,
+                    validFrom: startImmediate ? nil : validFrom,
+                    validFromDelete: startImmediate ? true : nil,
                     pointsRequired: pointsRequired.isEmpty ? nil : Int(pointsRequired),
                     active: active
                 )

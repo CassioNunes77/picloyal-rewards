@@ -1,4 +1,4 @@
-import { doc, collection, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, Timestamp } from "firebase/firestore";
+import { doc, collection, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, Timestamp, deleteField } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import { getStoresByCity } from "./merchantsService";
 
@@ -13,6 +13,7 @@ export interface OfferData {
   discount?: string;
   category: string;
   validUntil: Date;
+  validFrom?: Date;
   pointsRequired?: number;
   active: boolean;
   createdAt: Date;
@@ -27,6 +28,7 @@ export interface OfferDataFirestore {
   discount?: string;
   category: string;
   validUntil: Timestamp;
+  validFrom?: Timestamp;
   pointsRequired?: number;
   active: boolean;
   createdAt: Timestamp;
@@ -48,6 +50,7 @@ function toDate(value: any): Date {
  * Converte dados do Firestore para OfferData (conversão defensiva)
  */
 function firestoreToOfferData(docId: string, data: any): OfferData {
+  const validFromVal = data?.validFrom;
   return {
     id: docId,
     storeId: String(data?.storeId ?? ""),
@@ -57,6 +60,7 @@ function firestoreToOfferData(docId: string, data: any): OfferData {
     discount: data?.discount != null ? String(data.discount) : undefined,
     category: String(data?.category ?? "geral"),
     validUntil: toDate(data?.validUntil),
+    validFrom: validFromVal ? toDate(validFromVal) : undefined,
     pointsRequired: typeof data?.pointsRequired === "number" ? data.pointsRequired : undefined,
     active: data?.active !== false,
     createdAt: toDate(data?.createdAt),
@@ -96,6 +100,9 @@ export async function createOffer(
     if (offerData.pointsRequired !== undefined) {
       offerFirestoreData.pointsRequired = offerData.pointsRequired;
     }
+    if (offerData.validFrom !== undefined) {
+      offerFirestoreData.validFrom = Timestamp.fromDate(offerData.validFrom);
+    }
 
     const docRef = await addDoc(offersRef, offerFirestoreData);
     console.log("✅ [offersService] Oferta criada com sucesso:", docRef.id);
@@ -122,19 +129,21 @@ export async function getOffersByCity(
     const stores = await getStoresByCity(cityFilter);
     const result: Array<{ offer: OfferData; storeId: string; storeName: string; storeAddress: string }> = [];
 
+    const now = new Date();
     for (const store of stores) {
       const storeId = store.id;
       if (!storeId) continue;
       const offers = await getStoreOffers(storeId);
       for (const offer of offers) {
-        if (offer.active) {
-          result.push({
-            offer,
-            storeId,
-            storeName: store.name,
-            storeAddress: store.address,
-          });
-        }
+        if (!offer.active) continue;
+        if (offer.validFrom && offer.validFrom > now) continue;
+        if (offer.validUntil < now) continue;
+        result.push({
+          offer,
+          storeId,
+          storeName: store.name,
+          storeAddress: store.address,
+        });
       }
     }
 
@@ -256,6 +265,9 @@ export async function updateOffer(
     if (offerData.validUntil !== undefined) updateData.validUntil = Timestamp.fromDate(offerData.validUntil);
     if (offerData.pointsRequired !== undefined) updateData.pointsRequired = offerData.pointsRequired;
     if (offerData.active !== undefined) updateData.active = offerData.active;
+    if (offerData.validFrom !== undefined) {
+      updateData.validFrom = offerData.validFrom ? Timestamp.fromDate(offerData.validFrom) : deleteField();
+    }
 
     await updateDoc(offerRef, updateData);
     console.log("✅ [offersService] Oferta atualizada com sucesso:", offerId);

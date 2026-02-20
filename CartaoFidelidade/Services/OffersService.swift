@@ -18,6 +18,7 @@ struct FirebaseOffer: Identifiable, Codable {
     let discount: String?
     let category: String
     let validUntil: Date
+    let validFrom: Date?
     let pointsRequired: Int?
     let active: Bool
     let createdAt: Date
@@ -61,6 +62,9 @@ class OffersService {
         if let pointsRequired = offerData.pointsRequired {
             offerDataDict["pointsRequired"] = pointsRequired
         }
+        if let validFrom = offerData.validFrom {
+            offerDataDict["validFrom"] = Timestamp(date: validFrom)
+        }
         
         do {
             let docRef = try await offersRef.addDocument(data: offerDataDict)
@@ -80,7 +84,10 @@ class OffersService {
         for store in stores {
             do {
                 let offers = try await getStoreOffers(storeId: store.id)
+                let now = Date()
                 for offer in offers where offer.active {
+                    if let vf = offer.validFrom, vf > now { continue }
+                    if offer.validUntil < now { continue }
                     result.append((offer, store.id, store.name, store.address))
                 }
             } catch {
@@ -168,6 +175,11 @@ class OffersService {
         if let active = offerData.active {
             updateData["active"] = active
         }
+        if offerData.validFromDelete == true {
+            updateData["validFrom"] = FieldValue.delete()
+        } else if let validFrom = offerData.validFrom {
+            updateData["validFrom"] = Timestamp(date: validFrom)
+        }
         
         do {
             try await offerRef.updateData(updateData)
@@ -225,6 +237,7 @@ class OffersService {
         }()
 
         let validUntil = dateFromFirestore(data["validUntil"])
+        let validFrom = dateFromFirestoreOptional(data["validFrom"])
         let createdAt = dateFromFirestore(data["createdAt"])
         let updatedAt = dateFromFirestore(data["updatedAt"])
 
@@ -237,6 +250,7 @@ class OffersService {
             discount: discount,
             category: category,
             validUntil: validUntil,
+            validFrom: validFrom,
             pointsRequired: pointsRequired,
             active: active,
             createdAt: createdAt,
@@ -257,6 +271,11 @@ class OffersService {
         }
         return Date()
     }
+
+    private func dateFromFirestoreOptional(_ value: Any?) -> Date? {
+        guard value != nil else { return nil }
+        return dateFromFirestore(value)
+    }
 }
 
 /// Estrutura para dados de entrada ao criar uma oferta
@@ -266,17 +285,21 @@ struct OfferData {
     let discount: String?
     let category: String
     let validUntil: Date
+    let validFrom: Date?
     let pointsRequired: Int?
     let active: Bool
 }
 
 /// Estrutura para dados de atualização de uma oferta (todos os campos são opcionais)
+/// validFrom = nil mantém o valor atual; use validFromDelete = true para remover (voltar a "disponível ao salvar")
 struct OfferUpdateData {
     let title: String?
     let description: String?
     let discount: String?
     let category: String?
     let validUntil: Date?
+    let validFrom: Date?
+    let validFromDelete: Bool?
     let pointsRequired: Int?
     let active: Bool?
     
@@ -286,6 +309,8 @@ struct OfferUpdateData {
         discount: String? = nil,
         category: String? = nil,
         validUntil: Date? = nil,
+        validFrom: Date? = nil,
+        validFromDelete: Bool? = nil,
         pointsRequired: Int? = nil,
         active: Bool? = nil
     ) {
@@ -294,6 +319,8 @@ struct OfferUpdateData {
         self.discount = discount
         self.category = category
         self.validUntil = validUntil
+        self.validFrom = validFrom
+        self.validFromDelete = validFromDelete
         self.pointsRequired = pointsRequired
         self.active = active
     }

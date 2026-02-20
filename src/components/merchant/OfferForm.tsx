@@ -40,6 +40,8 @@ export default function OfferForm({ storeId, merchantId, offer, onCancel, onSucc
   const [description, setDescription] = useState("");
   const [discount, setDiscount] = useState("");
   const [category, setCategory] = useState("geral");
+  const [startImmediate, setStartImmediate] = useState(true);
+  const [validFrom, setValidFrom] = useState("");
   const [validUntil, setValidUntil] = useState("");
   const [pointsRequired, setPointsRequired] = useState("");
   const [active, setActive] = useState(true);
@@ -52,6 +54,9 @@ export default function OfferForm({ storeId, merchantId, offer, onCancel, onSucc
       setDescription(offer.description);
       setDiscount(offer.discount ?? "");
       setCategory(offer.category);
+      setStartImmediate(!(offer as { validFrom?: Date }).validFrom);
+      const vf = (offer as { validFrom?: Date }).validFrom;
+      setValidFrom(vf ? (vf instanceof Date ? vf.toISOString().split("T")[0] : new Date(vf).toISOString().split("T")[0]) : "");
       setValidUntil(
         offer.validUntil instanceof Date
           ? offer.validUntil.toISOString().split("T")[0]
@@ -64,6 +69,8 @@ export default function OfferForm({ storeId, merchantId, offer, onCancel, onSucc
       setDescription("");
       setDiscount("");
       setCategory("geral");
+      setStartImmediate(true);
+      setValidFrom("");
       setValidUntil("");
       setPointsRequired("");
       setActive(true);
@@ -85,15 +92,30 @@ export default function OfferForm({ storeId, merchantId, offer, onCancel, onSucc
       return;
     }
 
+    if (!startImmediate && !validFrom) {
+      toast.error("Informe a data de início da oferta");
+      return;
+    }
+
     const validUntilDate = new Date(validUntil);
     if (validUntilDate < new Date()) {
       toast.error("A data de validade deve ser futura");
       return;
     }
 
+    const validFromDate = !startImmediate && validFrom ? new Date(validFrom) : undefined;
+    if (validFromDate && validFromDate < new Date()) {
+      toast.error("A data de início deve ser hoje ou futura");
+      return;
+    }
+    if (validFromDate && validFromDate > validUntilDate) {
+      toast.error("A data de início deve ser anterior à data de validade");
+      return;
+    }
+
     setLoading(true);
     try {
-      const offerData = {
+      const offerData: Record<string, unknown> = {
         title: title.trim(),
         description: description.trim(),
         discount: discount.trim() || undefined,
@@ -102,11 +124,19 @@ export default function OfferForm({ storeId, merchantId, offer, onCancel, onSucc
         pointsRequired: pointsRequired ? parseInt(pointsRequired, 10) : undefined,
         active,
       };
+      if (startImmediate) {
+        if (isEdit) offerData.validFrom = null;
+      } else {
+        offerData.validFrom = validFromDate;
+      }
 
       if (isEdit && offer?.id) {
-        await updateOffer(offer.id, merchantId, offerData);
+        await updateOffer(offer.id, merchantId, offerData as Parameters<typeof updateOffer>[2]);
       } else {
-        await createOffer(storeId, merchantId, offerData);
+        const createData = { ...offerData };
+        delete createData.validFrom;
+        if (!startImmediate) createData.validFrom = validFromDate;
+        await createOffer(storeId, merchantId, createData as Parameters<typeof createOffer>[2]);
       }
       onSuccess();
     } catch (error: any) {
@@ -212,6 +242,53 @@ export default function OfferForm({ storeId, merchantId, offer, onCancel, onSucc
           />
         </div>
 
+        {/* Início da oferta */}
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Quando a oferta estará disponível
+          </Label>
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="startType"
+                checked={startImmediate}
+                onChange={() => setStartImmediate(true)}
+                disabled={loading}
+                className="rounded-full border-border"
+              />
+              <span className="text-sm font-medium">Disponível ao salvar</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="startType"
+                checked={!startImmediate}
+                onChange={() => setStartImmediate(false)}
+                disabled={loading}
+                className="rounded-full border-border"
+              />
+              <span className="text-sm font-medium">Agendar data de início</span>
+            </label>
+          </div>
+          {!startImmediate && (
+            <Input
+              type="date"
+              value={validFrom}
+              onChange={(e) => setValidFrom(e.target.value)}
+              min={minDate}
+              disabled={loading}
+              className="mt-2"
+            />
+          )}
+          <p className="text-xs text-muted-foreground mt-1">
+            {startImmediate
+              ? "A oferta ficará visível assim que for salva"
+              : "A oferta só aparecerá para clientes a partir da data escolhida"}
+          </p>
+        </div>
+
         {/* Data de Validade */}
         <div className="space-y-2">
           <Label htmlFor="validUntil" className="flex items-center gap-2">
@@ -260,7 +337,13 @@ export default function OfferForm({ storeId, merchantId, offer, onCancel, onSucc
             </Button>
             <Button
               type="submit"
-              disabled={loading || !title.trim() || !description.trim() || !validUntil}
+              disabled={
+                loading ||
+                !title.trim() ||
+                !description.trim() ||
+                !validUntil ||
+                (!startImmediate && !validFrom)
+              }
               className="flex-1 gradient-primary text-primary-foreground hover:opacity-95"
             >
               {loading
