@@ -32,7 +32,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
       <div className="relative w-80 h-80 sm:w-96 sm:h-96 md:w-[400px] md:h-[400px] flex items-center justify-center">
         <img 
           src="/logo-core-plus.png" 
-          alt="Core+" 
+          alt="" 
           className="w-full h-full object-contain animate-pulse"
           style={{
             imageRendering: 'auto',
