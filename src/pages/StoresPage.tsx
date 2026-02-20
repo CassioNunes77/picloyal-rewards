@@ -201,7 +201,7 @@ const StoresPage = () => {
     return (
       <div className="min-h-full bg-background">
         <div className="pb-4">
-          <h1 className="text-xl font-bold text-card-foreground">Lojas Parceiras</h1>
+          <h1 className="text-xl font-bold text-card-foreground">Lojas</h1>
         </div>
         <div className="mb-4">{searchBar}</div>
         <div className="pt-2">
@@ -224,7 +224,7 @@ const StoresPage = () => {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               {filteredStores.map((store, index) => (
                 <div key={store.id}>
                   <button
@@ -301,7 +301,7 @@ const StoresPage = () => {
             <Link to="/home" className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20 transition-all duration-200 active:scale-90 active:bg-primary-foreground/30">
               <ChevronRight className="h-5 w-5 text-primary-foreground rotate-180" />
             </Link>
-            <h1 className="text-xl font-bold text-primary-foreground flex-1">Lojas Parceiras</h1>
+            <h1 className="text-xl font-bold text-primary-foreground flex-1">Lojas</h1>
           </div>
           <div className="relative">{searchBar}</div>
         </header>
