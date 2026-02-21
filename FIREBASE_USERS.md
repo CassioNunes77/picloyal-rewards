@@ -24,6 +24,9 @@ Cada documento na coleção `users` representa um usuário autenticado e possui 
   // Dados adicionais do perfil
   phone?: string;                 // Telefone adicional (pode ser diferente do phoneNumber)
   
+  // Plano da conta: "free" (padrão para novos usuários) ou "premium"
+  plan?: "free" | "premium";
+  
   // Metadados
   createdAt: Timestamp;           // Data de criação do documento
   updatedAt: Timestamp;           // Data da última atualização
@@ -41,6 +44,7 @@ Cada documento na coleção `users` representa um usuário autenticado e possui 
   "photoURL": "https://example.com/photo.jpg",
   "phoneNumber": "+5511999999999",
   "phone": "+5511999999999",
+  "plan": "free",
   "createdAt": "2026-01-27T10:00:00Z",
   "updatedAt": "2026-01-27T15:30:00Z",
   "lastLoginAt": "2026-01-27T15:30:00Z"

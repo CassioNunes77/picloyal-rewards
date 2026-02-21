@@ -21,6 +21,7 @@ struct SettingsScreen: View {
     @State private var showDeleteAccountError = false
     @State private var deleteAccountErrorMessage = ""
     @State private var showPrivacyPolicy = false
+    @State private var userPlan: UserPlan = .free
     
     var body: some View {
         GeometryReader { geo in
@@ -98,9 +99,9 @@ struct SettingsScreen: View {
                                     .font(.appCaption)
                                     .foregroundColor(.mutedForeground)
                                 
-                                Text("Membro VIP ⭐")
+                                Text(userPlan == .premium ? "Premium ⭐" : "Free")
                                     .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(.primary)
+                                    .foregroundColor(userPlan == .premium ? Color(red: 0.96, green: 0.76, blue: 0.26) : .mutedForeground)
                             }
                             
                             Spacer()
@@ -288,6 +289,14 @@ struct SettingsScreen: View {
         }
         .onAppear {
             Task { await DarkModeManager.shared.loadFromFirebase() }
+        }
+        .task {
+            guard let userId = Auth.auth().currentUser?.uid else { return }
+            do {
+                userPlan = try await UsersService.shared.getPlan(userId: userId)
+            } catch {
+                userPlan = .free
+            }
         }
     }
     

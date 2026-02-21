@@ -45,6 +45,7 @@ struct ProfileView: View {
     @State private var loadingAddressCities = false
     @State private var saving = false
     @State private var errorMessage: String?
+    @State private var userPlan: UserPlan = .free
     
     private var displayNameValue: String {
         !profileDisplayName.isEmpty ? profileDisplayName : userDisplayName
@@ -57,6 +58,18 @@ struct ProfileView: View {
     ]
     
     var body: some View {
+        profileViewContent
+            .task {
+                guard let userId = Auth.auth().currentUser?.uid else { return }
+                do {
+                    userPlan = try await UsersService.shared.getPlan(userId: userId)
+                } catch {
+                    userPlan = .free
+                }
+            }
+    }
+    
+    private var profileViewContent: some View {
         ZStack {
             Color.appBackground
                 .ignoresSafeArea()
@@ -155,9 +168,9 @@ struct ProfileView: View {
                                     .foregroundStyle(Color.heroForeground)
                                 
                                 HStack(spacing: AppSpacing.sm) {
-                                    Text("Membro VIP ⭐")
+                                    Text(userPlan == .premium ? "Premium ⭐" : "Free")
                                         .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(.heroForeground)
+                                        .foregroundColor(userPlan == .premium ? Color(red: 0.96, green: 0.76, blue: 0.26) : .heroForeground)
                                         .padding(.horizontal, AppSpacing.md)
                                         .padding(.vertical, 4)
                                         .background(Color.heroOverlay)

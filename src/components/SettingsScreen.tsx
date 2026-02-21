@@ -25,10 +25,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth, AUTH_REQUIRES_RECENT_LOGIN } from "@/contexts/AuthContext";
+import { getUserData } from "@/services/usersService";
 import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDarkMode } from "@/hooks/use-dark-mode";
@@ -106,6 +107,16 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
   const displayName = user?.displayName ?? user?.email?.split("@")[0] ?? "Usuário";
   const userEmail = user?.email ?? "";
   const isGoogleUser = user?.providerData?.some((p) => p.providerId === "google.com") ?? false;
+  const [userPlan, setUserPlan] = useState<"free" | "premium">("free");
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    getUserData(user.uid)
+      .then((data) => {
+        setUserPlan(data?.plan === "premium" ? "premium" : "free");
+      })
+      .catch(() => {});
+  }, [user?.uid]);
 
   const handleToggleNotifications = (checked: boolean) => {
     setNotifications(checked);
@@ -208,7 +219,9 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
             <div className="flex-1 text-left">
               <h2 className="text-lg font-semibold text-card-foreground">{displayName}</h2>
               <p className="text-sm text-muted-foreground">{userEmail || "—"}</p>
-              <p className="text-xs text-primary font-medium mt-1">Membro VIP ⭐</p>
+              <p className={`text-xs font-medium mt-1 ${userPlan === "premium" ? "text-amber-600" : "text-muted-foreground"}`}>
+                {userPlan === "premium" ? "Premium ⭐" : "Free"}
+              </p>
             </div>
             <ChevronRight className="h-5 w-5 text-muted-foreground" />
           </button>
@@ -387,7 +400,9 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
                 <div className="flex-1 text-left">
                   <h2 className="text-lg font-semibold text-card-foreground">{displayName}</h2>
                   <p className="text-sm text-muted-foreground">{userEmail || "—"}</p>
-                  <p className="text-xs text-primary font-medium mt-1">Membro VIP ⭐</p>
+                  <p className={`text-xs font-medium mt-1 ${userPlan === "premium" ? "text-amber-600" : "text-muted-foreground"}`}>
+                {userPlan === "premium" ? "Premium ⭐" : "Free"}
+              </p>
                 </div>
                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
               </button>

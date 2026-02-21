@@ -9,6 +9,8 @@ const COLLECTION_NAME = "users";
  */
 export type UserRole = "user" | "merchant";
 
+export type UserPlan = "free" | "premium";
+
 export interface UserData {
   // Dados básicos do Firebase Auth
   uid: string;
@@ -24,6 +26,9 @@ export interface UserData {
   
   // Role do usuário (user ou merchant)
   role?: UserRole;
+  
+  // Plano da conta: free (padrão para novos usuários) ou premium
+  plan?: UserPlan;
   
   // Preferências do usuário
   preferences?: {
@@ -114,6 +119,7 @@ function firestoreToUserData(docId: string, data: any): UserData {
       address: data.address || undefined,
       birthDate: data.birthDate || undefined,
       role: data.role || "user",
+      plan: (data.plan === "premium" ? "premium" : "free") as UserPlan,
       preferences: data.preferences || undefined,
       createdAt,
       updatedAt,
@@ -143,6 +149,7 @@ function userDataToFirestore(userData: Partial<UserData>): Partial<UserDataFires
   if (userData.address !== undefined) result.address = userData.address;
   if (userData.birthDate !== undefined) result.birthDate = userData.birthDate;
   if (userData.role !== undefined) result.role = userData.role;
+  if (userData.plan !== undefined) result.plan = userData.plan;
   if (userData.preferences !== undefined) result.preferences = userData.preferences;
   if (userData.createdAt) {
     result.createdAt = userData.createdAt instanceof Timestamp 
@@ -186,6 +193,7 @@ export async function createOrUpdateUser(user: User): Promise<void> {
         displayName: user.displayName,
         photoURL: user.photoURL,
         phoneNumber: user.phoneNumber,
+        plan: "free",
         createdAt: now,
         updatedAt: now,
         lastLoginAt: now,

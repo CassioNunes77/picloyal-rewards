@@ -16,6 +16,7 @@ import {
   LogOut
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { getUserData } from "@/services/usersService";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -59,6 +60,7 @@ const ProfilePage = () => {
   const [loadingAddressCities, setLoadingAddressCities] = useState(false);
   const [tempPassword, setTempPassword] = useState("");
   const [saving, setSaving] = useState(false);
+  const [userPlan, setUserPlan] = useState<"free" | "premium">("free");
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, "");
@@ -97,6 +99,15 @@ const ProfilePage = () => {
         console.warn("Failed to load profile:", err);
       });
   }, [user, getProfile]);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    getUserData(user.uid)
+      .then((data) => {
+        setUserPlan(data?.plan === "premium" ? "premium" : "free");
+      })
+      .catch(() => {});
+  }, [user?.uid]);
 
   const userStats = [
     { label: "Pontos", value: "650", icon: Star, color: "text-primary" },
@@ -313,7 +324,9 @@ const ProfilePage = () => {
         </h2>
         <p className="text-sm text-muted-foreground mb-2">{user.email}</p>
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">Membro VIP ⭐</span>
+          <span className={`px-3 py-1 rounded-full text-xs font-medium ${userPlan === "premium" ? "bg-amber-500/20 text-amber-600" : "bg-muted text-muted-foreground"}`}>
+          {userPlan === "premium" ? "Premium ⭐" : "Free"}
+        </span>
           <span className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium">Desde 2023</span>
         </div>
       </div>

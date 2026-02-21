@@ -15,6 +15,12 @@ struct UserPreferences {
     var notifications: Bool?
 }
 
+/// Plano da conta: free (padrão) ou premium
+enum UserPlan: String {
+    case free
+    case premium
+}
+
 class UsersService {
     static let shared = UsersService()
     private let db = Firestore.firestore()
@@ -29,6 +35,17 @@ class UsersService {
         let snapshot = try await docRef.getDocument()
         guard snapshot.exists, let data = snapshot.data() else { return nil }
         return data
+    }
+    
+    /// Busca o plano do usuário (free ou premium)
+    /// Retorna .free se não houver plano definido
+    func getPlan(userId: String) async throws -> UserPlan {
+        guard let data = try await getUserData(userId: userId),
+              let planStr = data["plan"] as? String,
+              planStr == "premium" else {
+            return .free
+        }
+        return .premium
     }
     
     /// Busca preferência de modo escuro do Firebase
