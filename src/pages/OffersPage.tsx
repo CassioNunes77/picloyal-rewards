@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Tag, Clock, MapPin, Percent, Gift, Coffee, Pizza, Sparkles, ChevronRight, Search, Loader2, Crown } from "lucide-react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,6 +34,7 @@ function iconForCategory(category: string): "percent" | "gift" | "coffee" | "piz
 
 const OffersPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
@@ -103,7 +104,7 @@ const OffersPage = () => {
       .then((map) => { if (!cancelled) setRedemptionsMap(map); })
       .catch(() => { if (!cancelled) setRedemptionsMap({}); });
     return () => { cancelled = true; };
-  }, [user?.uid]);
+  }, [user?.uid, location.key]);
 
   const categories = [
     { id: "all", label: "Todas", icon: Tag },
@@ -216,7 +217,7 @@ const OffersPage = () => {
                 key={offer.id}
                 onClick={() => handleOfferClick(offer)}
                 className={`w-full text-left bg-card rounded-2xl p-4 shadow-md transition-all border border-border
-                  ${isRedeemed ? "opacity-70 grayscale-[0.4]" : "hover:shadow-lg active:scale-[0.98]"}`}
+                  ${isRedeemed ? "opacity-60 grayscale-[0.5] saturate-50" : "hover:shadow-lg active:scale-[0.98]"}`}
               >
                 <div className="flex gap-4">
                   <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl ${
@@ -229,9 +230,16 @@ const OffersPage = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-semibold text-card-foreground">{offer.title}</h3>
-                      <span className="shrink-0 flex items-center justify-center rounded-lg px-2 py-1 gradient-secondary text-secondary-foreground font-bold text-xs whitespace-nowrap">
-                        {offer.discount}
-                      </span>
+                      <div className="shrink-0 flex items-center gap-1">
+                        {isRedeemed && (
+                          <span className="rounded-md px-1.5 py-0.5 bg-muted text-muted-foreground text-[10px] font-medium">
+                            Resgatada
+                          </span>
+                        )}
+                        <span className="flex items-center justify-center rounded-lg px-2 py-1 gradient-secondary text-secondary-foreground font-bold text-xs whitespace-nowrap">
+                          {offer.discount}
+                        </span>
+                      </div>
                     </div>
                     <p className="text-sm text-muted-foreground mt-0.5">{offer.description}</p>
                     <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
@@ -349,7 +357,7 @@ const OffersPage = () => {
                     className={`w-full text-left bg-card rounded-2xl p-4 shadow-md overflow-hidden
                              transition-all duration-300 border-2
                              ${isRedeemed
-                               ? "opacity-70 grayscale-[0.4] border-border"
+                               ? "opacity-60 grayscale-[0.5] saturate-50 border-muted-foreground/30"
                                : "hover:shadow-lg active:scale-[0.98] border-transparent hover:border-primary/20"
                              }`}
                   >
@@ -369,7 +377,7 @@ const OffersPage = () => {
 
                       {/* Content */}
                       <div className="flex-1 min-w-0 overflow-hidden">
-                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                            <div className="flex items-start justify-between gap-2 mb-1.5">
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5 mb-0.5 min-w-0">
                               <h3 className="font-semibold text-card-foreground text-sm truncate min-w-0">
@@ -378,6 +386,11 @@ const OffersPage = () => {
                               {offer.isNew && (
                                 <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-destructive text-destructive-foreground text-[10px] font-bold whitespace-nowrap">
                                   NOVO
+                                </span>
+                              )}
+                              {isRedeemed && (
+                                <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground text-[10px] font-medium whitespace-nowrap">
+                                  Resgatada
                                 </span>
                               )}
                             </div>

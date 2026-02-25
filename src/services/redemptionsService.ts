@@ -142,24 +142,32 @@ export async function getMerchantRedemptions(
 
 /**
  * Retorna mapa offerId -> status dos resgates do usuário (para exibir na lista de ofertas).
- * Usa o resgate mais recente por oferta.
+ * Usa o resgate mais recente por oferta. Query sem orderBy para não exigir índice composto.
  */
 export async function getUserRedemptionsMap(userId: string): Promise<Record<string, RedemptionStatus>> {
   if (!firestore) return {};
   try {
     const q = query(
       collection(firestore, REDEMPTIONS_COLLECTION),
-      where("userId", "==", userId),
-      orderBy("createdAt", "desc")
+      where("userId", "==", userId)
     );
     const snapshot = await getDocs(q);
-    const map: Record<string, RedemptionStatus> = {};
+    const byOffer: Array<{ offerId: string; status: RedemptionStatus; createdAt: Date }> = [];
     for (const docSnap of snapshot.docs) {
       const d = docSnap.data();
       const offerId = String(d?.offerId ?? "");
-      if (offerId && !(offerId in map)) {
-        map[offerId] = (d?.status as RedemptionStatus) ?? "pending";
-      }
+      if (!offerId) continue;
+      const createdAt = d?.createdAt?.toDate?.() ?? new Date(0);
+      byOffer.push({
+        offerId,
+        status: (d?.status as RedemptionStatus) ?? "pending",
+        createdAt,
+      });
+    }
+    byOffer.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    const map: Record<string, RedemptionStatus> = {};
+    for (const item of byOffer) {
+      if (!(item.offerId in map)) map[item.offerId] = item.status;
     }
     return map;
   } catch (error) {
