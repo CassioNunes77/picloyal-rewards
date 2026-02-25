@@ -38,7 +38,7 @@ struct OfferDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                // Card principal - similar à versão WEB
+                // Card principal - similar à versão WEB (visual desabilitado quando resgatada)
                 VStack(alignment: .leading, spacing: AppSpacing.md) {
                     // Header com ícone e título/desconto
                     HStack(alignment: .top, spacing: AppSpacing.md) {
@@ -143,6 +143,9 @@ struct OfferDetailView: View {
                         .stroke(Color.primary.opacity(0.1), lineWidth: 1)
                 )
                 .appShadow(AppShadow.lg)
+                .opacity(redemptionStatus == .confirmed ? 0.65 : 1)
+                .saturation(redemptionStatus == .confirmed ? 0.6 : 1)
+                .allowsHitTesting(redemptionStatus != .confirmed)
 
                 // Botão Usar oferta / Oferta Solicitada / Oferta Resgatada
                 offerButton
@@ -184,10 +187,14 @@ struct OfferDetailView: View {
         } else if redemptionStatus == .confirmed {
             Text("Oferta Resgatada")
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.primaryForeground)
+                .foregroundColor(.secondary)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, AppSpacing.md)
-                .background(Color.green.opacity(0.8))
+                .background(Color.gray.opacity(0.25))
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppRadius.lg)
+                        .stroke(Color.gray.opacity(0.4), lineWidth: 1)
+                )
                 .cornerRadius(AppRadius.lg)
         } else if redemptionStatus == .pending {
             Text("Oferta Solicitada")

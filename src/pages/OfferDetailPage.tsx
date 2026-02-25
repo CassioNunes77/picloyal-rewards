@@ -107,9 +107,17 @@ const OfferDetailPage = () => {
     }
   };
 
+  const isRedeemed = redemptionStatus === "confirmed";
+
   const detailContent = (
     <>
-      <div className="bg-card rounded-2xl shadow-lg overflow-hidden border border-border mb-6">
+      <div
+        className={`
+          bg-card rounded-2xl shadow-lg overflow-hidden border border-border mb-6
+          transition-all duration-300
+          ${isRedeemed ? "opacity-70 grayscale-[0.4] pointer-events-none" : ""}
+        `}
+      >
         <div className="p-6">
           <div className="flex gap-4 mb-4">
             <div
@@ -171,7 +179,7 @@ const OfferDetailPage = () => {
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : redemptionStatus === "confirmed" ? (
-        <div className="w-full py-4 rounded-xl bg-green-500/80 text-white font-semibold text-base text-center">
+        <div className="w-full py-4 rounded-xl bg-muted text-muted-foreground font-semibold text-base text-center border border-border">
           Oferta Resgatada
         </div>
       ) : redemptionStatus === "pending" ? (
