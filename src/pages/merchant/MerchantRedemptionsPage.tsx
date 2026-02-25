@@ -7,6 +7,7 @@ import {
   confirmRedemption,
   type RedemptionData,
 } from "@/services/redemptionsService";
+import { createNotification } from "@/services/notificationsService";
 import {
   Select,
   SelectContent,
@@ -77,6 +78,14 @@ export default function MerchantRedemptionsPage() {
           x.id === r.id ? { ...x, status: "confirmed" as const } : x
         )
       );
+      await createNotification({
+        userId: r.userId,
+        type: "reward",
+        title: "Oferta Resgatada!",
+        message: `Sua oferta "${r.offerTitle}" foi confirmada em ${r.storeName}. Apresente o cupom no estabelecimento.`,
+        icon: "gift",
+        data: { offerId: r.offerId, storeId: r.storeId },
+      });
     } catch (err) {
       console.error("Erro ao confirmar resgate:", err);
     } finally {

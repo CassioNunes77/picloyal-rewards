@@ -2,102 +2,18 @@
 //  NotificationsView.swift
 //  CartaoFidelidade
 //
-//  Tela de Notificações
+//  Tela de Notificações (dados do Firestore)
 //
 
 import SwiftUI
-
-struct Notification: Identifiable {
-    let id: Int
-    let title: String
-    let message: String
-    let time: String
-    let icon: String
-    let type: NotificationType
-    let isRead: Bool
-}
-
-enum NotificationType {
-    case offer
-    case points
-    case reward
-    case system
-    
-    var color: Color {
-        switch self {
-        case .offer:
-            return .primary
-        case .points:
-            return .secondary
-        case .reward:
-            return Color(red: 0.2, green: 0.8, blue: 0.4)
-        case .system:
-            return .mutedForeground
-        }
-    }
-}
+import FirebaseAuth
 
 struct NotificationsView: View {
     @Binding var activeTab: String
-    @State private var showToast = false
+    @State private var notifications: [FirebaseNotification] = []
+    @State private var loading = true
+    @State private var isToastVisible = false
     @State private var toastMessage = ""
-    
-    @State private var notifications = [
-        Notification(
-            id: 1,
-            title: "Nova Oferta Disponível!",
-            message: "20% OFF em todas as bebidas do Café Central",
-            time: "Há 5 minutos",
-            icon: "tag.fill",
-            type: .offer,
-            isRead: false
-        ),
-        Notification(
-            id: 2,
-            title: "Pontos Adicionados",
-            message: "Você ganhou 50 pontos pela sua última compra",
-            time: "Há 1 hora",
-            icon: "star.fill",
-            type: .points,
-            isRead: false
-        ),
-        Notification(
-            id: 3,
-            title: "Recompensa Disponível",
-            message: "Você pode resgatar: 1 Café Grátis",
-            time: "Há 2 horas",
-            icon: "gift.fill",
-            type: .reward,
-            isRead: true
-        ),
-        Notification(
-            id: 4,
-            title: "Lembrete de Oferta",
-            message: "A oferta 'Compre 2, Leve 3' expira em 2 dias",
-            time: "Há 3 horas",
-            icon: "clock.fill",
-            type: .offer,
-            isRead: true
-        ),
-        Notification(
-            id: 5,
-            title: "Bem-vindo!",
-            message: "Obrigado por se juntar ao nosso programa de fidelidade",
-            time: "Há 1 dia",
-            icon: "checkmark.circle.fill",
-            type: .system,
-            isRead: true
-        ),
-        Notification(
-            id: 6,
-            title: "Pontos em Dobro",
-            message: "Esta semana você ganha o dobro de pontos em todas as compras",
-            time: "Há 2 dias",
-            icon: "sparkles",
-            type: .points,
-            isRead: true
-        )
-    ]
     
     var unreadCount: Int {
         notifications.filter { !$0.isRead }.count
@@ -112,7 +28,6 @@ struct NotificationsView: View {
                 // Header
                 ZStack(alignment: .top) {
                     VStack(spacing: 0) {
-                        // Back button and title
                         HStack {
                             Button(action: {
                                 withAnimation {
@@ -154,12 +69,14 @@ struct NotificationsView: View {
                             
                             Spacer()
                             
-                            Button(action: {
-                                markAllAsRead()
-                            }) {
-                                Text("Marcar todas")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(.heroForegroundMuted)
+                            if unreadCount > 0 {
+                                Button(action: {
+                                    markAllAsRead()
+                                }) {
+                                    Text("Marcar todas")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(.heroForegroundMuted)
+                                }
                             }
                         }
                         .padding(.horizontal, AppSpacing.lg)
@@ -174,7 +91,17 @@ struct NotificationsView: View {
                 // Content
                 ScrollView {
                     VStack(spacing: AppSpacing.md) {
-                        if notifications.isEmpty {
+                        if loading {
+                            VStack(spacing: AppSpacing.md) {
+                                ProgressView()
+                                    .scaleEffect(1.5)
+                                    .padding(.top, AppSpacing.xl * 2)
+                                Text("Carregando notificações...")
+                                    .font(.appBody)
+                                    .foregroundColor(.mutedForeground)
+                            }
+                            .padding(.top, AppSpacing.xl * 2)
+                        } else if notifications.isEmpty {
                             VStack(spacing: AppSpacing.md) {
                                 Image(systemName: "bell.slash")
                                     .font(.system(size: 48))
@@ -191,7 +118,7 @@ struct NotificationsView: View {
                             .padding(.top, AppSpacing.xl * 2)
                         } else {
                             ForEach(Array(notifications.enumerated()), id: \.element.id) { index, notification in
-                                NotificationCard(notification: notification)
+                                NotificationCardView(notification: notification)
                                     .fadeIn(delay: 0.1 + Double(index) * 0.05)
                                     .onTapGesture {
                                         markAsRead(notification)
@@ -212,9 +139,12 @@ struct NotificationsView: View {
                 .clipShape(RoundedCorner(radius: AppRadius.xl, corners: [.topLeft, .topRight]))
                 .offset(y: -AppRadius.xl)
             }
+            .onAppear {
+                loadNotifications()
+            }
             
             // Toast
-            if showToast {
+            if isToastVisible {
                 VStack {
                     Spacer()
                     
@@ -228,71 +158,134 @@ struct NotificationsView: View {
                         .padding(.bottom, 100)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
-                .animation(.easeInOut, value: showToast)
+                .animation(.easeInOut, value: isToastVisible)
             }
         }
     }
     
-    private func markAsRead(_ notification: Notification) {
-        if let index = notifications.firstIndex(where: { $0.id == notification.id }) {
-            notifications[index] = Notification(
-                id: notification.id,
-                title: notification.title,
-                message: notification.message,
-                time: notification.time,
-                icon: notification.icon,
-                type: notification.type,
-                isRead: true
-            )
-            showToast(message: "Notificação marcada como lida")
+    private func loadNotifications() {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            loading = false
+            return
+        }
+        Task {
+            do {
+                let items = try await NotificationsService.shared.getNotifications(userId: userId)
+                await MainActor.run {
+                    notifications = items
+                    loading = false
+                }
+            } catch {
+                await MainActor.run {
+                    notifications = []
+                    loading = false
+                }
+            }
+        }
+    }
+    
+    private func markAsRead(_ notification: FirebaseNotification) {
+        guard let userId = Auth.auth().currentUser?.uid, !notification.isRead else { return }
+        Task {
+            do {
+                try await NotificationsService.shared.markAsRead(notificationId: notification.id, userId: userId)
+                await MainActor.run {
+                    if let index = notifications.firstIndex(where: { $0.id == notification.id }) {
+                        notifications[index] = FirebaseNotification(
+                            id: notification.id,
+                            userId: notification.userId,
+                            type: notification.type,
+                            title: notification.title,
+                            message: notification.message,
+                            isRead: true,
+                            createdAt: notification.createdAt,
+                            icon: notification.icon,
+                            data: notification.data
+                        )
+                    }
+                    displayToast("Notificação marcada como lida")
+                }
+            } catch {
+                await MainActor.run {
+                    displayToast("Erro ao marcar como lida")
+                }
+            }
         }
     }
     
     private func markAllAsRead() {
-        for index in notifications.indices {
-            notifications[index] = Notification(
-                id: notifications[index].id,
-                title: notifications[index].title,
-                message: notifications[index].message,
-                time: notifications[index].time,
-                icon: notifications[index].icon,
-                type: notifications[index].type,
-                isRead: true
-            )
+        guard let userId = Auth.auth().currentUser?.uid, unreadCount > 0 else { return }
+        Task {
+            do {
+                try await NotificationsService.shared.markAllAsRead(userId: userId)
+                await MainActor.run {
+                    notifications = notifications.map { n in
+                        FirebaseNotification(
+                            id: n.id,
+                            userId: n.userId,
+                            type: n.type,
+                            title: n.title,
+                            message: n.message,
+                            isRead: true,
+                            createdAt: n.createdAt,
+                            icon: n.icon,
+                            data: n.data
+                        )
+                    }
+                    displayToast("Todas as notificações foram marcadas como lidas")
+                }
+            } catch {
+                await MainActor.run {
+                    displayToast("Erro ao marcar todas como lidas")
+                }
+            }
         }
-        showToast(message: "Todas as notificações foram marcadas como lidas")
     }
     
-    private func showToast(message: String) {
+    private func displayToast(_ message: String) {
         toastMessage = message
         withAnimation {
-            showToast = true
+            isToastVisible = true
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             withAnimation {
-                showToast = false
+                isToastVisible = false
             }
         }
     }
 }
 
-struct NotificationCard: View {
-    let notification: Notification
+struct NotificationCardView: View {
+    let notification: FirebaseNotification
+    
+    private var typeColor: Color {
+        switch notification.type {
+        case .offer: return .primary
+        case .points: return .secondary
+        case .reward: return Color(red: 0.2, green: 0.8, blue: 0.4)
+        case .system: return .mutedForeground
+        }
+    }
+    
+    private var relativeTime: String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.locale = Locale(identifier: "pt_BR")
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: notification.createdAt, relativeTo: Date())
+    }
     
     var body: some View {
         HStack(spacing: AppSpacing.md) {
-            // Icon
             ZStack {
                 RoundedRectangle(cornerRadius: AppRadius.md)
-                    .fill(notification.type.color.opacity(0.1))
+                    .fill(typeColor.opacity(0.1))
                     .frame(width: 48, height: 48)
                 
-                Image(systemName: notification.icon)
-                    .foregroundColor(notification.type.color)
+                Image(systemName: notification.sfSymbol)
+                    .foregroundColor(typeColor)
                     .font(.system(size: 20))
             }
             
-            // Content
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text(notification.title)
@@ -303,7 +296,7 @@ struct NotificationCard: View {
                     
                     if !notification.isRead {
                         Circle()
-                            .fill(notification.type.color)
+                            .fill(typeColor)
                             .frame(width: 8, height: 8)
                     }
                 }
@@ -313,7 +306,7 @@ struct NotificationCard: View {
                     .foregroundColor(.mutedForeground)
                     .lineLimit(2)
                 
-                Text(notification.time)
+                Text(relativeTime)
                     .font(.appCaption)
                     .foregroundColor(.mutedForeground)
             }
@@ -324,7 +317,7 @@ struct NotificationCard: View {
         .appShadow(AppShadow.sm)
         .overlay(
             RoundedRectangle(cornerRadius: AppRadius.lg)
-                .stroke(notification.isRead ? Color.clear : notification.type.color.opacity(0.3), lineWidth: 1)
+                .stroke(notification.isRead ? Color.clear : typeColor.opacity(0.3), lineWidth: 1)
         )
     }
 }

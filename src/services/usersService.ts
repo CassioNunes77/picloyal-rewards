@@ -201,6 +201,18 @@ export async function createOrUpdateUser(user: User): Promise<void> {
       
       await setDoc(userRef, newUserData);
       console.log("✅ [usersService] Usuário criado com sucesso no Firestore:", user.uid);
+      try {
+        const { createNotification } = await import("./notificationsService");
+        await createNotification({
+          userId: user.uid,
+          type: "system",
+          title: "Bem-vindo!",
+          message: "Obrigado por se juntar ao nosso programa de fidelidade. Explore ofertas e acumule benefícios.",
+          icon: "check",
+        });
+      } catch (e) {
+        console.warn("⚠️ [usersService] Não foi possível criar notificação de boas-vindas:", e);
+      }
     } else {
       // Atualizar documento existente
       console.log("🔄 [usersService] Atualizando documento existente do usuário:", user.uid);

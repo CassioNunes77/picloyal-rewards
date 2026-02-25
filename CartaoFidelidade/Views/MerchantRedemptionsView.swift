@@ -174,6 +174,14 @@ struct MerchantRedemptionsView: View {
         Task {
             do {
                 try await RedemptionsService.shared.confirmRedemption(redemptionId: redemption.id, merchantId: user.uid)
+                try? await NotificationsService.shared.createNotification(
+                    userId: redemption.userId,
+                    type: .reward,
+                    title: "Oferta Resgatada!",
+                    message: "Sua oferta \"\(redemption.offerTitle)\" foi confirmada em \(redemption.storeName). Apresente o cupom no estabelecimento.",
+                    icon: "gift",
+                    data: ["offerId": redemption.offerId, "storeId": redemption.storeId]
+                )
                 await MainActor.run {
                     if let idx = redemptions.firstIndex(where: { $0.id == redemption.id }) {
                         redemptions[idx] = FirebaseRedemption(

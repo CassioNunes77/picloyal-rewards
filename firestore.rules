@@ -257,6 +257,31 @@ service cloud.firestore {
     }
 
     // ============================================
+    // NOTIFICAÇÕES (usuário)
+    // ============================================
+    match /notifications/{notificationId} {
+      // Usuário pode ler apenas suas próprias notificações
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      
+      // Usuário pode atualizar (marcar como lida) apenas suas próprias notificações
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      
+      // Usuários podem criar notificações para si (ex: welcome); lojistas podem criar para usuários (ex: resgate confirmado)
+      allow create: if request.auth != null &&
+                       request.resource.data.keys().hasAll(['userId', 'type', 'title', 'message', 'isRead', 'createdAt']) &&
+                       request.resource.data.userId is string &&
+                       request.resource.data.type is string &&
+                       request.resource.data.title is string &&
+                       request.resource.data.message is string &&
+                       request.resource.data.isRead is bool &&
+                       request.resource.data.createdAt is timestamp &&
+                       (request.resource.data.userId == request.auth.uid ||
+                        exists(/databases/$(database)/documents/merchants/$(request.auth.uid)));
+      
+      allow delete: if false;
+    }
+
+    // ============================================
     // CONTEÚDO DO APP (ex.: Política de Privacidade)
     // ============================================
     // Documento único editável no painel administrativo; leitura pública para exibir em todas as telas
