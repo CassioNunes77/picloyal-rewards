@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import {
   ChevronRight,
   MapPin,
@@ -11,11 +11,22 @@ import {
   Coffee,
   Pizza,
   Loader2,
+  Share2,
+  Copy,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { createRedemption, getUserRedemptionForOffer, type RedemptionStatus } from "@/services/redemptionsService";
+import { getOfferById } from "@/services/offersService";
+import { getStoreById } from "@/services/merchantsService";
+import {
+  getOfferShareUrl,
+  getWhatsAppShareUrl,
+  getWhatsAppShareMessage,
+  trackOfferShare,
+  type ShareType,
+} from "@/services/shareService";
 
 export interface OfferDetailData {
   id: string | number;
@@ -40,21 +51,65 @@ const iconMap = {
   pizza: Pizza,
 };
 
+function iconForCategory(category: string): "percent" | "gift" | "coffee" | "pizza" {
+  const c = (category || "").toLowerCase();
+  if (c === "bebidas") return "coffee";
+  if (c === "comida") return "pizza";
+  if (c === "brinde") return "gift";
+  return "percent";
+}
+
 const OfferDetailPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { id: offerIdParam } = useParams<{ id: string }>();
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const state = location.state as { offer: OfferDetailData; storeName?: string } | null;
-  const offer = state?.offer;
-  const storeName = state?.storeName ?? offer?.storeName;
 
+  const [offer, setOffer] = useState<OfferDetailData | null>(state?.offer ?? null);
+  const [loadingOffer, setLoadingOffer] = useState(!!offerIdParam && !state?.offer);
   const [redemptionStatus, setRedemptionStatus] = useState<RedemptionStatus | null>(null);
   const [loadingRedemption, setLoadingRedemption] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Busca status ao abrir e ao voltar: lembra se usuário já solicitou ou resgatou
-  // location.key garante refetch ao navegar de volta para esta página
+  const storeName = state?.storeName ?? offer?.storeName;
+
+  // Carregar oferta por ID quando acessado via link compartilhado
+  useEffect(() => {
+    if (offerIdParam && !state?.offer) {
+      setLoadingOffer(true);
+      getOfferById(offerIdParam)
+        .then(async (offerData) => {
+          if (!offerData) {
+            setOffer(null);
+            return;
+          }
+          const store = offerData.storeId ? await getStoreById(offerData.storeId) : null;
+          const validUntil = offerData.validUntil
+            ? new Date(offerData.validUntil).toLocaleDateString("pt-BR")
+            : "—";
+          setOffer({
+            id: offerData.id!,
+            title: offerData.title,
+            description: offerData.description,
+            discount: offerData.discount ?? "—",
+            storeId: offerData.storeId,
+            storeName: store?.name ?? "",
+            storeAddress: store?.address ?? "",
+            merchantId: offerData.merchantId,
+            validUntil,
+            icon: iconForCategory(offerData.category),
+            category: offerData.category,
+            pointsRequired: offerData.pointsRequired,
+            isNew: false,
+          });
+        })
+        .catch(() => setOffer(null))
+        .finally(() => setLoadingOffer(false));
+    }
+  }, [offerIdParam, state?.offer]);
+
   useEffect(() => {
     if (!user?.uid || !offer?.id) {
       setLoadingRedemption(false);
@@ -68,6 +123,59 @@ const OfferDetailPage = () => {
       .catch(() => setRedemptionStatus(null))
       .finally(() => setLoadingRedemption(false));
   }, [user?.uid, offer?.id, location.key]);
+
+  const handleShare = async (type: ShareType) => {
+    if (!offer) return;
+    const url = getOfferShareUrl(String(offer.id));
+    const store = storeName ?? offer.storeName ?? "";
+    const message = getWhatsAppShareMessage(offer.title, store, url);
+
+    if (type === "whatsapp") {
+      window.open(getWhatsAppShareUrl(message), "_blank", "noopener,noreferrer");
+    } else if (type === "link" || type === "native") {
+      if (navigator.share && type === "native") {
+        try {
+          await navigator.share({
+            title: offer.title,
+            text: message,
+            url,
+          });
+        } catch (err) {
+          if ((err as Error).name !== "AbortError") {
+            await copyToClipboard(url);
+          }
+          return;
+        }
+      } else {
+        await copyToClipboard(url);
+      }
+    }
+
+    if (user?.uid) {
+      trackOfferShare({
+        offerId: String(offer.id),
+        userId: user.uid,
+        shareType: type,
+        offerTitle: offer.title,
+        storeId: offer.storeId,
+      });
+    }
+
+    toast.success(type === "whatsapp" ? "Abrindo WhatsApp..." : "Link copiado!");
+  };
+
+  const copyToClipboard = async (text: string) => {
+    await navigator.clipboard.writeText(text);
+    toast.success("Link copiado para a área de transferência");
+  };
+
+  if (loadingOffer) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   if (!offer) {
     navigate("/offers", { replace: true });
@@ -108,6 +216,27 @@ const OfferDetailPage = () => {
   };
 
   const isRedeemed = redemptionStatus === "confirmed";
+
+  const shareButtons = (
+    <div className="flex gap-2 justify-center mt-4">
+      <button
+        type="button"
+        onClick={() => handleShare("whatsapp")}
+        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition-colors"
+      >
+        <Share2 className="h-4 w-4" />
+        WhatsApp
+      </button>
+      <button
+        type="button"
+        onClick={() => handleShare(navigator.share ? "native" : "link")}
+        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-muted text-muted-foreground text-sm font-medium hover:bg-muted/80 transition-colors"
+      >
+        <Copy className="h-4 w-4" />
+        {navigator.share ? "Compartilhar" : "Copiar link"}
+      </button>
+    </div>
+  );
 
   const detailContent = (
     <>
@@ -201,6 +330,8 @@ const OfferDetailPage = () => {
           )}
         </button>
       )}
+
+      {shareButtons}
 
       <p className="text-center text-xs text-muted-foreground mt-4">
         Apresente esta tela ou o cupom ativado no estabelecimento

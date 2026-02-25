@@ -257,6 +257,19 @@ service cloud.firestore {
     }
 
     // ============================================
+    // COMPARTILHAMENTOS (analytics)
+    // ============================================
+    match /offerShareEvents/{eventId} {
+      allow read: if false;
+      allow create: if request.auth != null &&
+                       request.resource.data.keys().hasAll(['offerId', 'shareType', 'createdAt']) &&
+                       request.resource.data.offerId is string &&
+                       request.resource.data.shareType is string &&
+                       request.resource.data.createdAt is timestamp;
+      allow update, delete: if false;
+    }
+
+    // ============================================
     // NOTIFICAÇÕES (usuário)
     // ============================================
     match /notifications/{notificationId} {

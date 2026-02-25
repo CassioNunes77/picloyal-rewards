@@ -197,7 +197,7 @@ const StoreDetailPage = () => {
               <div key={offer.id}>
                 <button
                   onClick={() => {
-                    navigate("/offer", {
+                    navigate(`/offer/${offer.id}`, {
                       state: {
                         offer: {
                           id: offer.id!,

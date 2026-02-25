@@ -131,7 +131,7 @@ const OffersPage = () => {
   }), [offers, searchQuery, selectedCategory]);
 
   const handleOfferClick = (offer: Offer) => {
-    navigate("/offer", { state: { offer: offer as OfferDetailData } });
+    navigate(`/offer/${offer.id}`, { state: { offer: offer as OfferDetailData } });
   };
 
   const searchInput = (

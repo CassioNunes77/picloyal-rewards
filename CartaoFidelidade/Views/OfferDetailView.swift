@@ -168,6 +168,9 @@ struct OfferDetailView: View {
                     onDismiss()
                 }
             }
+            ToolbarItem(placement: .primaryAction) {
+                shareMenu
+            }
         }
         .onAppear {
             // Busca status ao abrir e ao voltar: lembra se usuário já solicitou ou resgatou
@@ -232,6 +235,46 @@ struct OfferDetailView: View {
     
     private var isUserLoggedIn: Bool {
         Auth.auth().currentUser != nil
+    }
+
+    @ViewBuilder
+    private var shareMenu: some View {
+        let url = ShareService.shared.getOfferShareUrl(offerId: offer.id)
+        let message = ShareService.shared.getWhatsAppShareMessage(
+            offerTitle: offer.title,
+            storeName: displayStoreName,
+            url: url
+        )
+
+        Menu {
+            ShareLink(item: URL(string: url)!, message: Text(message)) {
+                Label("Compartilhar link", systemImage: "link")
+            }
+            .simultaneousGesture(TapGesture().onEnded {
+                ShareService.shared.trackOfferShare(
+                    offerId: offer.id,
+                    shareType: .native,
+                    offerTitle: offer.title,
+                    storeId: offer.storeId
+                )
+            })
+
+            if let whatsappUrl = ShareService.shared.getWhatsAppShareUrl(text: message) {
+                Link(destination: whatsappUrl) {
+                    Label("Enviar no WhatsApp", systemImage: "message.fill")
+                }
+                .simultaneousGesture(TapGesture().onEnded {
+                    ShareService.shared.trackOfferShare(
+                        offerId: offer.id,
+                        shareType: .whatsapp,
+                        offerTitle: offer.title,
+                        storeId: offer.storeId
+                    )
+                })
+            }
+        } label: {
+            Image(systemName: "square.and.arrow.up")
+        }
     }
     
     private func loadRedemptionStatus() async {
