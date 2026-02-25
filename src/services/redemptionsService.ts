@@ -141,6 +141,34 @@ export async function getMerchantRedemptions(
 }
 
 /**
+ * Retorna mapa offerId -> status dos resgates do usuário (para exibir na lista de ofertas).
+ * Usa o resgate mais recente por oferta.
+ */
+export async function getUserRedemptionsMap(userId: string): Promise<Record<string, RedemptionStatus>> {
+  if (!firestore) return {};
+  try {
+    const q = query(
+      collection(firestore, REDEMPTIONS_COLLECTION),
+      where("userId", "==", userId),
+      orderBy("createdAt", "desc")
+    );
+    const snapshot = await getDocs(q);
+    const map: Record<string, RedemptionStatus> = {};
+    for (const docSnap of snapshot.docs) {
+      const d = docSnap.data();
+      const offerId = String(d?.offerId ?? "");
+      if (offerId && !(offerId in map)) {
+        map[offerId] = (d?.status as RedemptionStatus) ?? "pending";
+      }
+    }
+    return map;
+  } catch (error) {
+    console.error("Erro ao buscar resgates do usuário:", error);
+    return {};
+  }
+}
+
+/**
  * Busca o resgate mais recente do usuário para uma oferta (para exibir status na tela de detalhes)
  */
 export async function getUserRedemptionForOffer(

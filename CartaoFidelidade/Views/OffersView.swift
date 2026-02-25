@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct Offer: Identifiable, Hashable {
     let id: String
@@ -71,6 +72,7 @@ struct OffersView: View {
     @State private var navigationPath = NavigationPath()
     @State private var offers: [Offer] = []
     @State private var loadingOffers = false
+    @State private var redemptionsMap: [String: RedemptionStatus] = [:]
     
     let categories = [
         ("all", "Todas", "tag.fill"),
@@ -268,10 +270,11 @@ struct OffersView: View {
                                 .padding(.top, AppSpacing.xl * 2)
                             } else {
                                 ForEach(Array(filteredOffers.enumerated()), id: \.element.id) { index, offer in
+                                    let isRedeemed = redemptionsMap[offer.id] == .confirmed
                                     Button(action: {
                                         navigationPath.append(offer)
                                     }) {
-                                        OfferCard(offer: offer, compact: true, onTap: nil)
+                                        OfferCard(offer: offer, compact: true, isRedeemed: isRedeemed, onTap: nil)
                                             .fadeIn(delay: 0.2 + Double(index) * 0.05)
                                     }
                                     .buttonStyle(PlainButtonStyle())
@@ -307,7 +310,10 @@ struct OffersView: View {
                     .animation(.easeInOut, value: showToast)
                 }
             }
-            .onAppear { loadOffers() }
+            .onAppear {
+                loadOffers()
+                loadRedemptionsMap()
+            }
             .onChange(of: selectedLocation) { _, _ in loadOffers() }
             .navigationDestination(for: Offer.self) { offer in
                 OfferDetailView(
@@ -340,6 +346,21 @@ struct OffersView: View {
         }
     }
     
+    private func loadRedemptionsMap() {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            redemptionsMap = [:]
+            return
+        }
+        Task {
+            do {
+                let map = try await RedemptionsService.shared.getUserRedemptionsMap(userId: userId)
+                await MainActor.run { redemptionsMap = map }
+            } catch {
+                await MainActor.run { redemptionsMap = [:] }
+            }
+        }
+    }
+    
     private func loadOffers() {
         guard !selectedLocation.isEmpty else {
             offers = []
@@ -353,6 +374,7 @@ struct OffersView: View {
                     offers = items.map { Offer.fromFirebase($0.offer, storeId: $0.storeId, storeName: $0.storeName, storeAddress: $0.storeAddress) }
                     loadingOffers = false
                 }
+                await MainActor.run { loadRedemptionsMap() }
             } catch {
                 print("❌ [OffersView] Erro ao carregar ofertas: \(error.localizedDescription)")
                 await MainActor.run {
@@ -407,6 +429,8 @@ struct OfferCard: View {
     let offer: Offer
     /// Quando true, usa tamanhos de fonte alinhados à tela de Lojas (Detalhes da Loja > Ofertas).
     var compact: Bool = false
+    /// Quando true, aplica visual desabilitado (oferta já resgatada).
+    var isRedeemed: Bool = false
     /// Chamado ao tocar no card; quando definido, o card abre detalhes da oferta.
     var onTap: (() -> Void)? = nil
     @State private var isPressed = false
@@ -556,6 +580,8 @@ struct OfferCard: View {
         )
         .appShadow(isPressed ? AppShadow.sm : AppShadow.md)
         .scaleEffect(isPressed ? 0.98 : 1.0)
+        .opacity(isRedeemed ? 0.65 : 1)
+        .saturation(isRedeemed ? 0.6 : 1)
     }
 }
 

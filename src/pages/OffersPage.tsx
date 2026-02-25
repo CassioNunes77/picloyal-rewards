@@ -3,8 +3,10 @@ import { Tag, Clock, MapPin, Percent, Gift, Coffee, Pizza, Sparkles, ChevronRigh
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext";
 import type { OfferDetailData } from "./OfferDetailPage";
 import { getOffersByCity } from "@/services/offersService";
+import { getUserRedemptionsMap } from "@/services/redemptionsService";
 
 interface Offer {
   id: string;
@@ -33,11 +35,13 @@ function iconForCategory(category: string): "percent" | "gift" | "coffee" | "piz
 const OffersPage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loadingOffers, setLoadingOffers] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState("");
+  const [redemptionsMap, setRedemptionsMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setSelectedLocation(localStorage.getItem("selectedLocation") || "");
@@ -88,6 +92,18 @@ const OffersPage = () => {
       });
     return () => { cancelled = true; };
   }, [selectedLocation]);
+
+  useEffect(() => {
+    if (!user?.uid) {
+      setRedemptionsMap({});
+      return;
+    }
+    let cancelled = false;
+    getUserRedemptionsMap(user.uid)
+      .then((map) => { if (!cancelled) setRedemptionsMap(map); })
+      .catch(() => { if (!cancelled) setRedemptionsMap({}); });
+    return () => { cancelled = true; };
+  }, [user?.uid]);
 
   const categories = [
     { id: "all", label: "Todas", icon: Tag },
@@ -193,11 +209,14 @@ const OffersPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
-            {filteredOffers.map((offer, index) => (
+            {filteredOffers.map((offer, index) => {
+              const isRedeemed = redemptionsMap[offer.id] === "confirmed";
+              return (
               <button
                 key={offer.id}
                 onClick={() => handleOfferClick(offer)}
-                className="w-full text-left bg-card rounded-2xl p-4 shadow-md transition-all hover:shadow-lg active:scale-[0.98] border border-border"
+                className={`w-full text-left bg-card rounded-2xl p-4 shadow-md transition-all border border-border
+                  ${isRedeemed ? "opacity-70 grayscale-[0.4]" : "hover:shadow-lg active:scale-[0.98]"}`}
               >
                 <div className="flex gap-4">
                   <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl ${
@@ -226,7 +245,8 @@ const OffersPage = () => {
                   <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
                 </div>
               </button>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -317,6 +337,7 @@ const OffersPage = () => {
           <div className="space-y-4">
             {filteredOffers.map((offer, index) => {
               const Icon = iconMap[offer.icon];
+              const isRedeemed = redemptionsMap[offer.id] === "confirmed";
               return (
                 <div
                   key={offer.id}
@@ -325,9 +346,12 @@ const OffersPage = () => {
                 >
                   <button
                     onClick={() => handleOfferClick(offer)}
-                    className="w-full text-left bg-card rounded-2xl p-4 shadow-md overflow-hidden
-                             transition-all duration-300 hover:shadow-lg active:scale-[0.98]
-                             border-2 border-transparent hover:border-primary/20"
+                    className={`w-full text-left bg-card rounded-2xl p-4 shadow-md overflow-hidden
+                             transition-all duration-300 border-2
+                             ${isRedeemed
+                               ? "opacity-70 grayscale-[0.4] border-border"
+                               : "hover:shadow-lg active:scale-[0.98] border-transparent hover:border-primary/20"
+                             }`}
                   >
                     <div className="flex gap-3 min-w-0">
                       {/* Icon */}

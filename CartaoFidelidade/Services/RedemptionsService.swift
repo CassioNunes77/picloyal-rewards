@@ -87,6 +87,22 @@ class RedemptionsService {
         }.sorted { $0.createdAt > $1.createdAt }
     }
     
+    /// Retorna mapa offerId -> status dos resgates do usuário (para exibir na lista de ofertas).
+    func getUserRedemptionsMap(userId: String) async throws -> [String: RedemptionStatus] {
+        let snapshot = try await db.collection(collectionName)
+            .whereField("userId", isEqualTo: userId)
+            .order(by: "createdAt", descending: true)
+            .getDocuments()
+        var map: [String: RedemptionStatus] = [:]
+        for doc in snapshot.documents {
+            guard let redemption = parseRedemption(docId: doc.documentID, data: doc.data()) else { continue }
+            if !redemption.offerId.isEmpty, map[redemption.offerId] == nil {
+                map[redemption.offerId] = redemption.status
+            }
+        }
+        return map
+    }
+    
     /// Busca o resgate mais recente do usuário para uma oferta (para exibir status na tela de detalhes)
     func getUserRedemptionForOffer(userId: String, offerId: String) async throws -> FirebaseRedemption? {
         let snapshot = try await db.collection(collectionName)
