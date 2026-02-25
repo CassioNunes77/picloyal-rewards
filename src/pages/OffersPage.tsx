@@ -216,8 +216,11 @@ const OffersPage = () => {
               <button
                 key={offer.id}
                 onClick={() => handleOfferClick(offer)}
-                className={`w-full text-left bg-card rounded-2xl p-4 shadow-md transition-all border border-border
-                  ${isRedeemed ? "opacity-60 grayscale-[0.5] saturate-50" : "hover:shadow-lg active:scale-[0.98]"}`}
+                className={`w-full text-left rounded-2xl p-4 shadow-md transition-all border
+                  ${isRedeemed
+                    ? "bg-muted/80 border-muted-foreground/25 opacity-90"
+                    : "bg-card border-border hover:shadow-lg active:scale-[0.98]"
+                  }`}
               >
                 <div className="flex gap-4">
                   <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl ${
@@ -354,11 +357,11 @@ const OffersPage = () => {
                 >
                   <button
                     onClick={() => handleOfferClick(offer)}
-                    className={`w-full text-left bg-card rounded-2xl p-4 shadow-md overflow-hidden
+                    className={`w-full text-left rounded-2xl p-4 shadow-md overflow-hidden
                              transition-all duration-300 border-2
                              ${isRedeemed
-                               ? "opacity-60 grayscale-[0.5] saturate-50 border-muted-foreground/30"
-                               : "hover:shadow-lg active:scale-[0.98] border-transparent hover:border-primary/20"
+                               ? "bg-muted/80 border-muted-foreground/25 opacity-90"
+                               : "bg-card hover:shadow-lg active:scale-[0.98] border-transparent hover:border-primary/20"
                              }`}
                   >
                     <div className="flex gap-3 min-w-0">

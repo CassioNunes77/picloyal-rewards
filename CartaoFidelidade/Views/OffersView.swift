@@ -572,16 +572,16 @@ struct OfferCard: View {
                 .font(.system(size: compact ? 18 : 20))
         }
         .padding(padding)
-        .background(Color.card)
+        .background(isRedeemed ? Color.muted.opacity(0.9) : Color.card)
         .cornerRadius(cornerRadius)
         .overlay(
             RoundedRectangle(cornerRadius: cornerRadius)
-                .stroke(Color.primary.opacity(0.2), lineWidth: 2)
+                .stroke(isRedeemed ? Color.gray.opacity(0.3) : Color.primary.opacity(0.2), lineWidth: 2)
         )
         .appShadow(isPressed ? AppShadow.sm : AppShadow.md)
         .scaleEffect(isPressed ? 0.98 : 1.0)
-        .opacity(isRedeemed ? 0.65 : 1)
-        .saturation(isRedeemed ? 0.6 : 1)
+        .opacity(isRedeemed ? 0.9 : 1)
+        .saturation(isRedeemed ? 0.7 : 1)
     }
 }
 
