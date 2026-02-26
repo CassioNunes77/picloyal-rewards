@@ -6,11 +6,18 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct PremiumView: View {
     @Binding var activeTab: String
     let onBack: () -> Void
-    
+
+    @State private var isLoading = false
+    @State private var errorMessage: String?
+    @State private var showError = false
+    @State private var showSuccess = false
+    @State private var productPrice: String?
+
     private let benefits = [
         (icon: "star.fill", title: "Pontos em dobro", desc: "Ganhe 2x pontos em todas as compras"),
         (icon: "gift.fill", title: "Recompensas exclusivas", desc: "Acesso a ofertas só para Premium"),
@@ -118,17 +125,21 @@ struct PremiumView: View {
                         }
                         
                         // CTA
-                        Button(action: {
-                            // TODO: Integrar com fluxo de assinatura
-                        }) {
+                        Button(action: { Task { await handlePurchase() } }) {
                             HStack {
-                                Text("Assinar Premium")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Image(systemName: "arrow.right")
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 14, weight: .semibold))
+                                if isLoading {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                        .scaleEffect(0.9)
+                                } else {
+                                    Text("Assinar Premium")
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundColor(.white)
+                                    
+                                    Image(systemName: "arrow.right")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 14, weight: .semibold))
+                                }
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, AppSpacing.md)
@@ -144,10 +155,21 @@ struct PremiumView: View {
                             )
                             .cornerRadius(AppRadius.lg)
                         }
+                        .disabled(isLoading)
                         .buttonStyle(PlainButtonStyle())
                         .fadeIn(delay: 0.4)
+
+                        Button(action: { Task { await handleRestore() } }) {
+                            Text("Restaurar compras")
+                                .font(.appCaption)
+                                .foregroundColor(.secondary)
+                                .underline()
+                        }
+                        .disabled(isLoading)
+                        .buttonStyle(PlainButtonStyle())
+                        .fadeIn(delay: 0.42)
                         
-                        Text("R$ 19,90/mês • Cancele quando quiser")
+                        Text(productPrice ?? "R$ 19,90/mês • Cancele quando quiser")
                             .font(.appCaption)
                             .foregroundColor(.mutedForeground)
                             .fadeIn(delay: 0.45)
@@ -162,6 +184,74 @@ struct PremiumView: View {
                 .cornerRadius(AppRadius.xl, corners: [.topLeft, .topRight])
                 .offset(y: -AppRadius.xl)
             }
+        }
+        .alert("Erro", isPresented: $showError) {
+            Button("OK") { showError = false }
+        } message: {
+            Text(errorMessage ?? "Erro desconhecido")
+        }
+        .alert("Premium ativado!", isPresented: $showSuccess) {
+            Button("OK") {
+                showSuccess = false
+                onBack()
+            }
+        } message: {
+            Text("Sua assinatura Premium foi ativada com sucesso.")
+        }
+        .onAppear {
+            Task { await loadProductPrice() }
+        }
+    }
+
+    private func loadProductPrice() async {
+        do {
+            if let product = try await StoreKitService.shared.getPremiumProduct() {
+                productPrice = product.displayPrice + "/mês • Cancele quando quiser"
+            }
+        } catch {
+            productPrice = "R$ 19,90/mês • Cancele quando quiser"
+        }
+    }
+
+    private func handlePurchase() async {
+        guard Auth.auth().currentUser != nil else {
+            errorMessage = "Faça login para assinar Premium."
+            showError = true
+            return
+        }
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+        do {
+            let success = try await StoreKitService.shared.purchasePremium()
+            if success {
+                showSuccess = true
+            }
+        } catch let err as StoreKitError {
+            if case .userCancelled = err { return }
+            errorMessage = err.localizedDescription
+            showError = true
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
+        }
+    }
+
+    private func handleRestore() async {
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+        do {
+            let restored = try await StoreKitService.shared.restorePurchases()
+            if restored {
+                showSuccess = true
+            } else {
+                errorMessage = "Nenhuma compra anterior encontrada."
+                showError = true
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
         }
     }
 }

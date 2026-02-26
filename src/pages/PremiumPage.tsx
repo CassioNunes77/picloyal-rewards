@@ -1,5 +1,9 @@
-import { Crown, Star, Gift, Percent, Sparkles, ChevronLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Crown, Star, Gift, Percent, Sparkles, ChevronLeft, Loader2 } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { redirectToCheckout, isCheckoutConfigured } from "@/services/subscriptionService";
 
 const benefits = [
   {
@@ -87,13 +91,25 @@ const PremiumPage = () => {
 
         {/* CTA */}
         <button
+          onClick={handleSubscribe}
+          disabled={isLoading}
           className="w-full flex items-center justify-center gap-2 py-4 rounded-xl
                      bg-gradient-to-r from-amber-500 to-amber-700 text-white font-semibold
-                     transition-all duration-200 active:scale-[0.98] animate-fade-in"
+                     transition-all duration-200 active:scale-[0.98] animate-fade-in
+                     disabled:opacity-70 disabled:cursor-not-allowed"
           style={{ animationDelay: "400ms" }}
         >
-          Assinar Premium
-          <span className="text-lg">→</span>
+          {isLoading ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" />
+              Redirecionando...
+            </>
+          ) : (
+            <>
+              Assinar Premium
+              <span className="text-lg">→</span>
+            </>
+          )}
         </button>
         <p
           className="text-center text-sm text-muted-foreground mt-3 animate-fade-in"

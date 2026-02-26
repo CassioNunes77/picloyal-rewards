@@ -29,7 +29,11 @@ export interface UserData {
   
   // Plano da conta: free (padrão para novos usuários) ou premium
   plan?: UserPlan;
-  
+
+  // Origem da assinatura: "apple" (iOS) ou "stripe" (Web)
+  subscriptionSource?: "apple" | "stripe";
+  subscriptionUpdatedAt?: Date;
+
   // Preferências do usuário
   preferences?: {
     darkMode?: boolean;
@@ -61,6 +65,9 @@ interface UserDataFirestore {
   address?: string;
   birthDate?: string;
   role?: UserRole;
+  plan?: UserPlan;
+  subscriptionSource?: string;
+  subscriptionUpdatedAt?: Timestamp;
   preferences?: {
     darkMode?: boolean;
     notifications?: boolean;
@@ -150,6 +157,12 @@ function userDataToFirestore(userData: Partial<UserData>): Partial<UserDataFires
   if (userData.birthDate !== undefined) result.birthDate = userData.birthDate;
   if (userData.role !== undefined) result.role = userData.role;
   if (userData.plan !== undefined) result.plan = userData.plan;
+  if (userData.subscriptionSource !== undefined) result.subscriptionSource = userData.subscriptionSource;
+  if (userData.subscriptionUpdatedAt !== undefined) {
+    result.subscriptionUpdatedAt = userData.subscriptionUpdatedAt instanceof Date
+      ? Timestamp.fromDate(userData.subscriptionUpdatedAt)
+      : (userData.subscriptionUpdatedAt as Timestamp);
+  }
   if (userData.preferences !== undefined) result.preferences = userData.preferences;
   if (userData.createdAt) {
     result.createdAt = userData.createdAt instanceof Timestamp 

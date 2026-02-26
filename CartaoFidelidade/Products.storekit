@@ -1,0 +1,54 @@
+{
+  "identifier" : "CORE_PLUS_STOREKIT",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_applicationInternalID" : "0",
+    "_developerTeamID" : "YOUR_TEAM_ID",
+    "_lastSynchronizedDate" : 757382400
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "premium",
+      "localizations" : [
+
+      ],
+      "name" : "Premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "19.90",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "premium_monthly",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Assinatura mensal Premium - benefícios exclusivos",
+              "displayName" : "Premium Mensal",
+              "locale" : "pt_BR"
+            }
+          ],
+          "productID" : "com.coreplus.premium.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Premium Mensal",
+          "subscriptionGroupID" : "premium",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 1,
+    "minor" : 0
+  }
+}
