@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export interface HistoryDetailData {
-  id: number;
+  id: string | number;
   title: string;
   description: string;
   date: string;

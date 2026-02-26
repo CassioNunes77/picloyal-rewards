@@ -6,16 +6,71 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct HistoryItem: Identifiable {
-    let id: Int
+    let id: String
     let title: String
     let description: String
     let date: String
     let points: Int
-    let type: String // purchase, reward, points, offer
+    let type: String
     let storeName: String
     let icon: String
+}
+
+private func formatActivityDate(_ date: Date) -> String {
+    let now = Date()
+    let diff = now.timeIntervalSince(date)
+    let mins = Int(diff / 60)
+    let hours = Int(diff / 3600)
+    let days = Int(diff / 86400)
+    let cal = Calendar.current
+    if mins < 1 { return "Agora" }
+    if mins < 60 { return "\(mins) min atrás" }
+    if hours < 24, cal.isDateInToday(date) {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return "Hoje, \(formatter.string(from: date))"
+    }
+    if days == 1 {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return "Ontem, \(formatter.string(from: date))"
+    }
+    if days < 7 { return "\(days) dias atrás" }
+    let formatter = DateFormatter()
+    formatter.dateFormat = "dd/MM/yyyy, HH:mm"
+    formatter.locale = Locale(identifier: "pt_BR")
+    return formatter.string(from: date)
+}
+
+private func activityToHistoryItem(_ a: UserActivity) -> HistoryItem {
+    let icon: String = (a.type == "offer") ? "tag.fill" : (a.type == "reward") ? "gift.fill" : "sparkles"
+    return HistoryItem(
+        id: a.id,
+        title: a.title,
+        description: a.description,
+        date: formatActivityDate(a.createdAt),
+        points: a.points ?? 0,
+        type: a.type,
+        storeName: a.storeName,
+        icon: icon
+    )
+}
+
+private func redemptionToHistoryItem(_ r: FirebaseRedemption) -> HistoryItem {
+    let title = r.status == .confirmed ? "Oferta utilizada" : "Oferta solicitada"
+    return HistoryItem(
+        id: r.id,
+        title: title,
+        description: r.offerTitle,
+        date: formatActivityDate(r.createdAt),
+        points: 0,
+        type: "offer",
+        storeName: r.storeName,
+        icon: "tag.fill"
+    )
 }
 
 struct HistoryView: View {
@@ -24,14 +79,8 @@ struct HistoryView: View {
     @State private var selectedFilter = "all"
     @State private var showToast = false
     @State private var toastMessage = ""
-
-    let historyItems: [HistoryItem] = [
-        HistoryItem(id: 1, title: "Compra realizada", description: "Café Central - R$ 45,00", date: "Hoje, 14:30", points: 45, type: "purchase", storeName: "Café Central", icon: "cup.and.saucer.fill"),
-        HistoryItem(id: 2, title: "Recompensa resgatada", description: "1 Café Grátis", date: "Ontem, 10:15", points: -200, type: "reward", storeName: "Café Central", icon: "gift.fill"),
-        HistoryItem(id: 3, title: "Pontos ganhos", description: "Bônus de fidelidade", date: "25/01/2025, 18:00", points: 50, type: "points", storeName: "Sistema", icon: "sparkles"),
-        HistoryItem(id: 4, title: "Oferta utilizada", description: "20% OFF em Bebidas", date: "24/01/2025, 15:20", points: 0, type: "offer", storeName: "Café Central", icon: "tag.fill"),
-        HistoryItem(id: 5, title: "Compra realizada", description: "Restaurante Sabor - R$ 120,00", date: "23/01/2025, 19:45", points: 120, type: "purchase", storeName: "Restaurante Sabor", icon: "fork.knife"),
-    ]
+    @State private var historyItems: [HistoryItem] = []
+    @State private var loading = true
 
     var filteredItems: [HistoryItem] {
         historyItems.filter { item in
@@ -114,13 +163,26 @@ struct HistoryView: View {
 
                 // List
                 ScrollView {
-                    if filteredItems.isEmpty {
+                    if loading {
+                        VStack(spacing: AppSpacing.md) {
+                            ProgressView()
+                                .scaleEffect(1.2)
+                                .tint(.primary)
+                            Text("Carregando atividades...")
+                                .font(.appBody)
+                                .foregroundColor(.mutedForeground)
+                        }
+                        .padding(.top, AppSpacing.xl * 2)
+                    } else if filteredItems.isEmpty {
                         VStack(spacing: AppSpacing.md) {
                             Image(systemName: "clock")
                                 .font(.system(size: 48))
                                 .foregroundColor(.mutedForeground)
                             Text("Nenhum registro encontrado")
                                 .font(.appBody)
+                                .foregroundColor(.mutedForeground)
+                            Text("Suas ofertas utilizadas aparecerão aqui")
+                                .font(.appCaption)
                                 .foregroundColor(.mutedForeground)
                         }
                         .padding(.top, AppSpacing.xl * 2)
@@ -161,6 +223,42 @@ struct HistoryView: View {
             }
         }
         .ignoresSafeArea(edges: .top)
+        .onAppear { loadActivities() }
+    }
+
+    private func loadActivities() {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            historyItems = []
+            loading = false
+            return
+        }
+        loading = true
+        Task {
+            do {
+                async let activitiesTask = UserActivitiesService.shared.getUserActivities(userId: userId)
+                async let redemptionsTask = RedemptionsService.shared.getUserRedemptions(userId: userId)
+                let (activities, redemptions) = try await (activitiesTask, redemptionsTask)
+
+                let activityIds = Set(activities.compactMap { $0.redemptionId })
+                let fromActivities = activities.map { (date: $0.createdAt, item: activityToHistoryItem($0)) }
+                let fromRedemptions = redemptions
+                    .filter { !activityIds.contains($0.id) }
+                    .map { (date: $0.createdAt, item: redemptionToHistoryItem($0)) }
+                let merged = (fromActivities + fromRedemptions)
+                    .sorted { $0.date > $1.date }
+                    .map { $0.item }
+
+                await MainActor.run {
+                    historyItems = merged
+                    loading = false
+                }
+            } catch {
+                await MainActor.run {
+                    historyItems = []
+                    loading = false
+                }
+            }
+        }
     }
 }
 

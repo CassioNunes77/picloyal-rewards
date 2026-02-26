@@ -17,6 +17,8 @@ struct OfferDetailView: View {
     
     @State private var redemptionStatus: RedemptionStatus? = nil
     @State private var loadingRedemption = true
+    @State private var showToast = false
+    @State private var toastMessage = ""
 
     private var displayStoreName: String {
         storeNameOverride ?? offer.storeName
@@ -150,6 +152,9 @@ struct OfferDetailView: View {
                 // Botão Usar oferta / Oferta Solicitada / Oferta Resgatada
                 offerButton
 
+                // Botões de compartilhar (igual ao modelo Web)
+                shareButtons
+
                 // Texto informativo
                 Text("Apresente esta tela ou o cupom ativado no estabelecimento")
                     .font(.system(size: 12))
@@ -168,8 +173,22 @@ struct OfferDetailView: View {
                     onDismiss()
                 }
             }
-            ToolbarItem(placement: .primaryAction) {
-                shareMenu
+        }
+        .overlay {
+            if showToast {
+                VStack {
+                    Spacer()
+                    Text(toastMessage)
+                        .font(.appBody)
+                        .foregroundColor(.cardForeground)
+                        .padding(.horizontal, AppSpacing.lg)
+                        .padding(.vertical, AppSpacing.md)
+                        .background(Color.card)
+                        .cornerRadius(AppRadius.md)
+                        .padding(.bottom, 100)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                .animation(.easeInOut, value: showToast)
             }
         }
         .onAppear {
@@ -238,42 +257,85 @@ struct OfferDetailView: View {
     }
 
     @ViewBuilder
-    private var shareMenu: some View {
+    private var shareButtons: some View {
+        HStack(spacing: AppSpacing.sm) {
+            // WhatsApp (verde, igual ao Web)
+            Button {
+                shareViaWhatsApp()
+            } label: {
+                HStack(spacing: AppSpacing.sm) {
+                    Image(systemName: "message.fill")
+                        .font(.system(size: 14))
+                    Text("WhatsApp")
+                        .font(.system(size: 14, weight: .medium))
+                }
+                .padding(.horizontal, AppSpacing.lg)
+                .padding(.vertical, AppSpacing.md)
+                .frame(maxWidth: .infinity)
+                .background(Color(red: 0.13, green: 0.59, blue: 0.27)) // green-600
+                .foregroundColor(.white)
+                .cornerRadius(AppRadius.xl)
+            }
+            .buttonStyle(PlainButtonStyle())
+
+            // Copiar link (muted, igual ao Web)
+            Button {
+                copyLinkToClipboard()
+            } label: {
+                HStack(spacing: AppSpacing.sm) {
+                    Image(systemName: "doc.on.doc")
+                        .font(.system(size: 14))
+                    Text("Copiar link")
+                        .font(.system(size: 14, weight: .medium))
+                }
+                .padding(.horizontal, AppSpacing.lg)
+                .padding(.vertical, AppSpacing.md)
+                .frame(maxWidth: .infinity)
+                .background(Color.muted)
+                .foregroundColor(.mutedForeground)
+                .cornerRadius(AppRadius.xl)
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+        .padding(.top, AppSpacing.lg)
+    }
+
+    private func shareViaWhatsApp() {
         let url = ShareService.shared.getOfferShareUrl(offerId: offer.id)
         let message = ShareService.shared.getWhatsAppShareMessage(
             offerTitle: offer.title,
             storeName: displayStoreName,
             url: url
         )
+        ShareService.shared.trackOfferShare(
+            offerId: offer.id,
+            shareType: .whatsapp,
+            offerTitle: offer.title,
+            storeId: offer.storeId
+        )
+        if let whatsappUrl = ShareService.shared.getWhatsAppShareUrl(text: message) {
+            UIApplication.shared.open(whatsappUrl)
+        }
+        toastMessage = "Abrindo WhatsApp..."
+        withAnimation { showToast = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            withAnimation { showToast = false }
+        }
+    }
 
-        Menu {
-            ShareLink(item: URL(string: url)!, message: Text(message)) {
-                Label("Compartilhar link", systemImage: "link")
-            }
-            .simultaneousGesture(TapGesture().onEnded {
-                ShareService.shared.trackOfferShare(
-                    offerId: offer.id,
-                    shareType: .native,
-                    offerTitle: offer.title,
-                    storeId: offer.storeId
-                )
-            })
-
-            if let whatsappUrl = ShareService.shared.getWhatsAppShareUrl(text: message) {
-                Link(destination: whatsappUrl) {
-                    Label("Enviar no WhatsApp", systemImage: "message.fill")
-                }
-                .simultaneousGesture(TapGesture().onEnded {
-                    ShareService.shared.trackOfferShare(
-                        offerId: offer.id,
-                        shareType: .whatsapp,
-                        offerTitle: offer.title,
-                        storeId: offer.storeId
-                    )
-                })
-            }
-        } label: {
-            Image(systemName: "square.and.arrow.up")
+    private func copyLinkToClipboard() {
+        let url = ShareService.shared.getOfferShareUrl(offerId: offer.id)
+        UIPasteboard.general.string = url
+        ShareService.shared.trackOfferShare(
+            offerId: offer.id,
+            shareType: .link,
+            offerTitle: offer.title,
+            storeId: offer.storeId
+        )
+        toastMessage = "Link copiado!"
+        withAnimation { showToast = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            withAnimation { showToast = false }
         }
     }
     

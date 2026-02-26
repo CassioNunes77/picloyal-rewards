@@ -69,6 +69,15 @@ class RedemptionsService {
         ]
         
         let docRef = try await ref.addDocument(data: data)
+        UserActivitiesService.shared.recordOfferRequested(
+            userId: user.uid,
+            redemptionId: docRef.documentID,
+            offerId: offerId,
+            offerTitle: offerTitle,
+            storeId: storeId,
+            storeName: storeName,
+            merchantId: merchantId
+        )
         return docRef.documentID
     }
     
@@ -103,6 +112,16 @@ class RedemptionsService {
         return map
     }
     
+    /// Busca resgates do usuário (para histórico de atividades)
+    func getUserRedemptions(userId: String, limitCount: Int = 100) async throws -> [FirebaseRedemption] {
+        let snapshot = try await db.collection(collectionName)
+            .whereField("userId", isEqualTo: userId)
+            .order(by: "createdAt", descending: true)
+            .limit(to: limitCount)
+            .getDocuments()
+        return snapshot.documents.compactMap { parseRedemption(docId: $0.documentID, data: $0.data()) }
+    }
+
     /// Busca o resgate mais recente do usuário para uma oferta (para exibir status na tela de detalhes)
     func getUserRedemptionForOffer(userId: String, offerId: String) async throws -> FirebaseRedemption? {
         let snapshot = try await db.collection(collectionName)
@@ -124,6 +143,7 @@ class RedemptionsService {
             "status": RedemptionStatus.confirmed.rawValue,
             "confirmedAt": Timestamp()
         ])
+        UserActivitiesService.shared.recordOfferConfirmed(redemptionId: redemptionId)
     }
     
     private func parseRedemption(docId: String, data: [String: Any]) -> FirebaseRedemption? {

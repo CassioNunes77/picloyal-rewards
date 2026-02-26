@@ -1,5 +1,6 @@
 import { collection, addDoc, query, where, orderBy, limit, getDocs, doc, updateDoc, Timestamp } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
+import { recordOfferRequested, recordOfferConfirmed } from "./userActivitiesService";
 
 const REDEMPTIONS_COLLECTION = "offerRedemptions";
 
@@ -61,6 +62,15 @@ export async function createRedemption(
     status: "pending",
     createdAt: Timestamp.now(),
   });
+  recordOfferRequested({
+    userId,
+    redemptionId: docRef.id,
+    offerId,
+    offerTitle,
+    storeId,
+    storeName,
+    merchantId,
+  }).catch(() => {});
   return docRef.id;
 }
 
@@ -177,6 +187,41 @@ export async function getUserRedemptionsMap(userId: string): Promise<Record<stri
 }
 
 /**
+ * Busca resgates do usuário para histórico de atividades
+ */
+export async function getUserRedemptions(userId: string, limitCount = 100): Promise<RedemptionData[]> {
+  if (!firestore) return [];
+  try {
+    const q = query(
+      collection(firestore, REDEMPTIONS_COLLECTION),
+      where("userId", "==", userId),
+      orderBy("createdAt", "desc"),
+      limit(limitCount)
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((docSnap) => {
+      const d = docSnap.data();
+      return {
+        id: docSnap.id,
+        offerId: String(d?.offerId ?? ""),
+        offerTitle: String(d?.offerTitle ?? ""),
+        storeId: String(d?.storeId ?? ""),
+        storeName: String(d?.storeName ?? ""),
+        merchantId: String(d?.merchantId ?? ""),
+        userId: String(d?.userId ?? ""),
+        userName: String(d?.userName ?? ""),
+        userEmail: String(d?.userEmail ?? ""),
+        status: (d?.status as RedemptionStatus) ?? "pending",
+        createdAt: toDate(d?.createdAt),
+      };
+    });
+  } catch (error) {
+    console.error("Erro ao buscar resgates do usuário:", error);
+    return [];
+  }
+}
+
+/**
  * Busca o resgate mais recente do usuário para uma oferta (para exibir status na tela de detalhes)
  */
 export async function getUserRedemptionForOffer(
@@ -228,4 +273,5 @@ export async function confirmRedemption(
     status: "confirmed",
     confirmedAt: Timestamp.now(),
   });
+  recordOfferConfirmed(redemptionId, merchantId).catch(() => {});
 }

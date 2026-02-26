@@ -257,6 +257,31 @@ service cloud.firestore {
     }
 
     // ============================================
+    // ATIVIDADES DO USUÁRIO
+    // ============================================
+    match /userActivities/{activityId} {
+      // Usuário lê apenas suas próprias atividades
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Usuário cria atividade para si; lojista pode atualizar (ex: confirmar resgate)
+      allow create: if request.auth != null &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.keys().hasAll(['userId', 'type', 'title', 'description', 'storeName', 'createdAt']) &&
+                       request.resource.data.userId is string &&
+                       request.resource.data.type is string &&
+                       request.resource.data.title is string &&
+                       request.resource.data.description is string &&
+                       request.resource.data.storeName is string &&
+                       request.resource.data.createdAt is timestamp &&
+                       (!request.resource.data.keys().hasAny(['merchantId']) || request.resource.data.merchantId is string);
+      allow update: if request.auth != null &&
+                       (resource.data.userId == request.auth.uid ||
+                        (resource.data.merchantId == request.auth.uid &&
+                         request.resource.data.keys().hasAll(['status']) &&
+                         request.resource.data.status is string));
+      allow delete: if false;
+    }
+
+    // ============================================
     // COMPARTILHAMENTOS (analytics)
     // ============================================
     match /offerShareEvents/{eventId} {

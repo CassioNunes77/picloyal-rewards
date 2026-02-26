@@ -1,12 +1,13 @@
-import { useState } from "react";
-import { Clock, Search, ChevronRight, ShoppingCart, Gift, Sparkles, Tag, List, MapPin, Coffee, UtensilsCrossed, Percent, Star } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Clock, Search, ChevronRight, ShoppingCart, Gift, Sparkles, Tag, List, MapPin, Coffee, UtensilsCrossed, Percent, Star, Loader2 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
-import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
-import type { HistoryDetailData } from "./HistoryDetailPage";
+import { useAuth } from "@/contexts/AuthContext";
+import { getUserActivities, mergeActivitiesWithRedemptions, type UserActivity } from "@/services/userActivitiesService";
+import { getUserRedemptions } from "@/services/redemptionsService";
 
 interface HistoryItem {
-  id: number;
+  id: string;
   title: string;
   description: string;
   date: string;
@@ -16,94 +17,76 @@ interface HistoryItem {
   icon: "cup" | "gift" | "sparkles" | "tag" | "cart" | "fork" | "percent" | "star";
 }
 
+function formatActivityDate(date: Date): string {
+  const now = new Date();
+  const d = new Date(date);
+  const diffMs = now.getTime() - d.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return "Agora";
+  if (diffMins < 60) return `${diffMins} min atrás`;
+  if (diffHours < 24 && d.getDate() === now.getDate()) return `Hoje, ${d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+  if (diffDays === 1) return `Ontem, ${d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+  if (diffDays < 7) return `${diffDays} dias atrás`;
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+function activityToHistoryItem(a: UserActivity, index: number): HistoryItem {
+  const iconMap: Record<string, HistoryItem["icon"]> = {
+    offer: "tag",
+    reward: "gift",
+    stamp: "sparkles",
+    purchase: "cup",
+    points: "sparkles",
+  };
+  return {
+    id: a.id,
+    title: a.title,
+    description: a.description,
+    date: formatActivityDate(a.createdAt),
+    points: a.points ?? 0,
+    type: a.type === "offer" ? "offer" : a.type === "reward" ? "reward" : a.type === "purchase" ? "purchase" : "points",
+    storeName: a.storeName,
+    icon: iconMap[a.type] ?? "tag",
+  };
+}
+
 const HistoryPage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
+  const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const historyItems: HistoryItem[] = [
-    {
-      id: 1,
-      title: "Compra realizada",
-      description: "Café Central - R$ 45,00",
-      date: "Hoje, 14:30",
-      points: 45,
-      type: "purchase",
-      storeName: "Café Central",
-      icon: "cup",
-    },
-    {
-      id: 2,
-      title: "Recompensa resgatada",
-      description: "1 Café Grátis",
-      date: "Ontem, 10:15",
-      points: -200,
-      type: "reward",
-      storeName: "Café Central",
-      icon: "gift",
-    },
-    {
-      id: 3,
-      title: "Pontos ganhos",
-      description: "Bônus de fidelidade",
-      date: "25/01/2025, 18:00",
-      points: 50,
-      type: "points",
-      storeName: "Sistema",
-      icon: "sparkles",
-    },
-    {
-      id: 4,
-      title: "Oferta utilizada",
-      description: "20% OFF em Bebidas",
-      date: "24/01/2025, 15:20",
-      points: 0,
-      type: "offer",
-      storeName: "Café Central",
-      icon: "tag",
-    },
-    {
-      id: 5,
-      title: "Compra realizada",
-      description: "Restaurante Sabor - R$ 120,00",
-      date: "23/01/2025, 19:45",
-      points: 120,
-      type: "purchase",
-      storeName: "Restaurante Sabor",
-      icon: "fork",
-    },
-    {
-      id: 6,
-      title: "Pontos ganhos",
-      description: "Promoção pontos em dobro",
-      date: "22/01/2025, 12:00",
-      points: 100,
-      type: "points",
-      storeName: "Sistema",
-      icon: "star",
-    },
-    {
-      id: 7,
-      title: "Compra realizada",
-      description: "Supermercado Bom Preço - R$ 85,50",
-      date: "21/01/2025, 16:30",
-      points: 85,
-      type: "purchase",
-      storeName: "Supermercado Bom Preço",
-      icon: "cart",
-    },
-    {
-      id: 8,
-      title: "Recompensa resgatada",
-      description: "10% OFF em qualquer produto",
-      date: "20/01/2025, 11:00",
-      points: -100,
-      type: "reward",
-      storeName: "Supermercado Bom Preço",
-      icon: "percent",
-    },
-  ];
+  useEffect(() => {
+    if (!user?.uid) {
+      setHistoryItems([]);
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const [activities, redemptions] = await Promise.all([
+          getUserActivities(user.uid),
+          getUserRedemptions(user.uid),
+        ]);
+        if (cancelled) return;
+        const merged = mergeActivitiesWithRedemptions(activities, redemptions);
+        setHistoryItems(merged.map(activityToHistoryItem));
+      } catch {
+        if (!cancelled) setHistoryItems([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.uid]);
 
   const filters = [
     { id: "all", label: "Todas", icon: List },
@@ -150,9 +133,7 @@ const HistoryPage = () => {
 
   const handleItemClick = (item: HistoryItem) => {
     navigate("/history-detail", {
-      state: {
-        item: item as HistoryDetailData,
-      },
+      state: { item: item as import("./HistoryDetailPage").HistoryDetailData },
     });
   };
 
@@ -193,11 +174,16 @@ const HistoryPage = () => {
             );
           })}
         </div>
-        {filteredItems.length === 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
+            <p className="text-sm text-muted-foreground">Carregando atividades...</p>
+          </div>
+        ) : filteredItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
             <Clock className="h-10 w-10 text-muted-foreground mb-4" />
             <p className="text-sm text-muted-foreground mb-2">Nenhum registro encontrado</p>
-            <p className="text-xs text-muted-foreground">Tente buscar com outros termos</p>
+            <p className="text-xs text-muted-foreground">Suas ofertas utilizadas aparecerão aqui</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
@@ -291,18 +277,22 @@ const HistoryPage = () => {
         </div>
 
         {/* History List */}
-        {filteredItems.length === 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-12 animate-fade-in">
+            <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
+            <p className="text-sm text-muted-foreground">Carregando atividades...</p>
+          </div>
+        ) : filteredItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 animate-fade-in">
             <Clock className="h-10 w-10 text-muted-foreground mb-4" />
             <p className="text-sm text-muted-foreground mb-2">Nenhum registro encontrado</p>
-            <p className="text-xs text-muted-foreground">Tente buscar com outros termos</p>
+            <p className="text-xs text-muted-foreground">Suas ofertas utilizadas aparecerão aqui</p>
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredItems.map((item, index) => {
-              return (
+            {filteredItems.map((item, index) => (
                 <div
-                  key={item.id}
+                  key={`${item.id}-${index}`}
                   className="animate-fade-in"
                   style={{ animationDelay: `${200 + index * 50}ms` }}
                 >
@@ -362,8 +352,7 @@ const HistoryPage = () => {
                     </div>
                   </button>
                 </div>
-              );
-            })}
+            ))}
           </div>
         )}
 
