@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Store, MapPin, Phone, Building2, X, Power } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Store, MapPin, Phone, Building2, X, Power, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import StorePhotoUpload from "./StorePhotoUpload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { updateStore, type StoreData } from "@/services/merchantsService";
+import { validateCnpj } from "@/services/cnpjService";
 import { formatBusinessHours, DEFAULT_SCHEDULE } from "@/lib/businessHours";
 import CityAutocomplete from "./CityAutocomplete";
 import BusinessHoursPicker from "./BusinessHoursPicker";
@@ -33,6 +34,25 @@ export default function MerchantStoreEditForm({ store, onCancel, onSuccess }: Me
     photoURL: store.photoURL ?? null,
   });
   const [loading, setLoading] = useState(false);
+  const [cnpjStatus, setCnpjStatus] = useState<"idle" | "loading" | "valid" | "invalid">("idle");
+  const cnpjDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const digits = formData.cnpj.replace(/\D/g, "");
+    if (digits.length !== 14) {
+      setCnpjStatus("idle");
+      return;
+    }
+    if (cnpjDebounceRef.current) clearTimeout(cnpjDebounceRef.current);
+    cnpjDebounceRef.current = setTimeout(async () => {
+      setCnpjStatus("loading");
+      const result = await validateCnpj(formData.cnpj);
+      setCnpjStatus(result.valid ? "valid" : "invalid");
+    }, 500);
+    return () => {
+      if (cnpjDebounceRef.current) clearTimeout(cnpjDebounceRef.current);
+    };
+  }, [formData.cnpj]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,6 +181,24 @@ export default function MerchantStoreEditForm({ store, onCancel, onSuccess }: Me
             required
             disabled={loading}
           />
+          {cnpjStatus === "loading" && (
+            <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Validando CNPJ...
+            </p>
+          )}
+          {cnpjStatus === "valid" && (
+            <p className="text-sm text-green-600 dark:text-green-500 flex items-center gap-1.5">
+              <CheckCircle2 className="h-4 w-4" />
+              CNPJ válido
+            </p>
+          )}
+          {cnpjStatus === "invalid" && (
+            <p className="text-sm text-destructive flex items-center gap-1.5">
+              <XCircle className="h-4 w-4" />
+              CNPJ inválido
+            </p>
+          )}
         </div>
 
         {/* Endereço */}

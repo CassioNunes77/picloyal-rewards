@@ -8,6 +8,13 @@
 import SwiftUI
 import FirebaseAuth
 
+enum CnpjStatus {
+    case idle
+    case loading
+    case valid
+    case invalid
+}
+
 struct MerchantStoreFormView: View {
     var onCancel: () -> Void
     var onSuccess: () -> Void
@@ -23,6 +30,7 @@ struct MerchantStoreFormView: View {
     @State private var validCities: [String] = []
     @State private var errorMessage: String? = nil
     @State private var showError = false
+    @State private var cnpjStatus: CnpjStatus = .idle
     
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.lg) {
@@ -57,20 +65,24 @@ struct MerchantStoreFormView: View {
                     )
                     
                     // CNPJ
-                    FormField(
-                        label: "CNPJ",
-                        icon: "building.2.fill",
-                        isRequired: true,
-                        content: {
-                            TextField("00.000.000/0000-00", text: $cnpj)
-                                .keyboardType(.numberPad)
-                                .foregroundColor(.cardForeground)
-                                .disabled(loading)
-                                .onChange(of: cnpj) { oldValue, newValue in
-                                    cnpj = formatCNPJ(newValue)
-                                }
-                        }
-                    )
+                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                        FormField(
+                            label: "CNPJ",
+                            icon: "building.2.fill",
+                            isRequired: true,
+                            content: {
+                                TextField("00.000.000/0000-00", text: $cnpj)
+                                    .keyboardType(.numberPad)
+                                    .foregroundColor(.cardForeground)
+                                    .disabled(loading)
+                                    .onChange(of: cnpj) { oldValue, newValue in
+                                        cnpj = formatCNPJ(newValue)
+                                        validateCnpjDebounced()
+                                    }
+                            }
+                        )
+                        cnpjStatusView
+                    }
                     
                     // Endereço
                     FormField(
@@ -176,6 +188,55 @@ struct MerchantStoreFormView: View {
         )
     }
     
+    @ViewBuilder
+    private var cnpjStatusView: some View {
+        switch cnpjStatus {
+        case .loading:
+            HStack(spacing: 6) {
+                ProgressView()
+                    .scaleEffect(0.8)
+                Text("Validando CNPJ...")
+                    .font(.system(size: 12))
+                    .foregroundColor(.mutedForeground)
+            }
+        case .valid:
+            HStack(spacing: 6) {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+                Text("CNPJ válido")
+                    .font(.system(size: 12))
+                    .foregroundColor(.green)
+            }
+        case .invalid:
+            HStack(spacing: 6) {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.red)
+                Text("CNPJ inválido")
+                    .font(.system(size: 12))
+                    .foregroundColor(.red)
+            }
+        case .idle:
+            EmptyView()
+        }
+    }
+
+    private func validateCnpjDebounced() {
+        let digits = cnpj.filter { $0.isNumber }
+        if digits.count != 14 {
+            cnpjStatus = .idle
+            return
+        }
+        Task {
+            cnpjStatus = .loading
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            let cnpjToValidate = cnpj
+            let result = await CnpjService.shared.validate(cnpj: cnpjToValidate)
+            if cnpj == cnpjToValidate {
+                cnpjStatus = result.valid ? .valid : .invalid
+            }
+        }
+    }
+
     private var isFormValid: Bool {
         // Validar se a cidade está na lista de cidades válidas
         let isValidCity = !city.trimmingCharacters(in: .whitespaces).isEmpty && 
