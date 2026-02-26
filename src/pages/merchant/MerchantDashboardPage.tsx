@@ -29,12 +29,18 @@ export default function MerchantDashboardPage() {
 
   const handleLogout = async () => {
     try {
+      if (!auth) {
+        toast.error("Erro de configuração. Tente novamente.");
+        navigate("/merchant/login", { replace: true });
+        return;
+      }
       await signOut(auth);
-      navigate("/merchant/login", { replace: true });
       toast.success("Logout realizado com sucesso");
+      navigate("/merchant/login", { replace: true });
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
       toast.error("Erro ao fazer logout");
+      navigate("/merchant/login", { replace: true });
     }
   };
 

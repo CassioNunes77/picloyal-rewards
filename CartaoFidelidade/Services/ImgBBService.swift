@@ -16,10 +16,10 @@ class ImgBBService {
     
     private let apiURL = "https://api.imgbb.com/1/upload"
     
-    /// Dimensão máxima no lado maior (prioriza leveza sobre qualidade)
-    private let maxDimension: CGFloat = 800
-    /// Qualidade JPEG (0.45 = mais leve que o padrão 0.8)
-    private let jpegQuality: CGFloat = 0.45
+    /// Dimensão máxima no lado maior (500px — encoder JPEG do iOS é menos eficiente que o Web)
+    private let maxDimension: CGFloat = 500
+    /// Qualidade JPEG (0.2 — para aproximar ~15KB como na Web)
+    private let jpegQuality: CGFloat = 0.2
     
     /// Chave da API ImgBB - configure em Info.plist como IMGBB_API_KEY ou defina aqui
     private var apiKey: String? {
@@ -29,26 +29,27 @@ class ImgBBService {
     
     private init() {}
     
-    /// Redimensiona imagem mantendo proporção (prioriza leveza)
+    /// Redimensiona imagem mantendo proporção (igual ao Web: 800px max, scale 1:1)
+    /// UIGraphicsImageRenderer usa scale 2x/3x por padrão — forçar scale 1 para saída leve
     private func resizedImageForUpload(_ image: UIImage) -> UIImage {
-        var w = image.size.width
-        var h = image.size.height
+        var w = image.size.width * image.scale
+        var h = image.size.height * image.scale
         guard w > 0, h > 0 else { return image }
         
-        if w <= maxDimension && h <= maxDimension {
-            return image
-        }
-        
-        if w > h {
-            h = (h * maxDimension) / w
-            w = maxDimension
-        } else {
-            w = (w * maxDimension) / h
-            h = maxDimension
+        if w > maxDimension || h > maxDimension {
+            if w > h {
+                h = (h * maxDimension) / w
+                w = maxDimension
+            } else {
+                w = (w * maxDimension) / h
+                h = maxDimension
+            }
         }
         
         let size = CGSize(width: w, height: h)
-        let renderer = UIGraphicsImageRenderer(size: size)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        let renderer = UIGraphicsImageRenderer(size: size, format: format)
         return renderer.image { _ in
             image.draw(in: CGRect(origin: .zero, size: size))
         }

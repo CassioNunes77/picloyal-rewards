@@ -3,8 +3,8 @@
  * Prioriza tamanho sobre qualidade.
  */
 
-const MAX_DIMENSION_PX = 800;
-const JPEG_QUALITY = 0.45;
+const MAX_DIMENSION_PX = 500;
+const JPEG_QUALITY = 0.2;
 
 /**
  * Redimensiona e comprime uma imagem para JPEG leve

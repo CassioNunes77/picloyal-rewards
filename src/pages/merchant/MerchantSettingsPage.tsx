@@ -25,12 +25,18 @@ export default function MerchantSettingsPage() {
   const handleLogout = async () => {
     setShowLogoutDialog(false);
     try {
+      if (!auth) {
+        toast.error("Erro de configuração. Tente novamente.");
+        navigate("/merchant/login", { replace: true });
+        return;
+      }
       await signOut(auth);
-      navigate("/merchant/login", { replace: true });
       toast.success("Logout realizado com sucesso");
+      navigate("/merchant/login", { replace: true });
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
       toast.error("Erro ao fazer logout");
+      navigate("/merchant/login", { replace: true });
     }
   };
 
@@ -110,7 +116,8 @@ export default function MerchantSettingsPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleLogout}
+              type="button"
+              onClick={() => void handleLogout()}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Sair

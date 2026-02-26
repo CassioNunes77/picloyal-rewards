@@ -25,64 +25,53 @@ struct PremiumView: View {
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // Header com gradiente
+                // Header - mesma estrutura da tela Ofertas Especiais
                 ZStack(alignment: .top) {
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.85, green: 0.65, blue: 0.2),
-                            Color(red: 0.75, green: 0.5, blue: 0.1)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .ignoresSafeArea(edges: .top)
-                    
                     VStack(spacing: 0) {
                         HStack {
                             Button(action: onBack) {
                                 ZStack {
                                     Circle()
-                                        .fill(Color.white.opacity(0.2))
+                                        .fill(Color.heroOverlay)
                                         .frame(width: 40, height: 40)
                                     
                                     Image(systemName: "chevron.left")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.heroForeground)
                                         .font(.system(size: 20))
                                 }
                             }
                             
-                            Text("Seja Premium")
-                                .font(.appTitle)
-                                .foregroundColor(.white)
+                            HStack(spacing: AppSpacing.sm) {
+                                Image(systemName: "crown.fill")
+                                    .foregroundColor(.heroForeground)
+                                    .font(.system(size: 24))
+                                
+                                Text("Seja Premium")
+                                    .font(.appTitle)
+                                    .foregroundColor(.heroForeground)
+                            }
                             
                             Spacer()
-                                .frame(width: 40)
                         }
                         .padding(.horizontal, AppSpacing.lg)
                         .padding(.top, 48)
                         .padding(.bottom, AppSpacing.md)
-                        
-                        VStack(spacing: AppSpacing.sm) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.white.opacity(0.2))
-                                    .frame(width: 80, height: 80)
-                                
-                                Image(systemName: "crown.fill")
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 40))
-                            }
-                            .padding(.bottom, AppSpacing.sm)
-                            
-                            Text("Desbloqueie benefícios exclusivos")
-                                .font(.appBody)
-                                .foregroundColor(.white.opacity(0.9))
-                                .multilineTextAlignment(.center)
-                        }
-                        .padding(.bottom, AppSpacing.lg)
                     }
+                    .padding(.bottom, AppSpacing.lg)
+                    .background(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.85, green: 0.65, blue: 0.2),
+                                Color(red: 0.75, green: 0.5, blue: 0.1)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .ignoresSafeArea(edges: .top)
                 }
                 
+                // Content - mesmo offset e cornerRadius da tela Ofertas Especiais
                 ScrollView {
                     VStack(spacing: AppSpacing.lg) {
                         // Benefícios
@@ -127,7 +116,6 @@ struct PremiumView: View {
                                 }
                             }
                         }
-                        .padding(.horizontal, AppSpacing.lg)
                         
                         // CTA
                         Button(action: {
@@ -157,7 +145,6 @@ struct PremiumView: View {
                             .cornerRadius(AppRadius.lg)
                         }
                         .buttonStyle(PlainButtonStyle())
-                        .padding(.horizontal, AppSpacing.lg)
                         .fadeIn(delay: 0.4)
                         
                         Text("R$ 19,90/mês • Cancele quando quiser")
@@ -168,9 +155,12 @@ struct PremiumView: View {
                         Spacer()
                             .frame(height: 100)
                     }
+                    .padding(.horizontal, AppSpacing.lg)
                     .padding(.top, AppSpacing.lg)
                 }
                 .background(Color.appBackground)
+                .cornerRadius(AppRadius.xl, corners: [.topLeft, .topRight])
+                .offset(y: -AppRadius.xl)
             }
         }
     }

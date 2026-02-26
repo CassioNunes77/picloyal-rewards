@@ -31,7 +31,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		DF5AABC32F21B1EB00BCE4F0 /* Core+.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Core+.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DF5AABC32F21B1EB00BCE4F0 /* Core+.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "Core+.app"; path = CorePlus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF5AABD42F21B1EF00BCE4F0 /* Core+Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Core+Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF5AABDE2F21B1EF00BCE4F0 /* Core+UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Core+UITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -432,7 +432,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.7;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.corevo.coremais;
-				PRODUCT_NAME = "CorePlus";
+				PRODUCT_NAME = CorePlus;
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -473,7 +473,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.7;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.corevo.coremais;
-				PRODUCT_NAME = "CorePlus";
+				PRODUCT_NAME = CorePlus;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
