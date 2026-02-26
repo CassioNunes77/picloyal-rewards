@@ -82,6 +82,13 @@ const StoresPage = () => {
     navigate(`/store/${store.id}`);
   };
 
+  const handleDismissKeyboard = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (!target.closest("input, textarea")) {
+      (document.activeElement as HTMLElement)?.blur();
+    }
+  };
+
   const searchBar = (
     <div className="relative">
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -199,7 +206,7 @@ const StoresPage = () => {
 
   if (!isMobile) {
     return (
-      <div className="min-h-full bg-background">
+      <div className="min-h-full bg-background" onClick={handleDismissKeyboard}>
         <div className="pb-4">
           <h1 className="text-xl font-bold text-card-foreground">Lojas</h1>
         </div>
@@ -294,7 +301,7 @@ const StoresPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" onClick={handleDismissKeyboard}>
       <div className="gradient-hero">
         <header className="px-6 pt-12 pb-6">
           <div className="flex items-center gap-4 mb-4">

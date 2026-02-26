@@ -197,6 +197,7 @@ struct StoresView: View {
                     .padding(.horizontal, AppSpacing.lg)
                     .padding(.top, AppSpacing.lg)
                 }
+                .scrollDismissesKeyboard(.interactively)
                 .background(Color.appBackground)
                 .cornerRadius(AppRadius.xl, corners: [.topLeft, .topRight])
                 .offset(y: -AppRadius.xl)
@@ -236,6 +237,9 @@ struct StoresView: View {
         }
         .ignoresSafeArea(edges: .top)
         .animation(.easeInOut(duration: 0.3), value: selectedStore)
+        .simultaneousGesture(TapGesture().onEnded { _ in
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        })
         .onAppear {
             loadStores()
         }

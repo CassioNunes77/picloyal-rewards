@@ -134,6 +134,13 @@ const OffersPage = () => {
     navigate(`/offer/${offer.id}`, { state: { offer: offer as OfferDetailData } });
   };
 
+  const handleDismissKeyboard = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (!target.closest("input, textarea")) {
+      (document.activeElement as HTMLElement)?.blur();
+    }
+  };
+
   const searchInput = (
     <div className="relative">
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -265,7 +272,7 @@ const OffersPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" onClick={handleDismissKeyboard}>
       <div className="gradient-secondary">
         <header className="px-6 pt-12 pb-6">
           <div className="flex items-center gap-4 mb-4">
