@@ -2,7 +2,8 @@ import { useState, useRef } from "react";
 import { Store, X, Loader2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { uploadImageToImgBB, fileToBase64 } from "@/services/imgbbService";
+import { uploadImageToImgBB } from "@/services/imgbbService";
+import { compressImageForUpload } from "@/lib/imageCompression";
 
 interface StorePhotoUploadProps {
   value: string | null;
@@ -32,7 +33,7 @@ export default function StorePhotoUpload({ value, onChange, disabled }: StorePho
 
     setUploading(true);
     try {
-      const base64 = await fileToBase64(file);
+      const base64 = await compressImageForUpload(file);
       const url = await uploadImageToImgBB(base64);
       if (url) {
         onChange(url);
