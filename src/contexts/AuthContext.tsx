@@ -17,6 +17,7 @@ import {
   signInWithRedirect,
   getRedirectResult,
   GoogleAuthProvider,
+  OAuthProvider,
   reauthenticateWithCredential,
   reauthenticateWithPopup,
   EmailAuthProvider,
@@ -55,12 +56,34 @@ function getGoogleErrorMessage(e: unknown): string {
   return "Erro ao entrar com Google. Abra o Console (F12) e veja o código do erro para mais detalhes.";
 }
 
+function getAppleErrorMessage(e: unknown): string {
+  const err = e as { code?: string; message?: string } | null;
+  if (!err || typeof err !== "object") return "Erro ao entrar com Apple. Tente novamente.";
+  const code = err.code as string | undefined;
+  const msg = (err.message as string) ?? "";
+  if (code === "auth/unauthorized-domain") {
+    return "Este site não está autorizado no Firebase. Em Firebase Console → Authentication → Authorized domains, adicione o domínio.";
+  }
+  if (code === "auth/operation-not-allowed") {
+    return "Login com Apple não está ativado. Em Firebase Console → Authentication → Sign-in method, ative o provedor Apple.";
+  }
+  if (code === "auth/popup-blocked") {
+    return "O popup foi bloqueado. Permita popups para este site ou tente novamente.";
+  }
+  if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
+    return "Login cancelado.";
+  }
+  if (msg && typeof msg === "string") return msg;
+  return "Erro ao entrar com Apple. Tente novamente.";
+}
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
   signOut: () => Promise<void>;
   deleteAccount: () => Promise<void>;
   /** Reautenticar com e-mail/senha (para excluir conta após requires-recent-login). */
@@ -251,6 +274,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const signInWithApple = useCallback(async () => {
+    console.log("[Auth] Entrar com Apple: início");
+    if (!auth) {
+      const msg = "Firebase não configurado. Configure as variáveis no Netlify.";
+      setAuthError(msg);
+      console.error("[Auth] Entrar com Apple:", msg);
+      throw new Error(msg);
+    }
+    setAuthError(null);
+    const provider = new OAuthProvider("apple.com");
+    provider.addScope("email");
+    provider.addScope("name");
+    provider.setCustomParameters({ locale: "pt-BR" });
+    try {
+      const userCredential = await signInWithPopup(auth, provider);
+      const userId = userCredential.user.uid;
+      
+      // Verificar se é lojista (existe em merchants)
+      const merchantExists = await isMerchant(userId);
+      if (merchantExists) {
+        await firebaseSignOut(auth);
+        throw new Error("Esta conta é de um lojista. Use o login do painel do lojista.");
+      }
+      
+      console.log("[Auth] Entrar com Apple: sucesso");
+    } catch (e: unknown) {
+      const err = e as { code?: string; message?: string } | null;
+      console.error("[Auth] Entrar com Apple falhou:", err?.code ?? "unknown", err?.message ?? e);
+      const message = getAppleErrorMessage(e);
+      setAuthError(message);
+      throw new Error(message);
+    }
+  }, []);
+
   const signOut = useCallback(async () => {
     setAuthError(null);
     if (auth) await firebaseSignOut(auth);
@@ -335,6 +392,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn,
     signUp,
     signInWithGoogle,
+    signInWithApple,
     signOut,
     deleteAccount,
     reauthenticateWithPassword,

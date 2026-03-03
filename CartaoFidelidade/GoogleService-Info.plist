@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>557856899178-99petkkh11lg0efn7k4m3f8pigiljsra.apps.googleusercontent.com</string>
+	<string>557856899178-0u1rgd95b3r3jlkioldv3hgbi9k9vsrv.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.557856899178-99petkkh11lg0efn7k4m3f8pigiljsra</string>
+	<string>com.googleusercontent.apps.557856899178-0u1rgd95b3r3jlkioldv3hgbi9k9vsrv</string>
 	<key>API_KEY</key>
 	<string>AIzaSyDzbCJndz14aG3u9VyWFxOK3XX36DkE2ac</string>
 	<key>GCM_SENDER_ID</key>
@@ -13,7 +13,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>corevo.CartaoFidelidade</string>
+	<string>com.corevo.coremais</string>
 	<key>PROJECT_ID</key>
 	<string>coreben-f2460</string>
 	<key>STORAGE_BUCKET</key>
@@ -29,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:557856899178:ios:f03f863da5c71ccd08ca13</string>
+	<string>1:557856899178:ios:9f8186c5695ec30f08ca13</string>
 </dict>
 </plist>

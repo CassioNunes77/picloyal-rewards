@@ -6,6 +6,7 @@ import LoyaltyCard from "@/components/LoyaltyCard";
 import LocationSelector from "@/components/LocationSelector";
 import { useQR } from "@/contexts/QRContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUnreadNotifications } from "@/hooks/use-unread-notifications";
 import { User, Bell, Settings, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -15,6 +16,7 @@ export default function DesktopLayout() {
   const activeId = getActiveNavId(pathname);
   const { showQR, openQR, closeQR } = useQR();
   const { user } = useAuth();
+  const { unreadCount } = useUnreadNotifications();
   const displayName = user?.displayName ?? user?.email?.split("@")[0] ?? "Usuário";
 
   return (
@@ -68,10 +70,15 @@ export default function DesktopLayout() {
           <button
             type="button"
             onClick={() => navigate("/notifications")}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-card-foreground transition-colors"
+            className="relative flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-card-foreground transition-colors"
             aria-label="Notificações"
           >
             <Bell className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
           </button>
           <button
             type="button"

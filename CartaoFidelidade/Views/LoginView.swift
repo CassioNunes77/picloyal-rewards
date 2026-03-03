@@ -406,9 +406,23 @@ struct LoginView: View {
             let isRegularUser = try await roleService.isUser(userId: userId)
             
             if !isRegularUser {
-                // Tentando fazer login mas não existe em users
-                try? Auth.auth().signOut()
-                throw NSError(domain: "UserRoleValidation", code: 2, userInfo: [NSLocalizedDescriptionKey: "Conta não encontrada. Crie uma conta primeiro."])
+                // Primeiro login com Apple/Google: criar documento automaticamente
+                if let user = Auth.auth().currentUser {
+                    let userRef = db.collection("users").document(userId)
+                    let now = Timestamp()
+                    let userData: [String: Any] = [
+                        "uid": userId,
+                        "email": user.email ?? "",
+                        "displayName": user.displayName ?? "",
+                        "photoURL": user.photoURL?.absoluteString ?? "",
+                        "phoneNumber": user.phoneNumber ?? "",
+                        "createdAt": now,
+                        "updatedAt": now,
+                        "lastLoginAt": now
+                    ]
+                    try await userRef.setData(userData)
+                    print("✅ [LoginView] Documento de usuário criado no Firestore (primeiro login Apple/Google)")
+                }
             }
         }
     }

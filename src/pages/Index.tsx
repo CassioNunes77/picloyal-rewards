@@ -10,6 +10,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQR } from "@/contexts/QRContext";
+import { useUnreadNotifications } from "@/hooks/use-unread-notifications";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getAllStampRewards, type StampRewardData } from "@/services/stampRewardsService";
 
@@ -17,6 +18,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { openQR } = useQR();
   const { user, loading: authLoading } = useAuth();
+  const { unreadCount } = useUnreadNotifications();
   const [showSettings, setShowSettings] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(() => localStorage.getItem("selectedLocation") || "");
   const [stampRewards, setStampRewards] = useState<StampRewardData[]>([]);
@@ -243,9 +245,11 @@ const Index = () => {
                            transition-all duration-200 active:scale-90 active:bg-primary-foreground/30 animate-fade-in"
                 style={{ animationDelay: "100ms" }}
               >
-                <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
-                  2
-                </div>
+                {unreadCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
                 <svg className="h-5 w-5 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>

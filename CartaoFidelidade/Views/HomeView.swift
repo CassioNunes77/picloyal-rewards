@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct HomeView: View {
     @Binding var showSettings: Bool
@@ -20,6 +21,7 @@ struct HomeView: View {
     @State private var stampRewards: [FirebaseStampReward] = []
     @State private var stampCarouselIndex: Int = 0
     @State private var selectedReward: Reward? = nil
+    @State private var unreadCount: Int = 0
     
     let rewards = [
         Reward(
@@ -106,16 +108,18 @@ struct HomeView: View {
                                                 .foregroundColor(.heroForeground)
                                                 .font(.system(size: 20))
                                             
-                                            ZStack {
-                                                Circle()
-                                                    .fill(Color.destructive)
-                                                    .frame(width: 20, height: 20)
-                                                
-                                                Text("2")
-                                                    .font(.system(size: 10, weight: .bold))
-                                                    .foregroundColor(.white)
+                                            if unreadCount > 0 {
+                                                ZStack {
+                                                    Circle()
+                                                        .fill(Color.destructive)
+                                                        .frame(width: 20, height: 20)
+                                                    
+                                                    Text(unreadCount > 9 ? "9+" : "\(unreadCount)")
+                                                        .font(.system(size: 10, weight: .bold))
+                                                        .foregroundColor(.white)
+                                                }
+                                                .offset(x: 12, y: -12)
                                             }
-                                            .offset(x: 12, y: -12)
                                         }
                                     }
                                     .fadeIn(delay: 0.1)
@@ -373,6 +377,14 @@ struct HomeView: View {
                     stampRewards = try await StampRewardsService.shared.getAllStampRewards(cityFilter: selectedLocation.isEmpty ? nil : selectedLocation)
                 } catch {
                     stampRewards = []
+                }
+            }
+            .task(id: activeTab) {
+                guard activeTab == "home", let userId = Auth.auth().currentUser?.uid else { return }
+                do {
+                    unreadCount = try await NotificationsService.shared.getUnreadCount(userId: userId)
+                } catch {
+                    unreadCount = 0
                 }
             }
             
