@@ -5,10 +5,40 @@
 //  WebView que carrega o app web (src). Usa recursos nativos via bridge.
 //
 
+import AuthenticationServices
 import FirebaseCore
 import GoogleSignIn
 import SwiftUI
 @preconcurrency import WebKit
+
+// MARK: - Apple Sign-In Delegate (modelo APPLE_LOGIN_IOS_WEBAPP.md)
+private final class AppleSignInDelegate: NSObject, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
+    private weak var anchorWindow: ASPresentationAnchor?
+    private let completion: (Result<String, Error>) -> Void
+
+    init(anchorWindow: ASPresentationAnchor, completion: @escaping (Result<String, Error>) -> Void) {
+        self.anchorWindow = anchorWindow
+        self.completion = completion
+    }
+
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
+              let tokenData = credential.identityToken,
+              let idToken = String(data: tokenData, encoding: .utf8) else {
+            completion(.failure(NSError(domain: "AppleSignIn", code: -1, userInfo: [NSLocalizedDescriptionKey: "Token não disponível"])))
+            return
+        }
+        completion(.success(idToken))
+    }
+
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        completion(.failure(error))
+    }
+
+    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        anchorWindow ?? ASPresentationAnchor()
+    }
+}
 
 /// URL base do app web (cardcorevo.netlify.app ou localhost para dev)
 private var webAppBaseURL: String {
@@ -63,6 +93,11 @@ private let bridgeScript = """
             window.webkit.messageHandlers.requestGoogleSignIn.postMessage({});
         }
     };
+    window.__nativeBridge.requestAppleSignIn = function() {
+        if (window.webkit?.messageHandlers?.requestAppleSignIn) {
+            window.webkit.messageHandlers.requestAppleSignIn.postMessage({});
+        }
+    };
     console.log('[Core+] Native bridge ready');
 })();
 """
@@ -86,7 +121,7 @@ struct WebViewRepresentable: UIViewRepresentable {
         config.userContentController.addUserScript(injectFlag)
         
         let controller = config.userContentController
-        controller.add(coordinator, name: "loginWithApple")
+        controller.add(coordinator, name: "requestAppleSignIn")
         controller.add(coordinator, name: "requestGoogleSignIn")
         controller.add(coordinator, name: "purchasePremium")
         controller.add(coordinator, name: "restorePurchases")
@@ -192,7 +227,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
 class WebViewCoordinator: NSObject, ObservableObject, WKScriptMessageHandler {
     weak var webView: WKWebView?
     @Published var isLoading = true
-    private let appleHelper = AppleSignInHelper()
+    private var appleSignInDelegate: AppleSignInDelegate?
     
     func setupBridge() {}
     
@@ -216,16 +251,68 @@ class WebViewCoordinator: NSObject, ObservableObject, WKScriptMessageHandler {
         }
     }
     
-    private func handleLoginWithApple() {
+    private func handleRequestAppleSignIn() {
         Task { @MainActor in
-            do {
-                let (idToken, rawNonce) = try await appleHelper.signInForWebBridge()
-                let json = toJSON(["idToken": idToken, "rawNonce": rawNonce])
-                callWeb("onAppleSignIn", json: json)
-            } catch is CancellationError {
-                callWeb("onAppleSignIn", json: "{\"error\":\"cancelled\"}")
-            } catch {
-                callWeb("onAppleSignIn", json: "{\"error\":\"\(error.localizedDescription.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\""))\"}")
+            await performAppleSignIn()
+        }
+    }
+
+    @MainActor
+    private func performAppleSignIn() async {
+        guard let webView = webView else { return }
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first(where: { $0.isKeyWindow }) ?? windowScene.windows.first else {
+            sendAppleSignInError(to: webView, message: "Janela indisponível para login Apple")
+            return
+        }
+        let provider = ASAuthorizationAppleIDProvider()
+        let request = provider.createRequest()
+        request.requestedScopes = [.fullName, .email]
+        let controller = ASAuthorizationController(authorizationRequests: [request])
+        let delegate = AppleSignInDelegate(anchorWindow: window) { [weak self, weak webView] result in
+            self?.appleSignInDelegate = nil
+            guard let webView else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self, weak webView] in
+                guard let webView else { return }
+                switch result {
+                case .success(let idToken):
+                    self?.sendAppleSignInToken(to: webView, idToken: idToken)
+                case .failure(let error):
+                    let msg = (error as NSError).domain == ASAuthorizationError.errorDomain && (error as NSError).code == ASAuthorizationError.canceled.rawValue ? "Login cancelado" : error.localizedDescription
+                    self?.sendAppleSignInError(to: webView, message: msg)
+                }
+            }
+        }
+        appleSignInDelegate = delegate
+        controller.delegate = delegate
+        controller.presentationContextProvider = delegate
+        controller.performRequests()
+    }
+
+    private func sendAppleSignInToken(to webView: WKWebView, idToken: String) {
+        let escaped = idToken
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "'", with: "\\'")
+            .replacingOccurrences(of: "\r", with: "\\r")
+            .replacingOccurrences(of: "\n", with: "\\n")
+        let script = "(function(){if(typeof window.__locusAppleSignInToken==='function'){window.__locusAppleSignInToken('\(escaped)');}return 1;})()"
+        webView.evaluateJavaScript(script) { _, error in
+            if let error = error {
+                NSLog("Core+ Apple SignIn: evaluateJavaScript failed %@", error.localizedDescription)
+            }
+        }
+    }
+
+    private func sendAppleSignInError(to webView: WKWebView, message: String) {
+        let escaped = message
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "'", with: "\\'")
+            .replacingOccurrences(of: "\r", with: " ")
+            .replacingOccurrences(of: "\n", with: " ")
+        let script = "(function(){if(typeof window.__locusAppleSignInError==='function'){window.__locusAppleSignInError('\(escaped)');}return 1;})()"
+        webView.evaluateJavaScript(script) { _, error in
+            if let error = error {
+                NSLog("Core+ Apple SignIn: evaluateJavaScript error failed %@", error.localizedDescription)
             }
         }
     }

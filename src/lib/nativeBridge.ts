@@ -19,9 +19,11 @@ declare global {
     };
     __locusGoogleSignInToken?: ((idToken: string) => void) | null;
     __locusGoogleSignInError?: ((msg: string) => void) | null;
+    __locusAppleSignInToken?: ((idToken: string) => void) | null;
+    __locusAppleSignInError?: ((msg: string) => void) | null;
     webkit?: {
       messageHandlers?: {
-        loginWithApple?: { postMessage: (body?: unknown) => void };
+        requestAppleSignIn?: { postMessage: (body?: unknown) => void };
         requestGoogleSignIn?: { postMessage: (body?: unknown) => void };
         purchasePremium?: { postMessage: (body: { userId: string }) => void };
         restorePurchases?: { postMessage: (body: { userId: string }) => void };
@@ -36,25 +38,33 @@ export function isIOSWebView(): boolean {
   return !!window.__corePlusNativeApp || !!window.webkit?.messageHandlers;
 }
 
-export function loginWithAppleNative(): Promise<{ idToken: string; rawNonce: string }> {
+/** Login Apple via SDK nativo (modelo APPLE_LOGIN_IOS_WEBAPP.md) — sheet modal nativo */
+export function loginWithAppleNative(): Promise<{ idToken: string }> {
   return new Promise((resolve, reject) => {
-    const handler = window.webkit?.messageHandlers?.loginWithApple;
+    const handler = window.webkit?.messageHandlers?.requestAppleSignIn;
     if (!handler) {
       reject(new Error("Bridge não disponível"));
       return;
     }
-    if (!window.__nativeBridge) window.__nativeBridge = { isIOSWebView: true, onAppleSignIn: null, onGoogleSignIn: null, onPurchaseResult: null, onRestoreResult: null };
-    const original = window.__nativeBridge.onAppleSignIn;
-    window.__nativeBridge.onAppleSignIn = (data) => {
-      window.__nativeBridge!.onAppleSignIn = original;
-      if ("error" in data) {
-        if (data.error === "cancelled") reject(new Error("auth/cancelled-popup-request"));
-        else reject(new Error(data.error));
-      } else {
-        resolve({ idToken: data.idToken, rawNonce: data.rawNonce });
-      }
+    const onToken = (idToken: string) => {
+      window.__locusAppleSignInToken = null;
+      window.__locusAppleSignInError = null;
+      resolve({ idToken });
     };
-    handler.postMessage({});
+    const onError = (msg: string) => {
+      window.__locusAppleSignInToken = null;
+      window.__locusAppleSignInError = null;
+      reject(new Error(msg || "Login cancelado"));
+    };
+    window.__locusAppleSignInToken = onToken;
+    window.__locusAppleSignInError = onError;
+    try {
+      handler.postMessage({});
+    } catch (e) {
+      window.__locusAppleSignInToken = null;
+      window.__locusAppleSignInError = null;
+      reject(e);
+    }
   });
 }
 

@@ -295,8 +295,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       let userCredential;
       if (isIOSWebView()) {
-        const { idToken, rawNonce } = await loginWithAppleNative();
-        const credential = provider.credential({ idToken, rawNonce });
+        const { idToken } = await loginWithAppleNative();
+        const credential = provider.credential({ idToken });
         userCredential = await signInWithCredential(auth, credential);
       } else {
         userCredential = await signInWithPopup(auth, provider);
