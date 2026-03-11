@@ -236,8 +236,8 @@ class WebViewCoordinator: NSObject, ObservableObject, WKScriptMessageHandler {
         let body = message.body as? [String: Any]
         
         switch name {
-        case "loginWithApple":
-            handleLoginWithApple()
+        case "requestAppleSignIn":
+            handleRequestAppleSignIn()
         case "requestGoogleSignIn":
             handleRequestGoogleSignIn()
         case "purchasePremium":

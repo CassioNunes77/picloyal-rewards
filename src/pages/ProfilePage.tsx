@@ -28,6 +28,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -61,6 +71,7 @@ const ProfilePage = () => {
   const [tempPassword, setTempPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [userPlan, setUserPlan] = useState<"free" | "premium">("free");
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, "");
@@ -278,7 +289,7 @@ const ProfilePage = () => {
   };
 
   const handleLogout = async () => {
-    if (!window.confirm("Deseja realmente sair da sua conta?")) return;
+    setShowLogoutDialog(false);
     try {
       await signOut();
       toast.success("Até logo! 👋");
@@ -452,7 +463,7 @@ const ProfilePage = () => {
               </div>
               <div>
                 <button
-                  onClick={() => void handleLogout()}
+                  onClick={() => setShowLogoutDialog(true)}
                   className="w-full flex items-center gap-4 p-4 rounded-xl bg-destructive/10 text-destructive
                            transition-all duration-200 hover:bg-destructive/20"
                 >
@@ -638,7 +649,7 @@ const ProfilePage = () => {
             {/* Logout */}
             <div className="mb-4">
               <button
-                onClick={() => void handleLogout()}
+                onClick={() => setShowLogoutDialog(true)}
                 className="w-full flex items-center gap-4 p-4 rounded-xl bg-destructive/10 text-destructive
                          transition-all duration-200 active:scale-[0.98] active:bg-destructive/20
                          animate-fade-in"
@@ -661,6 +672,27 @@ const ProfilePage = () => {
           </div>
         </div>
       )}
+
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deseja sair da sua conta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você precisará fazer login novamente para acessar o app.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              type="button"
+              onClick={() => void handleLogout()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Sair
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={editDialog !== null} onOpenChange={(open) => !open && closeEditDialog()}>
         <DialogContent className="sm:max-w-md">

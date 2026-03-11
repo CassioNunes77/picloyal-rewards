@@ -23,6 +23,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -102,6 +112,7 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
   const [notifications, setNotifications] = useState(true);
   const { darkMode, toggleDarkMode } = useDarkMode();
   const [showReauthDialog, setShowReauthDialog] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [reauthPassword, setReauthPassword] = useState("");
   const [reauthLoading, setReauthLoading] = useState(false);
   const displayName = user?.displayName ?? user?.email?.split("@")[0] ?? "Usuário";
@@ -137,10 +148,10 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
   };
 
   const handleLogout = async () => {
-    if (!window.confirm("Deseja realmente sair da sua conta?")) return;
+    setShowLogoutDialog(false);
     try {
       await signOut();
-    toast.success("Até logo! 👋");
+      toast.success("Até logo! 👋");
       onBack();
     } catch {
       toast.error("Erro ao sair.");
@@ -355,7 +366,7 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
               label="Sair da Conta"
               delay={650}
               danger
-              onClick={() => void handleLogout()}
+              onClick={() => setShowLogoutDialog(true)}
             />
           </div>
         </div>
@@ -539,7 +550,7 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
                   label="Sair da Conta"
                   delay={650}
                   danger
-                  onClick={() => void handleLogout()}
+                  onClick={() => setShowLogoutDialog(true)}
                 />
               </div>
             </div>
@@ -601,6 +612,27 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Deseja sair da sua conta?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Você precisará fazer login novamente para acessar o app.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                type="button"
+                onClick={() => void handleLogout()}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Sair
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     );
   }
@@ -620,6 +652,26 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
         </div>
       </header>
       <div className="relative -mt-4 rounded-t-3xl bg-background px-6 pt-6">{content}</div>
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deseja sair da sua conta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você precisará fazer login novamente para acessar o app.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              type="button"
+              onClick={() => void handleLogout()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Sair
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <Dialog open={showReauthDialog} onOpenChange={setShowReauthDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
