@@ -18,11 +18,9 @@ struct CartaoFidelidadeApp: App {
         FirebaseApp.configure()
     }
 
-    @State private var splashDone = false
-    
     var body: some Scene {
         WindowGroup {
-            RootContentView(splashDone: $splashDone)
+            RootContentView()
             .preferredColorScheme(darkModeManager.darkMode ? .dark : .light)
             .onAppear {
                 Task { await DarkModeManager.shared.loadFromFirebase() }
@@ -42,18 +40,8 @@ struct CartaoFidelidadeApp: App {
 
 // MARK: - Root Content (WebView: app web + recursos nativos via bridge)
 private struct RootContentView: View {
-    @Binding var splashDone: Bool
-    
     var body: some View {
-        Group {
-            if !splashDone {
-                SplashScreenView {
-                    splashDone = true
-                }
-            } else {
-                // WebView carrega o app web (src) - login e pagamento nativos via bridge
-                WebAppView()
-            }
-        }
+        // WebView carrega o app web (src) - login e pagamento nativos via bridge
+        WebAppView()
     }
 }
