@@ -1,16 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { QrCode, History, Sparkles, Store, Settings, Crown } from "lucide-react";
-import LoyaltyCard from "@/components/LoyaltyCard";
+import { QrCode, History, Sparkles, Store, ChevronRight, Gift, Percent, Coffee } from "lucide-react";
 import StampGrid from "@/components/StampGrid";
 import RewardCard from "@/components/RewardCard";
 import QuickAction from "@/components/QuickAction";
-import SettingsScreen from "@/components/SettingsScreen";
-import LocationSelector from "@/components/LocationSelector";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQR } from "@/contexts/QRContext";
-import { useUnreadNotifications } from "@/hooks/use-unread-notifications";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getAllStampRewards, type StampRewardData } from "@/services/stampRewardsService";
 
@@ -18,23 +14,10 @@ const Index = () => {
   const navigate = useNavigate();
   const { openQR } = useQR();
   const { user, loading: authLoading } = useAuth();
-  const { unreadCount } = useUnreadNotifications();
-  const [showSettings, setShowSettings] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState(() => localStorage.getItem("selectedLocation") || "");
   const [stampRewards, setStampRewards] = useState<StampRewardData[]>([]);
   const [stampCarouselIndex, setStampCarouselIndex] = useState(0);
   const stampCarouselRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
-
-  useEffect(() => {
-    setSelectedLocation(localStorage.getItem("selectedLocation") || "");
-  }, []);
-
-  useEffect(() => {
-    const handler = () => setSelectedLocation(localStorage.getItem("selectedLocation") || "");
-    window.addEventListener("locationChanged", handler);
-    return () => window.removeEventListener("locationChanged", handler);
-  }, []);
 
   const updateStampCarouselIndex = useCallback(() => {
     const el = stampCarouselRef.current;
@@ -77,14 +60,10 @@ const Index = () => {
     });
   };
 
-  const handleQuickAction = (action: string) => {
-    toast.info(`Abrindo ${action}...`);
-  };
-
   const rewards = [
     {
       title: "10% OFF",
-      description: "Em qualquer produto",
+      description: "100 pts  •  expira em 7 dias",
       points: 100,
       icon: "percent" as const,
       available: true,
@@ -92,7 +71,7 @@ const Index = () => {
     },
     {
       title: "Café Grátis",
-      description: "Um café expresso ou cappuccino",
+      description: "200 pts  •  Compre e ganhe",
       points: 200,
       icon: "coffee" as const,
       available: true,
@@ -115,10 +94,6 @@ const Index = () => {
 
   const displayName = user.displayName ?? user.email?.split("@")[0] ?? "Usuário";
   const shortName = displayName.split(" ")[0] || displayName;
-
-  if (showSettings) {
-    return <SettingsScreen onBack={() => setShowSettings(false)} />;
-  }
 
   // Conteúdo da Home no desktop (o cartão fica no DesktopLayout à esquerda)
   if (!isMobile) {
@@ -225,158 +200,149 @@ const Index = () => {
 
   // Layout original para mobile
   return (
-    <div className="min-h-screen bg-background">
-      <div className="gradient-hero">
-        {/* Location Selector (estilo iFood) - Centralizado */}
-        <div className="flex justify-center px-6 pt-14 pb-2">
-          <LocationSelector />
+    <div className="min-h-screen bg-[#0A0D1A] text-white">
+      <div className="relative overflow-hidden px-5 pb-6 pt-10">
+        <div className="pointer-events-none absolute -top-20 right-[-60px] h-64 w-64 rounded-full bg-fuchsia-500/30 blur-3xl" />
+        <div className="pointer-events-none absolute left-[-80px] top-20 h-56 w-56 rounded-full bg-cyan-400/20 blur-3xl" />
+
+        <div className="relative">
+          <p className="text-[33px] text-white/70">Bem-vindo de volta</p>
+          <h1 className="text-[44px] font-bold leading-tight">{shortName}</h1>
         </div>
-        
-        <header className="relative z-10 px-6 pt-2 pb-4">
-          <div className="flex items-center justify-between">
-            <div className="animate-fade-in">
-              <p className="text-sm text-primary-foreground/80">Bem-vindo de volta,</p>
-              <h1 className="text-xl font-bold text-primary-foreground">{shortName}</h1>
+
+        <div className="relative mt-4 rounded-[24px] border border-white/20 bg-gradient-to-br from-violet-300/60 via-cyan-300/55 to-emerald-300/55 p-5 text-[#10131f] shadow-2xl">
+          <div className="mb-2 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Gift className="h-4 w-4" />
+              <span>Core+</span>
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => navigate("/notifications")}
-                className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20
-                           transition-all duration-200 active:scale-90 active:bg-primary-foreground/30 animate-fade-in"
-                style={{ animationDelay: "100ms" }}
-              >
-                {unreadCount > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
-                )}
-                <svg className="h-5 w-5 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-              </button>
-              <button
-                onClick={() => setShowSettings(true)}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20
-                           transition-all duration-200 active:scale-90 active:bg-primary-foreground/30 animate-fade-in"
-                style={{ animationDelay: "150ms" }}
-              >
-                <Settings className="h-5 w-5 text-primary-foreground" />
-              </button>
-            </div>
+            <Sparkles className="h-4 w-4 text-white/70" />
           </div>
-        </header>
-        <div className="px-6 pb-8 animate-slide-up" style={{ animationDelay: "100ms" }}>
-          <LoyaltyCard
-            currentPoints={650}
-            totalPoints={1000}
-            userName={displayName}
-            cardNumber="**** **** **** 4589"
-          />
+          <p className="text-xs font-medium text-black/55">*** *** *** 4589</p>
+          <p className="mt-2 text-3xl font-semibold">{displayName}</p>
+          <div className="mt-2 flex items-end justify-between">
+            <p className="text-5xl font-bold leading-none">
+              650 <span className="text-3xl font-medium">pts</span>
+            </p>
+            <p className="text-5xl font-bold leading-none">65%</p>
+          </div>
+          <p className="mt-2 text-2xl text-black/70">Progresso até próxima recompensa</p>
+          <div className="mt-3 h-3 rounded-full bg-black/20">
+            <div className="h-3 w-[65%] rounded-full bg-[#12141E]" />
+          </div>
+          <div className="mt-1 flex items-center justify-between text-[30px] text-black/70">
+            <span>Faltam 350 pts</span>
+            <span>65%</span>
+          </div>
         </div>
       </div>
 
-      <div className="relative -mt-4 rounded-t-3xl bg-background px-6 pt-6">
-        <div className="mb-6 flex justify-around animate-fade-in" style={{ animationDelay: "200ms" }}>
-          <QuickAction icon={QrCode} label="Escanear" onClick={() => openQR()} />
-          <QuickAction icon={History} label="Atividades" onClick={() => navigate("/history")} />
-          <QuickAction icon={Sparkles} label="Recompensas" onClick={() => navigate("/rewards")} />
-          <QuickAction icon={Store} label="Lojas" onClick={() => navigate("/stores")} />
+      <div className="px-5 pb-6">
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { label: "Escanear", icon: QrCode, onClick: () => openQR() },
+            { label: "Atividades", icon: History, onClick: () => navigate("/history") },
+            { label: "Recompensas", icon: Gift, onClick: () => navigate("/rewards") },
+            { label: "Lojas", icon: Store, onClick: () => navigate("/stores") },
+          ].map((item) => (
+            <button
+              key={item.label}
+              onClick={item.onClick}
+              className="flex h-16 items-center justify-between rounded-2xl border border-white/10 bg-[#151B2C] px-4 text-white/90 shadow-lg"
+            >
+              <div className="flex items-center gap-3">
+                <item.icon className="h-5 w-5 text-[#64FFD6]" />
+                <span className="text-base font-medium">{item.label}</span>
+              </div>
+              <ChevronRight className="h-4 w-4 text-white/50" />
+            </button>
+          ))}
         </div>
-        {stampRewards.length > 0 && (
-          <div className="mb-6 animate-fade-in" style={{ animationDelay: "250ms" }}>
+
+        <div className="mt-5 rounded-[22px] border border-white/10 bg-gradient-to-br from-[#171E32] via-[#1C233A] to-[#1A3A37] p-4 shadow-2xl">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-3xl font-semibold text-white/95">
+              {stampRewards[0]?.storeName || "Café Central"}
+            </h3>
+            <button
+              onClick={() => navigate("/stores")}
+              className="text-2xl font-medium text-[#8F8BFF]"
+            >
+              Ver todas
+            </button>
+          </div>
+          <div className="grid grid-cols-8 gap-2">
+            {Array.from({ length: Math.max(stampRewards[0]?.totalStamps ?? 8, 8) }).map((_, index) => {
+              const isRewardSlot = index === Math.max((stampRewards[0]?.totalStamps ?? 8) - 1, 0);
+              return (
+                <div
+                  key={index}
+                  className={`flex h-12 items-center justify-center rounded-xl border text-sm font-semibold ${
+                    isRewardSlot
+                      ? "border-[#64FFD6]/70 bg-[#2A3F4A] text-[#64FFD6]"
+                      : "border-white/15 bg-[#1C2338] text-white/35"
+                  }`}
+                >
+                  {isRewardSlot ? <Gift className="h-5 w-5" /> : index + 1}
+                </div>
+              );
+            })}
+          </div>
+          <p className="mt-3 text-center text-lg text-[#64FFD6]">
+            Complete {(stampRewards[0]?.totalStamps ?? 8)} carimbos e ganhe{" "}
+            <span className="font-semibold">{stampRewards[0]?.rewardTitle || "Café Grátis"}</span>
+          </p>
+        </div>
+
+        <div className="mt-6">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-4xl font-semibold text-white">Suas Recompensas</h2>
+          </div>
+          <div className="space-y-3 rounded-2xl border border-white/10 bg-[#151B2C] p-4">
+            {rewards.slice(0, 2).map((reward) => (
+              <button
+                key={reward.title}
+                onClick={() => navigate("/reward", { state: { reward } })}
+                className="flex w-full items-center justify-between rounded-xl bg-[#171E30] px-3 py-3"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#52E0B7] text-[#0C1B21]">
+                    {reward.icon === "percent" ? (
+                      <Percent className="h-5 w-5" />
+                    ) : (
+                      <Coffee className="h-5 w-5" />
+                    )}
+                  </div>
+                  <div className="text-left">
+                    <p className="text-3xl font-semibold text-white">{reward.title}</p>
+                    <p className="text-xl text-white/55">{reward.description}</p>
+                  </div>
+                </div>
+                <span className="rounded-full bg-[#52E0B7] px-4 py-2 text-2xl font-semibold text-[#0B1A21]">
+                  Resgatar
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Mantém carrossel de carimbos no desktop; no mobile usamos bloco estático da referência */}
+        {stampRewards.length > 0 && false && (
+          <div className="mb-6">
             <div className="space-y-2">
               <div
                 ref={stampCarouselRef}
                 className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory -mx-6 px-6 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
               >
                 {stampRewards.map((sr) => (
-                  <div
-                    key={sr.id}
-                    data-stamp-card
-                    className="flex-shrink-0 w-[min(calc(100vw-48px),320px)] snap-center"
-                  >
-                    <StampGrid
-                    currentStamps={0}
-                    totalStamps={sr.totalStamps}
-                    reward={sr.rewardTitle}
-                    storeName={sr.storeName}
-                  />
+                  <div key={sr.id} data-stamp-card className="flex-shrink-0 w-[min(calc(100vw-48px),320px)] snap-center">
+                    <StampGrid currentStamps={0} totalStamps={sr.totalStamps} reward={sr.rewardTitle} storeName={sr.storeName} />
                   </div>
-                ))}
-              </div>
-              <div className="flex justify-center gap-1">
-                {stampRewards.map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-[3px] w-[3px] rounded-full transition-opacity"
-                    style={{
-                      backgroundColor: "hsl(var(--muted-foreground))",
-                      opacity: i === stampCarouselIndex ? 0.6 : 0.2,
-                    }}
-                  />
                 ))}
               </div>
             </div>
           </div>
         )}
-        <div className="mb-6">
-          <div className="mb-4 flex items-center justify-between animate-fade-in" style={{ animationDelay: "300ms" }}>
-            <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
-              <Sparkles className="h-5 w-5 text-secondary" />
-              Suas Recompensas
-            </h2>
-            <button
-              onClick={() => navigate("/rewards")}
-              className="text-sm font-medium text-primary transition-all duration-200 active:scale-95"
-            >
-              Ver todas
-            </button>
-          </div>
-          <div className="space-y-3">
-            {rewards.map((reward, index) => (
-              <div key={index} className="animate-fade-in" style={{ animationDelay: `${350 + index * 50}ms` }}>
-                <RewardCard
-                  {...reward}
-                  onClaim={() => handleClaimReward(reward.title)}
-                  onClick={() => navigate("/reward", { state: { reward } })}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-        <Link
-          to="/premium"
-          className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 p-5 text-white
-                     transition-all duration-300 active:scale-[0.98] block animate-fade-in"
-          style={{ animationDelay: "500ms" }}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium opacity-90">Seja Premium</p>
-              <p className="text-sm opacity-80">Desbloqueie benefícios exclusivos</p>
-            </div>
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/20">
-              <Crown className="h-6 w-6" />
-            </div>
-          </div>
-        </Link>
-        <Link
-          to="/premium"
-          className="mb-6 overflow-hidden rounded-2xl gradient-secondary p-5 text-secondary-foreground
-                     transition-all duration-300 active:scale-[0.98] block animate-fade-in"
-          style={{ animationDelay: "550ms" }}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium opacity-80">Oferta Especial</p>
-              <h3 className="text-xl font-bold">Pontos em Dobro!</h3>
-              <p className="mt-1 text-sm opacity-80">Válido até domingo, 23:59</p>
-            </div>
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary-foreground/20 animate-pulse">
-              <span className="text-xl font-bold">2x</span>
-            </div>
-          </div>
-        </Link>
       </div>
     </div>
   );
