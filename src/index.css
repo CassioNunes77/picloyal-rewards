@@ -176,3 +176,18 @@
     padding-bottom: var(--bottom-nav-total-height);
   }
 }
+
+/* Oculta barra de rolagem no iOS (Safari/WKWebView) */
+@supports (-webkit-touch-callout: none) {
+  * {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  *::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+    background: transparent;
+  }
+}

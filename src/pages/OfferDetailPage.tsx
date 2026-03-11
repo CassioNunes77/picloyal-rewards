@@ -11,8 +11,7 @@ import {
   Coffee,
   Pizza,
   Loader2,
-  Share2,
-  Copy,
+  Share,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -22,10 +21,7 @@ import { getOfferById } from "@/services/offersService";
 import { getStoreById } from "@/services/merchantsService";
 import {
   getOfferShareUrl,
-  getWhatsAppShareUrl,
-  getWhatsAppShareMessage,
   trackOfferShare,
-  type ShareType,
 } from "@/services/shareService";
 
 export interface OfferDetailData {
@@ -124,44 +120,45 @@ const OfferDetailPage = () => {
       .finally(() => setLoadingRedemption(false));
   }, [user?.uid, offer?.id, location.key]);
 
-  const handleShare = async (type: ShareType) => {
+  const handleShare = async () => {
     if (!offer) return;
     const url = getOfferShareUrl(String(offer.id));
     const store = storeName ?? offer.storeName ?? "";
-    const message = getWhatsAppShareMessage(offer.title, store, url);
+    const message = `Confira esta oferta: ${offer.title}${store ? ` em ${store}` : ""}`;
+    const shareType = navigator.share ? "native" : "link";
 
-    if (type === "whatsapp") {
-      window.open(getWhatsAppShareUrl(message), "_blank", "noopener,noreferrer");
-    } else if (type === "link" || type === "native") {
-      if (navigator.share && type === "native") {
-        try {
-          await navigator.share({
-            title: offer.title,
-            text: message,
-            url,
-          });
-        } catch (err) {
-          if ((err as Error).name !== "AbortError") {
-            await copyToClipboard(url);
-          }
-          return;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: offer.title,
+          text: message,
+          url,
+        });
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          await copyToClipboard(url);
         }
-      } else {
-        await copyToClipboard(url);
+        return;
       }
+    } else {
+      await copyToClipboard(url);
     }
 
     if (user?.uid) {
       trackOfferShare({
         offerId: String(offer.id),
         userId: user.uid,
-        shareType: type,
+        shareType,
         offerTitle: offer.title,
         storeId: offer.storeId,
       });
     }
 
-    toast.success(type === "whatsapp" ? "Abrindo WhatsApp..." : "Link copiado!");
+    if (navigator.share) {
+      toast.success("Abrindo compartilhamento...");
+    } else {
+      toast.success("Link copiado!");
+    }
   };
 
   const copyToClipboard = async (text: string) => {
@@ -221,18 +218,10 @@ const OfferDetailPage = () => {
     <div className="flex gap-2 justify-center mt-4">
       <button
         type="button"
-        onClick={() => handleShare("whatsapp")}
-        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition-colors"
-      >
-        <Share2 className="h-4 w-4" />
-        WhatsApp
-      </button>
-      <button
-        type="button"
-        onClick={() => handleShare(navigator.share ? "native" : "link")}
+        onClick={handleShare}
         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-muted text-muted-foreground text-sm font-medium hover:bg-muted/80 transition-colors"
       >
-        <Copy className="h-4 w-4" />
+        <Share className="h-4 w-4" />
         {navigator.share ? "Compartilhar" : "Copiar link"}
       </button>
     </div>

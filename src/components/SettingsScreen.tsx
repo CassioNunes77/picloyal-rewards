@@ -120,6 +120,9 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
   const isGoogleUser = user?.providerData?.some((p) => p.providerId === "google.com") ?? false;
   const [userPlan, setUserPlan] = useState<"free" | "premium">("free");
 
+
+  const isIOSMobile = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
   useEffect(() => {
     if (!user?.uid) return;
     getUserData(user.uid)
@@ -270,13 +273,15 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
                 />
               }
             />
-            <SettingsItem
-              icon={Smartphone}
-              label="Instalar App"
-              description="Adicionar à tela inicial"
-              delay={150}
-              onClick={() => handleAction("Instalação")}
-            />
+            {!isIOSMobile && (
+              <SettingsItem
+                icon={Smartphone}
+                label="Instalar App"
+                description="Adicionar à tela inicial"
+                delay={150}
+                onClick={() => handleAction("Instalação")}
+              />
+            )}
           </div>
         </div>
 
