@@ -71,6 +71,7 @@ const ProfilePage = () => {
   const [tempPassword, setTempPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [userPlan, setUserPlan] = useState<"free" | "premium">("free");
+  const [memberSince, setMemberSince] = useState("Desde —");
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const formatPhone = (value: string) => {
@@ -116,6 +117,15 @@ const ProfilePage = () => {
     getUserData(user.uid)
       .then((data) => {
         setUserPlan(data?.plan === "premium" ? "premium" : "free");
+        if (data?.createdAt) {
+          const monthLabel = data.createdAt
+            .toLocaleDateString("pt-BR", { month: "short" })
+            .replace(".", "");
+          const monthCapitalized = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
+          setMemberSince(`Desde ${monthCapitalized}/${data.createdAt.getFullYear()}`);
+        } else {
+          setMemberSince("Desde —");
+        }
       })
       .catch(() => {});
   }, [user?.uid]);
@@ -125,10 +135,6 @@ const ProfilePage = () => {
     { label: "Carimbos", value: "7/10", icon: Gift, color: "text-secondary" },
     { label: "Recompensas", value: "12", icon: Star, color: "text-accent-foreground" },
   ];
-
-  const handleEditProfile = () => {
-    toast.info("Editando perfil...");
-  };
 
   const closeEditDialog = () => {
     setEditDialog(null);
@@ -333,12 +339,12 @@ const ProfilePage = () => {
         <h2 className="text-xl font-bold text-card-foreground mb-1">
           {profileDisplayName || user.displayName || user.email?.split("@")[0] || "Usuário"}
         </h2>
-        <p className="text-sm text-muted-foreground mb-2">{user.email}</p>
+        <p className="text-sm text-card-foreground mb-2">{user.email}</p>
         <div className="flex items-center gap-2">
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${userPlan === "premium" ? "bg-amber-500/20 text-amber-600" : "bg-muted text-muted-foreground"}`}>
           {userPlan === "premium" ? "Premium ⭐" : "Free"}
         </span>
-          <span className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium">Desde 2023</span>
+          <span className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium">{memberSince}</span>
         </div>
       </div>
     </div>
@@ -352,7 +358,6 @@ const ProfilePage = () => {
             <div>
               <h1 className="text-xl font-bold text-card-foreground">Perfil</h1>
             </div>
-            <button onClick={handleEditProfile} className="text-sm font-medium text-primary hover:underline">Editar</button>
           </div>
           
           <div className="grid grid-cols-2 gap-6">
@@ -492,9 +497,6 @@ const ProfilePage = () => {
                   <ChevronRight className="h-5 w-5 text-primary-foreground rotate-180" />
                 </Link>
                 <h1 className="text-xl font-bold text-primary-foreground flex-1">Perfil</h1>
-                <button onClick={handleEditProfile} className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20 transition-all duration-200 active:scale-90 active:bg-primary-foreground/30">
-                  <Edit className="h-5 w-5 text-primary-foreground" />
-                </button>
               </div>
               <div>{profileHeader}</div>
             </header>
