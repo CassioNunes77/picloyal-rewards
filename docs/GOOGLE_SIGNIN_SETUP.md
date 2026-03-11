@@ -17,7 +17,7 @@ O projeto referencia o pacote **GoogleSignIn-iOS**. Se o Xcode mostrar "Missing 
 3. Em **URL Types**, clique em **+**.
 4. Em **URL Schemes** coloque o valor de **REVERSED_CLIENT_ID** do seu `GoogleService-Info.plist`.  
    Exemplo (substitua pelo valor do seu plist):  
-   `com.googleusercontent.apps.557856899178-99petkkh11lg0efn7k4m3f8pigiljsra`
+   `com.googleusercontent.apps.557856899178-0u1rgd95b3r3jlkioldv3hgbi9k9vsrv`
 5. **Identifier**: pode deixar em branco ou usar `REVERSED_CLIENT_ID`.
 6. **Role**: Editor.
 

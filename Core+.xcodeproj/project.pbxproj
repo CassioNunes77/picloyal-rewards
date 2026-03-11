@@ -11,6 +11,7 @@
 		DF6543562F361630007B1B76 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = DF6543552F361630007B1B76 /* FirebaseCore */; };
 		DF65435B2F361630007B1B76 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = DF65435A2F361630007B1B76 /* FirebaseFirestore */; };
 		DF65469E2F368261007B1B76 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = DF6543592F361640007B1B76 /* GoogleSignIn */; };
+		DF6555102F577824002ABB27 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF65550F2F577824002ABB27 /* StoreKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -31,9 +32,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		DF5AABC32F21B1EB00BCE4F0 /* Core+.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "Core+.app"; path = CorePlus.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DF5AABC32F21B1EB00BCE4F0 /* CorePlus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CorePlus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF5AABD42F21B1EF00BCE4F0 /* Core+Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Core+Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF5AABDE2F21B1EF00BCE4F0 /* Core+UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Core+UITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DF65550F2F577824002ABB27 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -61,6 +63,7 @@
 			files = (
 				DF65469E2F368261007B1B76 /* GoogleSignIn in Frameworks */,
 				DF6543562F361630007B1B76 /* FirebaseCore in Frameworks */,
+				DF6555102F577824002ABB27 /* StoreKit.framework in Frameworks */,
 				DF6543542F361630007B1B76 /* FirebaseAuth in Frameworks */,
 				DF65435B2F361630007B1B76 /* FirebaseFirestore in Frameworks */,
 			);
@@ -89,6 +92,7 @@
 				DF5AABC52F21B1EB00BCE4F0 /* CartaoFidelidade */,
 				DF5AABD72F21B1EF00BCE4F0 /* CartaoFidelidadeTests */,
 				DF5AABE12F21B1EF00BCE4F0 /* CartaoFidelidadeUITests */,
+				DF65550E2F577824002ABB27 /* Frameworks */,
 				DF5AABC42F21B1EB00BCE4F0 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -96,11 +100,19 @@
 		DF5AABC42F21B1EB00BCE4F0 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				DF5AABC32F21B1EB00BCE4F0 /* Core+.app */,
+				DF5AABC32F21B1EB00BCE4F0 /* CorePlus.app */,
 				DF5AABD42F21B1EF00BCE4F0 /* Core+Tests.xctest */,
 				DF5AABDE2F21B1EF00BCE4F0 /* Core+UITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		DF65550E2F577824002ABB27 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				DF65550F2F577824002ABB27 /* StoreKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -129,7 +141,7 @@
 				DF6543592F361640007B1B76 /* GoogleSignIn */,
 			);
 			productName = CartaoFidelidade;
-			productReference = DF5AABC32F21B1EB00BCE4F0 /* Core+.app */;
+			productReference = DF5AABC32F21B1EB00BCE4F0 /* CorePlus.app */;
 			productType = "com.apple.product-type.application";
 		};
 		DF5AABD32F21B1EF00BCE4F0 /* Core+Tests */ = {
@@ -408,10 +420,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = CartaoFidelidade/CartaoFidelidade.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"CartaoFidelidade/Preview Content\"";
 				DEVELOPMENT_TEAM = 4Y6MWV9B36;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
@@ -433,6 +447,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.corevo.coremais;
 				PRODUCT_NAME = CorePlus;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -453,6 +468,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"CartaoFidelidade/Preview Content\"";
 				DEVELOPMENT_TEAM = 4Y6MWV9B36;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;

@@ -26,7 +26,15 @@ O status Premium é unificado no Firestore (`users/{uid}.plan = "premium"`), per
 2. Target → Signing & Capabilities → + Capability
 3. Adicione **In-App Purchase**
 
-### 3. Teste local (opcional)
+### 3. Listener de transações (obrigatório)
+
+O app inicia `Transaction.updates` no launch para não perder compras bem-sucedidas (recomendação Apple). Implementado em `StoreKitService.startTransactionListener()`.
+
+### 4. App Store vs login do app
+
+A assinatura usa o **sistema de pagamentos da App Store** (Apple ID). O usuário pode estar logado no app com **qualquer conta** (Google, e-mail, Apple) – a compra é feita com a **Apple ID da App Store**, que é independente. Se o iOS pedir para "Entrar" ou "Sign in", é para a App Store, não para o app.
+
+### 5. Teste local (opcional)
 
 O arquivo `CartaoFidelidade/Products.storekit` permite testar compras no simulador:
 

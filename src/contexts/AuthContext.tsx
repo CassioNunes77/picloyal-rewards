@@ -15,6 +15,7 @@ import {
   onAuthStateChanged,
   signInWithPopup,
   signInWithRedirect,
+  signInWithCredential,
   getRedirectResult,
   GoogleAuthProvider,
   OAuthProvider,
@@ -26,6 +27,7 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, firestore } from "@/lib/firebase";
+import { isIOSWebView, loginWithAppleNative, loginWithGoogleNative } from "@/lib/nativeBridge";
 import { createOrUpdateUser } from "@/services/usersService";
 import { isMerchant } from "@/services/merchantsService";
 import { isUser } from "@/services/usersService";
@@ -243,22 +245,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthError(null);
     const provider = new GoogleAuthProvider();
     try {
-      const userCredential = await signInWithPopup(auth, provider);
+      let userCredential;
+      if (isIOSWebView()) {
+        const { idToken } = await loginWithGoogleNative();
+        const credential = GoogleAuthProvider.credential(idToken);
+        userCredential = await signInWithCredential(auth, credential);
+      } else {
+        userCredential = await signInWithPopup(auth, provider);
+      }
       const userId = userCredential.user.uid;
-      
-      // Verificar se é lojista (existe em merchants)
       const merchantExists = await isMerchant(userId);
       if (merchantExists) {
-        // Se for lojista, fazer logout e mostrar erro
         await firebaseSignOut(auth);
         throw new Error("Esta conta é de um lojista. Use o login do painel do lojista.");
       }
-      
       console.log("[Auth] Entrar com Google: sucesso");
     } catch (e: unknown) {
       const err = e as { code?: string; message?: string } | null;
       console.error("[Auth] Entrar com Google falhou:", err?.code ?? "unknown", err?.message ?? e);
-      if (err && typeof err === "object" && err.code === "auth/popup-blocked") {
+      if (err && typeof err === "object" && err.code === "auth/popup-blocked" && !isIOSWebView()) {
         try {
           await signInWithRedirect(auth, provider);
           return;
@@ -288,16 +293,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     provider.addScope("name");
     provider.setCustomParameters({ locale: "pt-BR" });
     try {
-      const userCredential = await signInWithPopup(auth, provider);
+      let userCredential;
+      if (isIOSWebView()) {
+        const { idToken, rawNonce } = await loginWithAppleNative();
+        const credential = provider.credential({ idToken, rawNonce });
+        userCredential = await signInWithCredential(auth, credential);
+      } else {
+        userCredential = await signInWithPopup(auth, provider);
+      }
       const userId = userCredential.user.uid;
-      
-      // Verificar se é lojista (existe em merchants)
       const merchantExists = await isMerchant(userId);
       if (merchantExists) {
         await firebaseSignOut(auth);
         throw new Error("Esta conta é de um lojista. Use o login do painel do lojista.");
       }
-      
       console.log("[Auth] Entrar com Apple: sucesso");
     } catch (e: unknown) {
       const err = e as { code?: string; message?: string } | null;

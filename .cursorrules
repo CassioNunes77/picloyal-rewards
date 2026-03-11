@@ -8,6 +8,7 @@ Este arquivo contém regras e convenções para o desenvolvimento do projeto. Ad
 
 - Sempre responder em português
 - Manter documentação em `docs/`
+- **Não instalar node_modules** — o projeto não será executado localmente; não rodar `npm install` nem comandos que instalem dependências
 
 ---
 

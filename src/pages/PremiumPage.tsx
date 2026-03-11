@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Crown, Star, Gift, Percent, Sparkles, ChevronLeft, Loader2 } from "lucide-react";
+import { Crown, Star, Gift, Percent, Sparkles, ChevronLeft, Loader2, RotateCcw } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { redirectToCheckout, isCheckoutConfigured } from "@/services/subscriptionService";
+import { purchasePremium, restorePremium, isNativePurchaseAvailable } from "@/services/subscriptionService";
 
 const benefits = [
   {
@@ -34,6 +34,51 @@ const benefits = [
 ];
 
 const PremiumPage = () => {
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const success = searchParams.get("success");
+    const canceled = searchParams.get("canceled");
+    if (success === "true") toast.success("Assinatura ativada com sucesso!");
+    if (canceled === "true") toast.info("Assinatura cancelada.");
+  }, [searchParams]);
+
+  const handleSubscribe = async () => {
+    if (!user) {
+      toast.error("Faça login para assinar.");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      await purchasePremium();
+      toast.success("Premium ativado com sucesso!");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Erro ao assinar.";
+      if (!msg.toLowerCase().includes("cancel")) toast.error(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRestore = async () => {
+    if (!user) {
+      toast.error("Faça login para restaurar.");
+      return;
+    }
+    setIsRestoring(true);
+    try {
+      const ok = await restorePremium();
+      toast.success(ok ? "Compra restaurada!" : "Nenhuma compra encontrada.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao restaurar.");
+    } finally {
+      setIsRestoring(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header com gradiente */}
@@ -102,7 +147,7 @@ const PremiumPage = () => {
           {isLoading ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
-              Redirecionando...
+              {isNativePurchaseAvailable() ? "Processando..." : "Redirecionando..."}
             </>
           ) : (
             <>
@@ -111,6 +156,25 @@ const PremiumPage = () => {
             </>
           )}
         </button>
+        {isNativePurchaseAvailable() && (
+          <button
+            onClick={handleRestore}
+            disabled={isRestoring}
+            className="w-full flex items-center justify-center gap-2 py-3 mt-3 rounded-xl
+                       border border-amber-500/50 text-amber-600 dark:text-amber-400
+                       transition-all duration-200 active:scale-[0.98] animate-fade-in
+                       disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isRestoring ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <RotateCcw className="h-4 w-4" />
+                Restaurar compras
+              </>
+            )}
+          </button>
+        )}
         <p
           className="text-center text-sm text-muted-foreground mt-3 animate-fade-in"
           style={{ animationDelay: "450ms" }}

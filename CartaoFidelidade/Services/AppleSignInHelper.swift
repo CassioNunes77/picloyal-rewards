@@ -21,7 +21,27 @@ struct AppleSignInResult {
 /// Inclui nonce para segurança e integração com Firebase Auth.
 final class AppleSignInHelper: NSObject {
     private var continuation: CheckedContinuation<AppleSignInResult, Error>?
+    private var webBridgeContinuation: CheckedContinuation<(idToken: String, rawNonce: String), Error>?
     private var currentNonce: String?
+
+    /// Retorna (idToken, rawNonce) para o web fazer login via Firebase (bridge WebView).
+    func signInForWebBridge() async throws -> (idToken: String, rawNonce: String) {
+        let nonce = randomNonceString()
+        currentNonce = nonce
+
+        let request = ASAuthorizationAppleIDProvider().createRequest()
+        request.requestedScopes = [.fullName, .email]
+        request.nonce = sha256(nonce)
+
+        let controller = ASAuthorizationController(authorizationRequests: [request])
+        controller.delegate = self
+        controller.presentationContextProvider = self
+
+        return try await withCheckedThrowingContinuation { cont in
+            self.webBridgeContinuation = cont
+            controller.performRequests()
+        }
+    }
 
     func signIn() async throws -> AppleSignInResult {
         let nonce = randomNonceString()
@@ -80,14 +100,26 @@ extension AppleSignInHelper: ASAuthorizationControllerDelegate {
         }
         guard let appleIDToken = credential.identityToken else {
             continuation?.resume(throwing: NSError(domain: "AppleSignIn", code: -3, userInfo: [NSLocalizedDescriptionKey: "Não foi possível obter o token de identidade da Apple"]))
+            webBridgeContinuation?.resume(throwing: NSError(domain: "AppleSignIn", code: -3, userInfo: [NSLocalizedDescriptionKey: "Não foi possível obter o token de identidade da Apple"]))
             continuation = nil
+            webBridgeContinuation = nil
             currentNonce = nil
             return
         }
         guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
             continuation?.resume(throwing: NSError(domain: "AppleSignIn", code: -4, userInfo: [NSLocalizedDescriptionKey: "Não foi possível converter o token"]))
+            webBridgeContinuation?.resume(throwing: NSError(domain: "AppleSignIn", code: -4, userInfo: [NSLocalizedDescriptionKey: "Não foi possível converter o token"]))
             continuation = nil
+            webBridgeContinuation = nil
             currentNonce = nil
+            return
+        }
+
+        if let webCont = webBridgeContinuation {
+            webCont.resume(returning: (idToken: idTokenString, rawNonce: nonce))
+            webBridgeContinuation = nil
+            currentNonce = nil
+            continuation = nil
             return
         }
 
@@ -119,12 +151,11 @@ extension AppleSignInHelper: ASAuthorizationControllerDelegate {
         didCompleteWithError error: Error
     ) {
         let nsError = error as NSError
-        if nsError.code == ASAuthorizationError.canceled.rawValue {
-            continuation?.resume(throwing: CancellationError())
-        } else {
-            continuation?.resume(throwing: error)
-        }
+        let err: Error = nsError.code == ASAuthorizationError.canceled.rawValue ? CancellationError() : error
+        continuation?.resume(throwing: err)
+        webBridgeContinuation?.resume(throwing: err)
         continuation = nil
+        webBridgeContinuation = nil
         currentNonce = nil
     }
 }

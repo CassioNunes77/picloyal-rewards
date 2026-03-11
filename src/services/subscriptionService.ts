@@ -1,19 +1,22 @@
 /**
  * Serviço de assinatura Premium - Web
  *
- * Fluxo com Stripe:
+ * Fluxo Web (Stripe):
  * 1. Frontend chama createPremiumCheckout() com userId e email
- * 2. Backend (Cloud Function ou API) cria Stripe Checkout Session
- * 3. Redireciona usuário para Stripe Checkout
- * 4. Após pagamento, Stripe redireciona para successUrl
- * 5. Webhook do Stripe chama backend para atualizar users/{uid}.plan = "premium"
+ * 2. Backend cria Stripe Checkout Session
+ * 3. Redireciona para Stripe Checkout
+ * 4. Webhook atualiza users/{uid}.plan = "premium"
  *
- * Configure VITE_STRIPE_CHECKOUT_ENDPOINT no .env com a URL do seu backend.
- * Ex: https://us-central1-SEU_PROJECT.cloudfunctions.net/createCheckoutSession
+ * Fluxo iOS WebView (StoreKit):
+ * 1. Frontend chama purchasePremiumNative(userId)
+ * 2. Bridge envia para app nativo
+ * 3. StoreKit processa compra
+ * 4. Native atualiza Firestore
  */
 
 import { auth } from "@/lib/firebase";
 import { updateUserData } from "./usersService";
+import { isIOSWebView, purchasePremiumNative, restorePurchasesNative } from "@/lib/nativeBridge";
 
 const CHECKOUT_ENDPOINT = import.meta.env.VITE_STRIPE_CHECKOUT_ENDPOINT ?? "";
 
@@ -93,8 +96,45 @@ export async function updatePremiumStatus(
 }
 
 /**
- * Verifica se o checkout está configurado
+ * Verifica se o checkout está configurado (Stripe)
  */
 export function isCheckoutConfigured(): boolean {
   return !!CHECKOUT_ENDPOINT?.trim();
+}
+
+/**
+ * Compra Premium - usa StoreKit no iOS WebView ou Stripe no web
+ */
+export async function purchasePremium(): Promise<void> {
+  const user = auth?.currentUser;
+  if (!user) throw new Error("Faça login para assinar Premium.");
+
+  if (isIOSWebView()) {
+    await purchasePremiumNative(user.uid);
+    await updatePremiumStatus(user.uid, "premium", "apple");
+    return;
+  }
+  await redirectToCheckout();
+}
+
+/**
+ * Restaura compras - usa StoreKit no iOS WebView
+ */
+export async function restorePremium(): Promise<boolean> {
+  const user = auth?.currentUser;
+  if (!user) throw new Error("Faça login para restaurar compras.");
+
+  if (isIOSWebView()) {
+    const success = await restorePurchasesNative(user.uid);
+    if (success) await updatePremiumStatus(user.uid, "premium", "apple");
+    return success;
+  }
+  throw new Error("Restauração disponível apenas no app iOS.");
+}
+
+/**
+ * Indica se está no app iOS (usa StoreKit)
+ */
+export function isNativePurchaseAvailable(): boolean {
+  return isIOSWebView();
 }
