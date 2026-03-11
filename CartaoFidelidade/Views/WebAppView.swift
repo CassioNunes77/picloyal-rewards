@@ -156,7 +156,12 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
             decisionHandler(.allow)
             return
         }
-        // URLs externas (OAuth, etc.) abrem no Safari — nunca OAuth dentro da WebView (modelo Locus)
+        // URLs de OAuth: cancelar sem abrir Safari (evita abrir firebaseapp.com/__/auth/iframe ao iniciar)
+        if isAuthURL(url) {
+            decisionHandler(.cancel)
+            return
+        }
+        // URLs externas (links): abrir no Safari
         if !shouldLoadInWebView(url.host, path: url.path) {
             UIApplication.shared.open(url)
             decisionHandler(.cancel)
@@ -165,9 +170,14 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         decisionHandler(.allow)
     }
     
+    private func isAuthURL(_ url: URL) -> Bool {
+        let host = url.host ?? ""
+        let path = url.path
+        return path.contains("/__/auth/") || host.contains("accounts.google.com")
+    }
+
     private func shouldLoadInWebView(_ host: String?, path: String?) -> Bool {
         guard let host else { return false }
-        // OAuth do Firebase (signInWithPopup) nunca na WebView — força fluxo nativo
         if let path, path.contains("/__/auth/") { return false }
         if host.contains("accounts.google.com") { return false }
         let base = (Bundle.main.object(forInfoDictionaryKey: "WEB_APP_BASE_URL") as? String) ?? "https://cardcorevo.netlify.app"
