@@ -114,7 +114,6 @@ const Index = () => {
   ];
 
   const displayName = user.displayName ?? user.email?.split("@")[0] ?? "Usuário";
-  const shortName = displayName.split(" ")[0] || displayName;
 
   if (showSettings) {
     return <SettingsScreen onBack={() => setShowSettings(false)} />;
@@ -227,16 +226,10 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="gradient-hero">
-        {/* Location Selector (estilo iFood) - Centralizado */}
-        <div className="flex justify-center px-6 pt-14 pb-2">
-          <LocationSelector />
-        </div>
-        
-        <header className="relative z-10 px-6 pt-2 pb-4">
+        <header className="relative z-10 px-6 pt-14 pb-4">
           <div className="flex items-center justify-between">
-            <div className="animate-fade-in">
-              <p className="text-sm text-primary-foreground/80">Bem-vindo de volta,</p>
-              <h1 className="text-xl font-bold text-primary-foreground">{shortName}</h1>
+            <div className="animate-fade-in flex-1 pr-3">
+              <LocationSelector />
             </div>
             <div className="flex items-center gap-3">
               <button
