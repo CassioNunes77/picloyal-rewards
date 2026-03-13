@@ -156,78 +156,56 @@ const Index = () => {
 
   // Conteúdo da Home no desktop (o cartão fica no DesktopLayout à esquerda)
   if (!isMobile) {
+    const hasStamps = stampRewards.length > 0;
+    
     return (
       <div className="min-h-full bg-background">
-        <div className="max-w-5xl mx-auto space-y-6">
-          {/* Linha 1: Acesso rápido + Oferta Especial */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-            <div className="md:col-span-7">
-              <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
-                <p className="text-sm font-medium text-muted-foreground mb-4">Acesso rápido</p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <QuickAction icon={QrCode} label="Escanear" onClick={() => openQR()} />
-                  <QuickAction icon={History} label="Atividades" onClick={() => navigate("/history")} />
-                  <QuickAction icon={Sparkles} label="Recompensas" onClick={() => navigate("/rewards")} />
-                  <QuickAction icon={Store} label="Lojas" onClick={() => navigate("/stores")} />
-                </div>
+        <div className="space-y-4">
+          {/* Linha 1: Acesso Rápido + Carimbos (ou Recompensas se não houver carimbos) */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Acesso Rápido */}
+            <div className="rounded-xl bg-card border border-border p-4 shadow-sm">
+              <p className="text-xs font-medium text-muted-foreground mb-3">Acesso rápido</p>
+              <div className="grid grid-cols-4 gap-2">
+                <QuickAction icon={QrCode} label="Escanear" onClick={() => openQR()} />
+                <QuickAction icon={History} label="Atividades" onClick={() => navigate("/history")} />
+                <QuickAction icon={Sparkles} label="Recompensas" onClick={() => navigate("/rewards")} />
+                <QuickAction icon={Store} label="Lojas" onClick={() => navigate("/stores")} />
               </div>
             </div>
-            <div className="md:col-span-5">
-              <Link
-                to="/premium"
-                className="h-full min-h-[140px] overflow-hidden rounded-2xl gradient-secondary p-5 text-secondary-foreground
-                           transition-all duration-300 hover:shadow-md flex items-center justify-between"
-              >
-                <div>
-                  <p className="text-sm font-medium opacity-90">Oferta Especial</p>
-                  <h3 className="text-lg font-bold">Pontos em Dobro!</h3>
-                  <p className="mt-1 text-sm opacity-80">Válido até domingo, 23:59</p>
-                </div>
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-secondary-foreground/20">
-                  <span className="text-xl font-bold">2x</span>
-                </div>
-              </Link>
-            </div>
-          </div>
 
-          {/* Linha 2: Carimbos + Recompensas */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-            <div className="md:col-span-5">
-              {stampRewards.length > 0 ? (
-                <div
-                  ref={stampCarouselRef}
-                  className="flex gap-4 overflow-x-auto snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
-                >
-                  {stampRewards.map((sr) => (
-                    <div key={sr.id} data-stamp-card className="flex-shrink-0 min-w-[300px] w-[min(100%,360px)] snap-center">
-                      <StampGrid
-                        currentStamps={0}
-                        totalStamps={sr.totalStamps}
-                        reward={sr.rewardTitle}
-                        storeName={sr.storeName}
-                        carouselIndex={stampCarouselIndex}
-                        carouselTotal={stampRewards.length}
-                      />
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-            <div className="md:col-span-7">
-              <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
-                <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-sm font-semibold text-foreground">
-                    Recompensas
-                  </h2>
+            {/* Carimbos ou Recompensas */}
+            {hasStamps ? (
+              <div
+                ref={stampCarouselRef}
+                className="flex gap-3 overflow-x-auto snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
+              >
+                {stampRewards.map((sr) => (
+                  <div key={sr.id} data-stamp-card className="flex-shrink-0 w-full snap-center">
+                    <StampGrid
+                      currentStamps={0}
+                      totalStamps={sr.totalStamps}
+                      reward={sr.rewardTitle}
+                      storeName={sr.storeName}
+                      carouselIndex={stampCarouselIndex}
+                      carouselTotal={stampRewards.length}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl bg-card border border-border p-4 shadow-sm">
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="text-xs font-semibold text-foreground">Recompensas</h2>
                   <button
                     onClick={() => navigate("/rewards")}
-                    className="text-sm font-medium text-primary hover:underline"
+                    className="text-xs font-medium text-primary hover:underline"
                   >
                     Ver todas
                   </button>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {rewards.map((reward, index) => (
+                <div className="space-y-2">
+                  {rewards.slice(0, 4).map((reward, index) => (
                     <RewardCard
                       key={index}
                       {...reward}
@@ -237,7 +215,82 @@ const Index = () => {
                   ))}
                 </div>
               </div>
+            )}
+          </div>
+
+          {/* Linha 2: Ofertas + Recompensas (só aparece se houver carimbos) */}
+          <div className={`grid gap-4 ${hasStamps ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            {/* Ofertas disponíveis */}
+            <div className="rounded-xl bg-card border border-border p-4 shadow-sm">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-xs font-semibold text-foreground">Ofertas</h2>
+                <button
+                  onClick={() => navigate("/offers")}
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  Ver todas
+                </button>
+              </div>
+              {availableOffers.length > 0 ? (
+                <div className={`${hasStamps ? 'space-y-2' : 'grid grid-cols-2 gap-3'}`}>
+                  {availableOffers.slice(0, hasStamps ? 4 : 6).map((item) => (
+                    <button
+                      key={item.offer.id}
+                      onClick={() => navigate(`/offer/${item.offer.id}`)}
+                      className="w-full text-left bg-background rounded-lg p-2.5 border border-border transition-all duration-200 hover:shadow-sm active:scale-[0.99] flex items-center gap-3"
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg gradient-secondary">
+                        <Tag className="h-4 w-4 text-secondary-foreground" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          {item.offer.discount && (
+                            <span className="shrink-0 px-1.5 py-0.5 rounded gradient-primary text-primary-foreground text-[9px] font-bold">
+                              {item.offer.discount}
+                            </span>
+                          )}
+                          <h3 className="font-medium text-card-foreground text-xs truncate">{item.offer.title}</h3>
+                        </div>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <MapPin className="h-2.5 w-2.5 text-muted-foreground" />
+                          <span className="text-[10px] text-muted-foreground truncate">{item.storeName}</span>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center py-6">
+                  <p className="text-xs text-muted-foreground">Nenhuma oferta disponível</p>
+                </div>
+              )}
             </div>
+
+            {/* Recompensas - só aparece se houver carimbos */}
+            {hasStamps && (
+              <div className="rounded-xl bg-card border border-border p-4 shadow-sm">
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="text-xs font-semibold text-foreground">Recompensas</h2>
+                  <button
+                    onClick={() => navigate("/rewards")}
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    Ver todas
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {rewards.slice(0, 4).map((reward, index) => (
+                    <RewardCard
+                      key={index}
+                      {...reward}
+                      onClaim={() => handleClaimReward(reward.title)}
+                      onClick={() => navigate("/reward", { state: { reward } })}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
