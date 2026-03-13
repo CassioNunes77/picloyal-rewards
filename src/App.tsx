@@ -4,6 +4,17 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, useParams, Navigate } from "react-router-dom";
+
+/** Componente que garante scroll to top em cada navegação */
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  
+  return null;
+}
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AdminAuthProvider, useAdminAuth } from "@/contexts/AdminAuthContext";
 import AppLayout from "./layouts/AppLayout";
@@ -47,6 +58,8 @@ import MerchantRedemptionsPage from "./pages/merchant/MerchantRedemptionsPage";
 import StoreDetailsPage from "./pages/merchant/StoreDetailsPage";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import TermsOfUsePage from "./pages/TermsOfUsePage";
+import NotificationSettingsPage from "./pages/NotificationSettingsPage";
 
 const queryClient = new QueryClient();
 
@@ -115,6 +128,7 @@ const App = () => {
               <SplashScreen onComplete={() => setSplashVisible(false)} />
             )}
             <BrowserRouter>
+              <ScrollToTop />
               <Routes>
               {/* Rotas administrativas */}
               <Route
@@ -161,6 +175,7 @@ const App = () => {
                 <Route path="/merchant/redemptions" element={<MerchantRedemptionsPage />} />
                 <Route path="/merchant/settings" element={<MerchantSettingsPage />} />
                 <Route path="/merchant/privacy-policy" element={<PrivacyPolicyPage />} />
+                <Route path="/merchant/terms-of-use" element={<TermsOfUsePage />} />
               </Route>
 
               {/* Rotas do app principal */}
@@ -186,6 +201,8 @@ const App = () => {
                         <Route path="/reward" element={<RewardDetailPage />} />
                         <Route path="/settings" element={<SettingsPage />} />
                         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                        <Route path="/terms-of-use" element={<TermsOfUsePage />} />
+                        <Route path="/notification-settings" element={<NotificationSettingsPage />} />
                       </Route>
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                       <Route path="*" element={<NotFound />} />

@@ -114,6 +114,26 @@ export async function createOffer(
 }
 
 /**
+ * Conta o total de ofertas de um lojista (por merchantId)
+ */
+export async function getOffersCountByMerchant(merchantId: string): Promise<number> {
+  if (!firestore) {
+    console.error("❌ [offersService] Firestore não está configurado!");
+    return 0;
+  }
+
+  try {
+    const offersRef = collection(firestore, OFFERS_COLLECTION);
+    const q = query(offersRef, where("merchantId", "==", merchantId));
+    const snapshot = await getDocs(q);
+    return snapshot.size;
+  } catch (error) {
+    console.error("❌ [offersService] Erro ao contar ofertas:", error);
+    return 0;
+  }
+}
+
+/**
  * Busca ofertas ativas por cidade (para app do usuário)
  * cityFilter: formato "Cidade, UF" (LocationSelector) ou "Cidade - UF" (store.city)
  */

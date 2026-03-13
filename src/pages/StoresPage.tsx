@@ -91,7 +91,7 @@ const StoresPage = () => {
 
   const searchBar = (
     <div className="relative">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+      <Search className={`absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 ${isMobile ? "text-white/60 dark:text-black/60" : "text-muted-foreground"}`} />
       <input
         type="text"
         placeholder="Buscar lojas..."
@@ -100,7 +100,7 @@ const StoresPage = () => {
         className={cn(
           "w-full pl-10 pr-10 py-3 rounded-xl border focus:outline-none focus:ring-2",
           isMobile
-            ? "bg-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60 border-primary-foreground/30 focus:ring-primary-foreground/50"
+            ? "bg-white/20 dark:bg-black/20 text-white dark:text-black placeholder:text-white/60 dark:placeholder:text-black/60 border-white/30 dark:border-black/30 focus:ring-white/50 dark:focus:ring-black/50"
             : "bg-card text-card-foreground placeholder:text-muted-foreground border-border focus:ring-primary/30"
         )}
       />
@@ -108,7 +108,7 @@ const StoresPage = () => {
         onClick={() => setShowFilters(!showFilters)}
         className={cn(
           "absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all duration-200",
-          isMobile ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
+          isMobile ? "bg-white/20 dark:bg-black/20 text-white dark:text-black" : "bg-muted text-muted-foreground hover:bg-muted/80"
         )}
       >
         <Filter className="h-5 w-5" />
@@ -137,63 +137,51 @@ const StoresPage = () => {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-2.5">
           {filteredStores.map((store, index) => (
             <div key={store.id}>
               <button
                 onClick={() => handleStoreClick(store)}
-                className="w-full text-left bg-card rounded-2xl p-4 shadow-md transition-all duration-300 hover:shadow-lg active:scale-[0.98]"
+                className="w-full text-left bg-card rounded-xl p-3 shadow-sm transition-all duration-300 hover:shadow-md active:scale-[0.98]"
               >
-                <div className="flex gap-4">
-                  <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-muted flex items-center justify-center">
+                <div className="flex gap-3">
+                  <div className="relative w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-muted flex items-center justify-center">
                     {store.image ? (
                       <img src={store.image} alt={store.name} className="w-full h-full object-cover" />
                     ) : (
-                      <Store className="h-10 w-10 text-muted-foreground" />
+                      <Store className="h-6 w-6 text-muted-foreground" />
+                    )}
+                    {store.isOpen ? (
+                      <span className="absolute bottom-0.5 right-0.5 px-1 py-0.5 rounded bg-primary text-primary-foreground text-[8px] font-medium">Aberto</span>
+                    ) : (
+                      <span className="absolute bottom-0.5 right-0.5 px-1 py-0.5 rounded bg-muted-foreground/80 text-white text-[8px] font-medium">Fechado</span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0 overflow-hidden">
-                    <div className="flex items-start justify-between gap-2 mb-1.5">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-semibold text-card-foreground text-sm truncate mb-0.5">{store.name}</h3>
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <MapPin className="h-3.5 w-3.5 shrink-0" />
-                          <span className="truncate">{store.address}</span>
-                        </div>
-                      </div>
-                      {store.isOpen ? (
-                        <span className="shrink-0 px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-medium whitespace-nowrap">Aberto</span>
-                      ) : (
-                        <span className="shrink-0 px-2 py-0.5 rounded-md bg-muted text-muted-foreground text-[10px] font-medium whitespace-nowrap">Fechado</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground mb-2">
-                      <div className="flex items-center gap-1">
-                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 shrink-0" />
-                        <span>{store.rating}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
+                    <div className="mb-1">
+                      <h3 className="font-medium text-card-foreground text-xs truncate">{store.name}</h3>
+                      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                         <MapPin className="h-3 w-3 shrink-0" />
-                        <span>{store.distance}</span>
+                        <span className="truncate">{store.address}</span>
                       </div>
-                      {store.isOpen && (
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3 shrink-0" />
-                          <span>Até {store.openUntil}</span>
-                        </div>
-                      )}
                     </div>
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <Phone className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="text-xs text-muted-foreground truncate">{store.phone}</span>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex items-center gap-0.5">
+                          <Star className="h-2.5 w-2.5 fill-yellow-400 text-yellow-400 shrink-0" />
+                          <span className="text-[10px] text-muted-foreground">{store.rating}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Phone className="h-3 w-3 text-muted-foreground shrink-0" />
+                          <span className="text-[10px] text-muted-foreground truncate">{store.phone}</span>
+                        </div>
                       </div>
                       {store.offers > 0 && (
-                        <span className="shrink-0 px-2 py-0.5 rounded-md bg-secondary/10 text-secondary text-[10px] font-medium">{store.offers} ofertas</span>
+                        <span className="shrink-0 px-1.5 py-0.5 rounded bg-secondary/10 text-secondary text-[9px] font-medium">{store.offers} ofertas</span>
                       )}
                     </div>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 ml-2" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                 </div>
               </button>
             </div>
@@ -231,63 +219,51 @@ const StoresPage = () => {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               {filteredStores.map((store, index) => (
                 <div key={store.id}>
                   <button
                     onClick={() => handleStoreClick(store)}
-                    className="w-full text-left bg-card rounded-2xl p-4 shadow-md transition-all duration-300 hover:shadow-lg active:scale-[0.98]"
+                    className="w-full text-left bg-card rounded-xl p-3 shadow-sm transition-all duration-300 hover:shadow-md active:scale-[0.98]"
                   >
-                    <div className="flex gap-4">
-                      <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-muted flex items-center justify-center">
+                    <div className="flex gap-3">
+                      <div className="relative w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-muted flex items-center justify-center">
                         {store.image ? (
                           <img src={store.image} alt={store.name} className="w-full h-full object-cover" />
                         ) : (
-                          <Store className="h-10 w-10 text-muted-foreground" />
+                          <Store className="h-6 w-6 text-muted-foreground" />
+                        )}
+                        {store.isOpen ? (
+                          <span className="absolute bottom-0.5 right-0.5 px-1 py-0.5 rounded bg-primary text-primary-foreground text-[8px] font-medium">Aberto</span>
+                        ) : (
+                          <span className="absolute bottom-0.5 right-0.5 px-1 py-0.5 rounded bg-muted-foreground/80 text-white text-[8px] font-medium">Fechado</span>
                         )}
                       </div>
                       <div className="flex-1 min-w-0 overflow-hidden">
-                        <div className="flex items-start justify-between gap-2 mb-1.5">
-                          <div className="min-w-0 flex-1">
-                            <h3 className="font-semibold text-card-foreground text-sm truncate mb-0.5">{store.name}</h3>
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <MapPin className="h-3.5 w-3.5 shrink-0" />
-                              <span className="truncate">{store.address}</span>
-                            </div>
-                          </div>
-                          {store.isOpen ? (
-                            <span className="shrink-0 px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-medium whitespace-nowrap">Aberto</span>
-                          ) : (
-                            <span className="shrink-0 px-2 py-0.5 rounded-md bg-muted text-muted-foreground text-[10px] font-medium whitespace-nowrap">Fechado</span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3 text-[11px] text-muted-foreground mb-2">
-                          <div className="flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 shrink-0" />
-                            <span>{store.rating}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
+                        <div className="mb-1">
+                          <h3 className="font-medium text-card-foreground text-xs truncate">{store.name}</h3>
+                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                             <MapPin className="h-3 w-3 shrink-0" />
-                            <span>{store.distance}</span>
+                            <span className="truncate">{store.address}</span>
                           </div>
-                          {store.isOpen && (
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3 shrink-0" />
-                              <span>Até {store.openUntil}</span>
-                            </div>
-                          )}
                         </div>
                         <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <Phone className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                            <span className="text-xs text-muted-foreground truncate">{store.phone}</span>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="flex items-center gap-0.5">
+                              <Star className="h-2.5 w-2.5 fill-yellow-400 text-yellow-400 shrink-0" />
+                              <span className="text-[10px] text-muted-foreground">{store.rating}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Phone className="h-3 w-3 text-muted-foreground shrink-0" />
+                              <span className="text-[10px] text-muted-foreground truncate">{store.phone}</span>
+                            </div>
                           </div>
                           {store.offers > 0 && (
-                            <span className="shrink-0 px-2 py-0.5 rounded-md bg-secondary/10 text-secondary text-[10px] font-medium">{store.offers} ofertas</span>
+                            <span className="shrink-0 px-1.5 py-0.5 rounded bg-secondary/10 text-secondary text-[9px] font-medium">{store.offers} ofertas</span>
                           )}
                         </div>
                       </div>
-                      <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 ml-2" />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                     </div>
                   </button>
                 </div>

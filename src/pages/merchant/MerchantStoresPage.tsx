@@ -84,15 +84,7 @@ export default function MerchantStoresPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-xl font-semibold text-card-foreground">
-                    Lojas cadastradas
-                  </h2>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {stores.length} {stores.length === 1 ? "loja" : "lojas"}
-                  </p>
-                </div>
+              <div className="flex items-center justify-end">
                 <Button
                   onClick={() => setShowStoreForm(true)}
                   size="sm"
@@ -103,55 +95,41 @@ export default function MerchantStoresPage() {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {stores.map((store) => (
                   <div
                     key={store.id}
                     onClick={() => navigate(`/merchant/store/${store.id}`)}
-                    className="bg-background rounded-xl p-4 border border-border hover:shadow-md transition-shadow cursor-pointer"
+                    className="bg-background rounded-lg p-2 border border-border hover:shadow-sm transition-shadow cursor-pointer"
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Store className="h-5 w-5 text-primary" />
-                          <h3 className="font-semibold text-card-foreground">
+                    <div className="flex items-center gap-2">
+                      <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-muted flex items-center justify-center">
+                        {store.photoURL ? (
+                          <img src={store.photoURL} alt={store.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <Store className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <h3 className="font-medium text-card-foreground text-xs truncate">
                             {store.name}
                           </h3>
                           {store.active ? (
-                            <span className="px-2 py-0.5 rounded-lg bg-green-100 text-green-700 text-xs font-medium">
+                            <span className="px-1 py-0.5 rounded bg-green-100 text-green-700 text-[8px] font-medium shrink-0">
                               Ativa
                             </span>
                           ) : (
-                            <span className="px-2 py-0.5 rounded-lg bg-gray-100 text-gray-700 text-xs font-medium">
+                            <span className="px-1 py-0.5 rounded bg-gray-100 text-gray-700 text-[8px] font-medium shrink-0">
                               Inativa
                             </span>
                           )}
                         </div>
-                        {store.address && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                            <MapPin className="h-4 w-4" />
-                            <span>{store.address}</span>
-                          </div>
-                        )}
-                        {store.city && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                            <span>{store.city}</span>
-                          </div>
-                        )}
-                        {store.phone && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                            <Phone className="h-4 w-4" />
-                            <span>{store.phone}</span>
-                          </div>
-                        )}
-                        {store.hours && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Clock className="h-4 w-4" />
-                            <span className="line-clamp-1">{store.hours}</span>
-                          </div>
-                        )}
+                        <p className="text-[10px] text-muted-foreground truncate">
+                          {store.city}{store.phone ? ` • ${store.phone}` : ""}
+                        </p>
                       </div>
-                      <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 ml-2" />
+                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                     </div>
                   </div>
                 ))}

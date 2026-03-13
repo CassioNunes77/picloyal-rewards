@@ -4,6 +4,7 @@ import {
   Moon, 
   Shield, 
   ShieldCheck,
+  FileText,
   HelpCircle, 
   LogOut, 
   ChevronRight,
@@ -67,30 +68,30 @@ const SettingsItem = ({
     <button
       onClick={onClick}
       className={`
-        w-full flex items-center gap-4 p-4 rounded-xl bg-card 
+        w-full flex items-center gap-3 p-3 rounded-xl bg-card 
         transition-all duration-200 
         active:scale-[0.98] active:bg-muted
-        hover:shadow-md
+        hover:shadow-sm
         animate-fade-in
         ${danger ? 'text-destructive' : 'text-card-foreground'}
       `}
       style={{ animationDelay: `${delay}ms` }}
     >
       <div className={`
-        flex h-10 w-10 shrink-0 items-center justify-center rounded-xl
+        flex h-8 w-8 shrink-0 items-center justify-center rounded-lg
         ${danger ? 'bg-destructive/10' : 'bg-accent'}
       `}>
-        <Icon className={`h-5 w-5 ${danger ? 'text-destructive' : 'text-accent-foreground'}`} />
+        <Icon className={`h-4 w-4 ${danger ? 'text-destructive' : 'text-accent-foreground'}`} />
       </div>
       
       <div className="flex-1 text-left min-w-0">
-        <p className="font-medium">{label}</p>
+        <p className="text-sm font-medium">{label}</p>
         {description && (
-          <p className="text-sm text-muted-foreground truncate">{description}</p>
+          <p className="text-xs text-muted-foreground truncate">{description}</p>
         )}
       </div>
       
-      {rightElement || <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />}
+      {rightElement || <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
     </button>
   );
 };
@@ -154,7 +155,7 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
     setShowLogoutDialog(false);
     try {
       await signOut();
-      toast.success("Até logo! 👋");
+      toast.success("Até logo!");
       onBack();
     } catch {
       toast.error("Erro ao sair.");
@@ -327,6 +328,13 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
               description="Leia nossa política de privacidade"
               delay={400}
               onClick={() => navigate("/privacy-policy")}
+            />
+            <SettingsItem
+              icon={FileText}
+              label="Termos de Uso"
+              description="Leia nossos termos de uso"
+              delay={425}
+              onClick={() => navigate("/terms-of-use")}
             />
             <SettingsItem
               icon={HelpCircle}
@@ -513,6 +521,13 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
                   onClick={() => navigate("/privacy-policy")}
                 />
                 <SettingsItem
+                  icon={FileText}
+                  label="Termos de Uso"
+                  description="Leia nossos termos de uso"
+                  delay={425}
+                  onClick={() => navigate("/terms-of-use")}
+                />
+                <SettingsItem
                   icon={HelpCircle}
                   label="Central de Ajuda"
                   description="Perguntas frequentes"
@@ -643,7 +658,7 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-background animate-slide-in-right">
+    <div className="min-h-screen bg-background animate-fade-in">
       <header className="gradient-hero px-6 pt-12 pb-8">
         <div className="flex items-center gap-4">
           <button

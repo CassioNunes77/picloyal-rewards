@@ -12,8 +12,8 @@ import {
   ChevronRight,
   Camera,
   Bell,
-  Shield,
-  LogOut
+  LogOut,
+  Settings
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getUserData } from "@/services/usersService";
@@ -48,7 +48,6 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { user, loading, signOut, updateEmail, getProfile, updatePhone, updateDisplayName, updateAddress, updateBirthDate } = useAuth();
-  const [notifications, setNotifications] = useState(true);
   const [profilePhone, setProfilePhone] = useState("");
   const [profileAddress, setProfileAddress] = useState("");
   const [profileCity, setProfileCity] = useState("");
@@ -298,7 +297,7 @@ const ProfilePage = () => {
     setShowLogoutDialog(false);
     try {
       await signOut();
-      toast.success("Até logo! 👋");
+      toast.success("Até logo!");
     } catch {
       toast.error("Erro ao sair.");
     }
@@ -336,10 +335,10 @@ const ProfilePage = () => {
         </button>
       </div>
       <div className="flex-1">
-        <h2 className="text-xl font-bold text-card-foreground mb-1">
+        <h2 className="text-xl font-bold text-primary-foreground mb-1">
           {profileDisplayName || user.displayName || user.email?.split("@")[0] || "Usuário"}
         </h2>
-        <p className="text-sm text-card-foreground mb-2">{user.email}</p>
+        <p className="text-sm text-primary-foreground/90 mb-2">{user.email}</p>
         <div className="flex items-center gap-2">
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${userPlan === "premium" ? "bg-amber-500/20 text-amber-600" : "bg-muted text-muted-foreground"}`}>
           {userPlan === "premium" ? "Premium ⭐" : "Free"}
@@ -413,6 +412,13 @@ const ProfilePage = () => {
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Configurações da Conta</h3>
                 <div className="space-y-2">
                   <ProfileActionItem
+                    icon={Settings}
+                    label="Configurações"
+                    description="Preferências do aplicativo"
+                    delay={0}
+                    onClick={() => navigate("/settings")}
+                  />
+                  <ProfileActionItem
                     icon={CreditCard}
                     label="Formas de Pagamento"
                     description="Gerenciar cartões salvos"
@@ -424,26 +430,7 @@ const ProfilePage = () => {
                     label="Notificações"
                     description="Gerenciar alertas e notificações"
                     delay={0}
-                    rightElement={
-                      <div className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={notifications}
-                          onChange={(e) => {
-                            setNotifications(e.target.checked);
-                            toast.success(e.target.checked ? "Notificações ativadas" : "Notificações desativadas");
-                          }}
-                          className="w-5 h-5 rounded border-primary text-primary focus:ring-primary"
-                        />
-                      </div>
-                    }
-                  />
-                  <ProfileActionItem
-                    icon={Shield}
-                    label="Segurança"
-                    description="Senha e autenticação"
-                    delay={0}
-                    onClick={() => toast.info("Abrindo configurações de segurança...")}
+                    onClick={() => navigate("/notification-settings")}
                   />
                 </div>
               </div>
@@ -469,16 +456,16 @@ const ProfilePage = () => {
               <div>
                 <button
                   onClick={() => setShowLogoutDialog(true)}
-                  className="w-full flex items-center gap-4 p-4 rounded-xl bg-destructive/10 text-destructive
+                  className="w-full flex items-center gap-3 p-3 rounded-xl bg-destructive/10 text-destructive
                            transition-all duration-200 hover:bg-destructive/20"
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive/20">
-                    <LogOut className="h-5 w-5 text-destructive" />
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-destructive/20">
+                    <LogOut className="h-4 w-4 text-destructive" />
                   </div>
                   <div className="flex-1 text-left">
-                    <p className="font-medium">Sair da Conta</p>
+                    <p className="text-sm font-medium">Sair da Conta</p>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-destructive shrink-0" />
+                  <ChevronRight className="h-4 w-4 text-destructive shrink-0" />
                 </button>
               </div>
               {/* Version */}
@@ -590,10 +577,17 @@ const ProfilePage = () => {
               </h3>
               <div className="space-y-2">
                 <ProfileActionItem
+                  icon={Settings}
+                  label="Configurações"
+                  description="Preferências do aplicativo"
+                  delay={600}
+                  onClick={() => navigate("/settings")}
+                />
+                <ProfileActionItem
                   icon={CreditCard}
                   label="Formas de Pagamento"
                   description="Gerenciar cartões salvos"
-                  delay={600}
+                  delay={650}
                   onClick={() => toast.info("Abrindo formas de pagamento...")}
                 />
                 <ProfileActionItem
@@ -601,26 +595,7 @@ const ProfilePage = () => {
                   label="Notificações"
                   description="Gerenciar alertas e notificações"
                   delay={650}
-                  rightElement={
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={notifications}
-                        onChange={(e) => {
-                          setNotifications(e.target.checked);
-                          toast.success(e.target.checked ? "Notificações ativadas" : "Notificações desativadas");
-                        }}
-                        className="w-5 h-5 rounded border-primary text-primary focus:ring-primary"
-                      />
-                    </div>
-                  }
-                />
-                <ProfileActionItem
-                  icon={Shield}
-                  label="Segurança"
-                  description="Senha e autenticação"
-                  delay={700}
-                  onClick={() => toast.info("Abrindo configurações de segurança...")}
+                  onClick={() => navigate("/notification-settings")}
                 />
               </div>
             </div>
@@ -652,18 +627,18 @@ const ProfilePage = () => {
             <div className="mb-4">
               <button
                 onClick={() => setShowLogoutDialog(true)}
-                className="w-full flex items-center gap-4 p-4 rounded-xl bg-destructive/10 text-destructive
+                className="w-full flex items-center gap-3 p-3 rounded-xl bg-destructive/10 text-destructive
                          transition-all duration-200 active:scale-[0.98] active:bg-destructive/20
                          animate-fade-in"
                 style={{ animationDelay: '900ms' }}
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive/20">
-                  <LogOut className="h-5 w-5 text-destructive" />
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-destructive/20">
+                  <LogOut className="h-4 w-4 text-destructive" />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="font-medium">Sair da Conta</p>
+                  <p className="text-sm font-medium">Sair da Conta</p>
                 </div>
-                <ChevronRight className="h-5 w-5 text-destructive shrink-0" />
+                <ChevronRight className="h-4 w-4 text-destructive shrink-0" />
               </button>
             </div>
 
@@ -864,25 +839,24 @@ interface ProfileInfoItemProps {
 const ProfileInfoItem = ({ icon: Icon, label, value, delay = 0, onEdit }: ProfileInfoItemProps) => {
   return (
     <div
-      className="flex items-center gap-4 p-4 rounded-xl bg-card shadow-md
+      className="flex items-center gap-3 p-3 rounded-xl bg-card shadow-sm
                  transition-all duration-200 active:scale-[0.98]
                  animate-fade-in"
       style={{ animationDelay: `${delay}ms` }}
     >
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent">
-        <Icon className="h-5 w-5 text-accent-foreground" />
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent">
+        <Icon className="h-4 w-4 text-accent-foreground" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-muted-foreground mb-1">{label}</p>
-        <p className="font-medium text-card-foreground truncate">{value}</p>
+        <p className="text-sm font-medium text-card-foreground truncate">{value || "—"}</p>
       </div>
       {onEdit && (
         <button
           type="button"
           onClick={onEdit}
-          className="shrink-0 p-2 rounded-lg bg-muted transition-all duration-200 active:scale-90"
+          className="shrink-0 p-1.5 rounded-lg bg-muted transition-all duration-200 active:scale-90"
         >
-          <Edit className="h-4 w-4 text-muted-foreground" />
+          <Edit className="h-3.5 w-3.5 text-muted-foreground" />
         </button>
       )}
     </div>
@@ -909,21 +883,21 @@ const ProfileActionItem = ({
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-4 p-4 rounded-xl bg-card shadow-md
-               transition-all duration-200 active:scale-[0.98] hover:shadow-lg
+      className="w-full flex items-center gap-3 p-3 rounded-xl bg-card shadow-sm
+               transition-all duration-200 active:scale-[0.98] hover:shadow-md
                animate-fade-in"
       style={{ animationDelay: `${delay}ms` }}
     >
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent">
-        <Icon className="h-5 w-5 text-accent-foreground" />
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent">
+        <Icon className="h-4 w-4 text-accent-foreground" />
       </div>
       <div className="flex-1 text-left min-w-0">
-        <p className="font-medium text-card-foreground">{label}</p>
+        <p className="text-sm font-medium text-card-foreground">{label}</p>
         {description && (
-          <p className="text-sm text-muted-foreground truncate">{description}</p>
+          <p className="text-xs text-muted-foreground truncate">{description}</p>
         )}
       </div>
-      {rightElement || <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />}
+      {rightElement || <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
     </button>
   );
 };

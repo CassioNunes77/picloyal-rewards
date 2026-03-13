@@ -6,9 +6,11 @@ interface StampGridProps {
   totalStamps: number;
   reward: string;
   storeName?: string;
+  carouselIndex?: number;
+  carouselTotal?: number;
 }
 
-const StampGrid = ({ currentStamps, totalStamps, reward, storeName }: StampGridProps) => {
+const StampGrid = ({ currentStamps, totalStamps, reward, storeName, carouselIndex, carouselTotal }: StampGridProps) => {
   const [pressedIndex, setPressedIndex] = useState<number | null>(null);
 
   return (
@@ -18,7 +20,7 @@ const StampGrid = ({ currentStamps, totalStamps, reward, storeName }: StampGridP
         <span className="text-sm text-muted-foreground">{currentStamps}/{totalStamps}</span>
       </div>
       
-      <div className="grid grid-cols-5 gap-3">
+      <div className="flex justify-between gap-1">
         {Array.from({ length: totalStamps }).map((_, index) => {
           const isStamped = index < currentStamps;
           const isReward = index === totalStamps - 1;
@@ -33,7 +35,7 @@ const StampGrid = ({ currentStamps, totalStamps, reward, storeName }: StampGridP
               onTouchStart={() => setPressedIndex(index)}
               onTouchEnd={() => setPressedIndex(null)}
               className={`
-                flex h-12 w-12 items-center justify-center rounded-xl border-2 
+                flex h-8 w-8 flex-1 max-w-[32px] items-center justify-center rounded-lg border-2 
                 transition-all duration-300 cursor-pointer
                 ${isReward 
                   ? isStamped 
@@ -49,11 +51,11 @@ const StampGrid = ({ currentStamps, totalStamps, reward, storeName }: StampGridP
               style={{ animationDelay: `${index * 50}ms` }}
             >
               {isReward ? (
-                <Gift className={`h-5 w-5 transition-transform duration-200 ${isPressed ? 'scale-90' : ''}`} />
+                <Gift className={`h-4 w-4 transition-transform duration-200 ${isPressed ? 'scale-90' : ''}`} />
               ) : isStamped ? (
-                <Check className={`h-5 w-5 transition-transform duration-200 ${isPressed ? 'scale-90' : ''}`} />
+                <Check className={`h-4 w-4 transition-transform duration-200 ${isPressed ? 'scale-90' : ''}`} />
               ) : (
-                <span className="text-xs font-medium">{index + 1}</span>
+                <span className="text-[10px] font-medium">{index + 1}</span>
               )}
             </div>
           );
@@ -66,6 +68,21 @@ const StampGrid = ({ currentStamps, totalStamps, reward, storeName }: StampGridP
           Complete {totalStamps} carimbos e ganhe: <strong>{reward}</strong>
         </p>
       </div>
+      
+      {carouselTotal && carouselTotal > 1 && (
+        <div className="flex justify-center gap-1.5 mt-3">
+          {Array.from({ length: carouselTotal }).map((_, i) => (
+            <div
+              key={i}
+              className="h-1.5 w-1.5 rounded-full transition-opacity"
+              style={{
+                backgroundColor: "hsl(var(--muted-foreground))",
+                opacity: i === carouselIndex ? 0.7 : 0.25,
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

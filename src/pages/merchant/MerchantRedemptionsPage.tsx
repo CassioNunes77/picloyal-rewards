@@ -95,22 +95,22 @@ export default function MerchantRedemptionsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="gradient-hero pb-8 pt-12 w-full">
+      <div className="gradient-hero pb-6 pt-10 w-full">
         <div className="max-w-7xl mx-auto px-6">
-          <h1 className="text-2xl font-bold text-white tracking-tight">
+          <h1 className="text-xl font-bold text-white tracking-tight">
             Resgates
           </h1>
-          <p className="text-white/90 text-sm mt-1">
+          <p className="text-white/90 text-xs mt-1">
             Solicitações de ofertas por usuários
           </p>
         </div>
       </div>
 
-      <div className="px-6 -mt-6 pb-8 max-w-7xl mx-auto w-full">
-        <div className="bg-card rounded-2xl shadow-lg border border-border p-6 max-w-2xl">
+      <div className="px-6 -mt-6 pb-6 max-w-7xl mx-auto w-full">
+        <div className="bg-card rounded-2xl shadow-lg border border-border p-3 max-w-2xl">
           {/* Filtro por Loja */}
-          <div className="mb-6">
-            <label className="text-sm font-semibold text-muted-foreground block mb-2">
+          <div className="mb-3">
+            <label className="text-xs font-medium text-muted-foreground block mb-1.5">
               Filtrar por Loja
             </label>
             <Select
@@ -132,51 +132,51 @@ export default function MerchantRedemptionsPage() {
           </div>
 
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
-              <p className="text-sm text-muted-foreground">
+            <div className="flex flex-col items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mb-3" />
+              <p className="text-xs text-muted-foreground">
                 Carregando resgates...
               </p>
             </div>
           ) : redemptions.length === 0 ? (
-            <div className="text-center py-12">
-              <Tag className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-card-foreground mb-2">
+            <div className="text-center py-8">
+              <Tag className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+              <h3 className="text-sm font-semibold text-card-foreground mb-1">
                 Nenhum resgate encontrado
               </h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {selectedStoreId
                   ? "Não há resgates para esta loja."
                   : "Quando usuários solicitarem ofertas, elas aparecerão aqui."}
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              <p className="text-sm font-semibold text-muted-foreground">
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">
                 {redemptions.length}{" "}
                 {redemptions.length === 1 ? "resgate" : "resgates"}
               </p>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {redemptions.map((r) => (
                   <div
                     key={r.id}
-                    className="bg-background rounded-xl p-4 border border-border"
+                    className="bg-background rounded-lg p-3 border border-border"
                   >
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <div>
-                        <h3 className="font-semibold text-card-foreground">
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                      <div className="min-w-0">
+                        <h3 className="font-medium text-sm text-card-foreground truncate">
                           {r.offerTitle}
                         </h3>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-[10px] text-muted-foreground">
                           {r.storeName}
                         </p>
                       </div>
                       <div className="text-right shrink-0">
-                        <span className="text-xs text-muted-foreground block">
+                        <span className="text-[10px] text-muted-foreground block">
                           {formatDate(r.createdAt)}
                         </span>
                         <span
-                          className={`text-xs font-semibold ${
+                          className={`text-[10px] font-semibold ${
                             r.status === "confirmed"
                               ? "text-green-500"
                               : "text-orange-500"
@@ -186,9 +186,9 @@ export default function MerchantRedemptionsPage() {
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <User className="h-4 w-4 shrink-0" />
-                      <span>{r.userName}</span>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <User className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{r.userName}</span>
                       {r.userEmail && (
                         <>
                           <span>•</span>
@@ -201,11 +201,11 @@ export default function MerchantRedemptionsPage() {
                         type="button"
                         onClick={() => handleConfirm(r)}
                         disabled={confirmingId === r.id || r.status === "confirmed"}
-                        className="mt-3 w-full py-2 rounded-lg gradient-primary text-primary-foreground font-semibold text-sm
+                        className="mt-2 w-full py-1.5 rounded-lg gradient-primary text-primary-foreground font-medium text-xs
                                  transition-all duration-200 disabled:opacity-50"
                       >
                         {confirmingId === r.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                          <Loader2 className="h-3.5 w-3.5 animate-spin mx-auto" />
                         ) : (
                           "Confirmar resgate"
                         )}

@@ -143,14 +143,14 @@ const OffersPage = () => {
 
   const searchInput = (
     <div className="relative">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+      <Search className={`absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 ${isMobile ? "text-white/60 dark:text-black/60" : "text-muted-foreground"}`} />
       <input
         type="text"
         placeholder="Buscar ofertas..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         className={isMobile
-          ? "w-full pl-10 pr-4 py-3 rounded-xl bg-secondary-foreground/20 text-secondary-foreground placeholder:text-secondary-foreground/60 border border-secondary-foreground/30 focus:outline-none focus:ring-2 focus:ring-secondary-foreground/50"
+          ? "w-full pl-10 pr-4 py-3 rounded-xl bg-white/20 dark:bg-black/20 text-white dark:text-black placeholder:text-white/60 dark:placeholder:text-black/60 border border-white/30 dark:border-black/30 focus:outline-none focus:ring-2 focus:ring-white/50 dark:focus:ring-black/50"
           : "w-full pl-10 pr-4 py-3 rounded-xl bg-card text-card-foreground placeholder:text-muted-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary/30"
         }
       />
@@ -161,9 +161,8 @@ const OffersPage = () => {
     return (
       <div className="min-h-full bg-background w-full">
         <div className="pb-4">
-          <h1 className="text-xl font-bold text-card-foreground flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            Ofertas Especiais
+          <h1 className="text-xl font-bold text-card-foreground">
+            Ofertas
           </h1>
         </div>
         <div className="mb-4">{searchInput}</div>
@@ -216,51 +215,51 @@ const OffersPage = () => {
             <p className="text-sm text-muted-foreground">{searchQuery ? "Tente buscar com outros termos" : `Não há ofertas em ${selectedLocation}`}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             {filteredOffers.map((offer, index) => {
               const isRedeemed = redemptionsMap[offer.id] === "confirmed";
               return (
               <button
                 key={offer.id}
                 onClick={() => handleOfferClick(offer)}
-                className={`w-full text-left rounded-2xl p-4 shadow-md transition-all border
+                className={`w-full text-left rounded-xl p-3 shadow-sm transition-all border
                   ${isRedeemed
-                    ? "bg-muted/80 border-muted-foreground/25 opacity-90"
-                    : "bg-card border-border hover:shadow-lg active:scale-[0.98]"
+                    ? "bg-muted/60 border-muted-foreground/20 grayscale"
+                    : "bg-card border-border hover:shadow-md active:scale-[0.98]"
                   }`}
               >
-                <div className="flex gap-4">
-                  <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl ${
+                <div className="flex gap-2.5">
+                  <div className={`shrink-0 flex h-10 w-10 items-center justify-center rounded-lg ${
+                    isRedeemed ? 'bg-muted-foreground/30' :
                     offer.icon === 'coffee' ? 'gradient-primary' :
                     offer.icon === 'pizza' ? 'bg-orange-500' :
                     offer.icon === 'gift' ? 'gradient-secondary' : 'bg-blue-500'
                   }`}>
-                    {(() => { const Icon = iconMap[offer.icon]; return <Icon className="h-7 w-7 text-white" />; })()}
+                    {(() => { const Icon = iconMap[offer.icon]; return <Icon className={`h-5 w-5 ${isRedeemed ? 'text-muted-foreground' : 'text-white'}`} />; })()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-semibold text-card-foreground">{offer.title}</h3>
-                      <div className="shrink-0 flex items-center gap-1">
-                        {isRedeemed && (
-                          <span className="rounded-md px-1.5 py-0.5 bg-muted text-muted-foreground text-[10px] font-medium">
-                            Resgatada
-                          </span>
-                        )}
-                        <span className="flex items-center justify-center rounded-lg px-2 py-1 gradient-secondary text-secondary-foreground font-bold text-xs whitespace-nowrap">
-                          {offer.discount}
+                    <div className="flex items-center gap-1.5">
+                      <span className={`shrink-0 rounded px-1.5 py-0.5 font-bold text-[10px] whitespace-nowrap ${
+                        isRedeemed ? 'bg-muted-foreground/30 text-muted-foreground' : 'gradient-secondary text-secondary-foreground'
+                      }`}>
+                        {offer.discount}
+                      </span>
+                      <h3 className={`font-medium text-xs truncate ${isRedeemed ? 'text-muted-foreground' : 'text-card-foreground'}`}>{offer.title}</h3>
+                      {isRedeemed && (
+                        <span className="shrink-0 rounded px-1 py-0.5 bg-muted-foreground/20 text-muted-foreground text-[8px] font-medium">
+                          Resgatada
                         </span>
-                      </div>
+                      )}
                     </div>
-                    <p className="text-sm text-muted-foreground mt-0.5">{offer.description}</p>
-                    <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                      <MapPin className="h-3 w-3" />
-                      <span>{offer.storeName}</span>
+                    <div className="flex items-center gap-1.5 mt-1 text-[10px] text-muted-foreground">
+                      <MapPin className="h-2.5 w-2.5" />
+                      <span className="truncate">{offer.storeName}</span>
                       <span>·</span>
-                      <Clock className="h-3 w-3" />
-                      <span>Válido até {offer.validUntil}</span>
+                      <Clock className="h-2.5 w-2.5" />
+                      <span className="truncate">Até {offer.validUntil}</span>
                     </div>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0 self-center" />
                 </div>
               </button>
               );
@@ -276,12 +275,11 @@ const OffersPage = () => {
       <div className="gradient-secondary">
         <header className="px-6 pt-12 pb-6">
           <div className="flex items-center gap-4 mb-4">
-            <Link to="/home" className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary-foreground/20 transition-all duration-200 active:scale-90 active:bg-secondary-foreground/30">
-              <ChevronRight className="h-5 w-5 text-secondary-foreground rotate-180" />
+            <Link to="/home" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 dark:bg-black/20 transition-all duration-200 active:scale-90 active:bg-white/30 dark:active:bg-black/30">
+              <ChevronRight className="h-5 w-5 text-white dark:text-black rotate-180" />
             </Link>
-            <h1 className="text-xl font-bold text-secondary-foreground flex-1 flex items-center gap-2">
-              <Sparkles className="h-6 w-6" />
-              Ofertas Especiais
+            <h1 className="text-xl font-bold text-white dark:text-black flex-1">
+              Ofertas
             </h1>
           </div>
           <div className="relative">{searchInput}</div>
@@ -352,7 +350,7 @@ const OffersPage = () => {
             <p className="text-sm text-muted-foreground">{searchQuery ? "Tente buscar com outros termos" : `Não há ofertas em ${selectedLocation}`}</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-2.5">
             {filteredOffers.map((offer, index) => {
               const Icon = iconMap[offer.icon];
               const isRedeemed = redemptionsMap[offer.id] === "confirmed";
@@ -364,77 +362,63 @@ const OffersPage = () => {
                 >
                   <button
                     onClick={() => handleOfferClick(offer)}
-                    className={`w-full text-left rounded-2xl p-4 shadow-md overflow-hidden
-                             transition-all duration-300 border-2
+                    className={`w-full text-left rounded-xl p-3 shadow-sm overflow-hidden
+                             transition-all duration-300 border
                              ${isRedeemed
-                               ? "bg-muted/80 border-muted-foreground/25 opacity-90"
-                               : "bg-card hover:shadow-lg active:scale-[0.98] border-transparent hover:border-primary/20"
+                               ? "bg-muted/60 border-muted-foreground/20 grayscale"
+                               : "bg-card hover:shadow-md active:scale-[0.98] border-border"
                              }`}
                   >
-                    <div className="flex gap-3 min-w-0">
-                      {/* Icon */}
+                    <div className="flex gap-2.5 min-w-0">
                       <div className={`
-                        flex h-14 w-14 items-center justify-center rounded-xl shrink-0
+                        shrink-0 flex h-10 w-10 items-center justify-center rounded-lg
                         transition-all duration-300
-                        ${offer.icon === 'coffee' ? 'gradient-primary' :
+                        ${isRedeemed ? 'bg-muted-foreground/30' :
+                          offer.icon === 'coffee' ? 'gradient-primary' :
                           offer.icon === 'pizza' ? 'bg-orange-500' :
                           offer.icon === 'gift' ? 'gradient-secondary' :
                           'bg-blue-500'
                         }
                       `}>
-                        <Icon className="h-7 w-7 text-white" />
+                        <Icon className={`h-5 w-5 ${isRedeemed ? 'text-muted-foreground' : 'text-white'}`} />
                       </div>
 
-                      {/* Content */}
                       <div className="flex-1 min-w-0 overflow-hidden">
-                            <div className="flex items-start justify-between gap-2 mb-1.5">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5 mb-0.5 min-w-0">
-                              <h3 className="font-semibold text-card-foreground text-sm truncate min-w-0">
-                                {offer.title}
-                              </h3>
-                              {offer.isNew && (
-                                <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-destructive text-destructive-foreground text-[10px] font-bold whitespace-nowrap">
-                                  NOVO
-                                </span>
-                              )}
-                              {isRedeemed && (
-                                <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground text-[10px] font-medium whitespace-nowrap">
-                                  Resgatada
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-xs text-muted-foreground mb-1 line-clamp-2 break-words overflow-hidden">
-                              {offer.description}
-                            </p>
-                          </div>
-                          <div className="shrink-0 flex items-center justify-center rounded-lg px-2 py-1 gradient-secondary text-secondary-foreground font-bold text-xs whitespace-nowrap">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className={`shrink-0 rounded px-1.5 py-0.5 font-bold text-[10px] whitespace-nowrap ${
+                            isRedeemed ? 'bg-muted-foreground/30 text-muted-foreground' : 'gradient-secondary text-secondary-foreground'
+                          }`}>
                             {offer.discount}
-                          </div>
+                          </span>
+                          <h3 className={`font-medium text-xs truncate min-w-0 ${isRedeemed ? 'text-muted-foreground' : 'text-card-foreground'}`}>
+                            {offer.title}
+                          </h3>
+                          {offer.isNew && !isRedeemed && (
+                            <span className="shrink-0 px-1 py-0.5 rounded bg-destructive text-destructive-foreground text-[8px] font-bold whitespace-nowrap">
+                              NOVO
+                            </span>
+                          )}
+                          {isRedeemed && (
+                            <span className="shrink-0 px-1 py-0.5 rounded bg-muted-foreground/20 text-muted-foreground text-[8px] font-medium whitespace-nowrap">
+                              Resgatada
+                            </span>
+                          )}
                         </div>
 
-                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground mb-2 flex-wrap">
-                          <div className="flex items-center gap-1 min-w-0">
-                            <MapPin className="h-3 w-3 shrink-0" />
+                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mt-1">
+                          <div className="flex items-center gap-0.5 min-w-0">
+                            <MapPin className="h-2.5 w-2.5 shrink-0" />
                             <span className="truncate">{offer.storeName}</span>
                           </div>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <Clock className="h-3 w-3" />
-                            <span>Válido até {offer.validUntil}</span>
+                          <span>·</span>
+                          <div className="flex items-center gap-0.5 shrink-0">
+                            <Clock className="h-2.5 w-2.5" />
+                            <span>Até {offer.validUntil}</span>
                           </div>
                         </div>
-
-                        {offer.pointsRequired && (
-                          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-accent w-fit max-w-full">
-                            <Sparkles className="h-3 w-3 text-accent-foreground shrink-0" />
-                            <span className="text-[10px] font-medium text-accent-foreground truncate">
-                              {offer.pointsRequired} pontos necessários
-                            </span>
-                          </div>
-                        )}
                       </div>
 
-                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 self-center" />
+                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0 self-center" />
                     </div>
                   </button>
                 </div>

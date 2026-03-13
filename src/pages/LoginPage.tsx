@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Mail, Lock, Loader2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -315,6 +315,16 @@ export default function LoginPage() {
           >
             Entrar como Lojista
           </button>
+
+          <div className="mt-6 pt-4 border-t border-border flex items-center justify-center gap-3 text-[11px] text-muted-foreground">
+            <Link to="/privacy-policy" className="hover:text-primary transition-colors">
+              Política de Privacidade
+            </Link>
+            <span>•</span>
+            <Link to="/terms-of-use" className="hover:text-primary transition-colors">
+              Termos de Uso
+            </Link>
+          </div>
           </div>
         </div>
       </div>
