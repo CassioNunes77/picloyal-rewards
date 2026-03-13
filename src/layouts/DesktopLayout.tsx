@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { navItems, getActiveNavId } from "@/config/nav";
 import { cn } from "@/lib/utils";
@@ -7,6 +8,7 @@ import LocationSelector from "@/components/LocationSelector";
 import { useQR } from "@/contexts/QRContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUnreadNotifications } from "@/hooks/use-unread-notifications";
+import { getUserData } from "@/services/usersService";
 import { User, Bell, Settings, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -17,7 +19,15 @@ export default function DesktopLayout() {
   const { showQR, openQR, closeQR } = useQR();
   const { user } = useAuth();
   const { unreadCount } = useUnreadNotifications();
+  const [userPlan, setUserPlan] = useState<"free" | "premium">("free");
   const displayName = user?.displayName ?? user?.email?.split("@")[0] ?? "Usuário";
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    getUserData(user.uid)
+      .then((data) => setUserPlan(data?.plan === "premium" ? "premium" : "free"))
+      .catch(() => setUserPlan("free"));
+  }, [user?.uid]);
 
   return (
     <div className="min-h-screen h-screen bg-background flex flex-col">
@@ -110,6 +120,7 @@ export default function DesktopLayout() {
               totalPoints={1000}
               userName={displayName}
               cardNumber="**** **** **** 4589"
+              accountType={userPlan === "premium" ? "PREMIUM" : "FREE"}
             />
             <Link
               to="/premium"

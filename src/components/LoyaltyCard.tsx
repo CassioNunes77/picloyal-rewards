@@ -5,9 +5,10 @@ interface LoyaltyCardProps {
   totalPoints: number;
   userName: string;
   cardNumber: string;
+  accountType?: "FREE" | "PREMIUM";
 }
 
-const LoyaltyCard = ({ currentPoints, totalPoints, userName, cardNumber }: LoyaltyCardProps) => {
+const LoyaltyCard = ({ currentPoints, totalPoints, userName, cardNumber, accountType = "FREE" }: LoyaltyCardProps) => {
   const progress = (currentPoints / totalPoints) * 100;
   
   return (
@@ -28,7 +29,18 @@ const LoyaltyCard = ({ currentPoints, totalPoints, userName, cardNumber }: Loyal
               <p className="text-[10px] opacity-60">{cardNumber}</p>
             </div>
           </div>
-          <Sparkles className="h-5 w-5 opacity-80" />
+          <div className="flex items-center gap-2">
+            <span
+              className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                accountType === "PREMIUM"
+                  ? "bg-amber-300/25 text-amber-100"
+                  : "bg-primary-foreground/20 text-primary-foreground"
+              }`}
+            >
+              {accountType}
+            </span>
+            <Sparkles className="h-5 w-5 opacity-80" />
+          </div>
         </div>
         
         <div className="mt-3">

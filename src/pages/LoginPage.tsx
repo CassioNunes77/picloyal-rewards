@@ -177,27 +177,17 @@ export default function LoginPage() {
     }}>
       <div className="w-full max-w-md">
         <div className="bg-card rounded-2xl border border-border shadow-lg overflow-hidden">
-          {/* Topo: gradiente + nome do app */}
-          <div className="gradient-hero pb-8 pt-10 px-6">
-            <h1 className="text-2xl font-bold text-white tracking-tight text-center">
-              Core+
-            </h1>
-            <p className="text-white/90 text-sm mt-2 text-center">
-              Seu cartão de benefícios e descontos
-            </p>
+          {/* Topo: gradiente + logo */}
+          <div className="gradient-hero h-32 px-6 flex items-center justify-center">
+            <img 
+              src="/logo-core-plus.png" 
+              alt="Core+" 
+              className="h-24 w-auto object-contain scale-[2]"
+            />
           </div>
 
           {/* Card branco central com formulário */}
           <div className="p-8 animate-fade-in">
-          <h2 className="text-xl font-semibold text-card-foreground mb-1">
-            {mode === "signin" ? "Entrar" : "Criar conta"}
-          </h2>
-          <p className="text-sm text-muted-foreground mb-6">
-            {mode === "signin"
-              ? "Use seu e-mail e senha para acessar"
-              : "Preencha os dados para se cadastrar"}
-          </p>
-
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-card-foreground">E-mail</Label>

@@ -19,5 +19,7 @@
 	<string>4a31148cb6f8866eaefefbd9a207d5b2</string>
 	<key>WEB_APP_BASE_URL</key>
 	<string>https://cardcorevo.netlify.app</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

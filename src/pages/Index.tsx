@@ -13,6 +13,7 @@ import { useQR } from "@/contexts/QRContext";
 import { useUnreadNotifications } from "@/hooks/use-unread-notifications";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getAllStampRewards, type StampRewardData } from "@/services/stampRewardsService";
+import { getUserData } from "@/services/usersService";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const Index = () => {
   const [selectedLocation, setSelectedLocation] = useState(() => localStorage.getItem("selectedLocation") || "");
   const [stampRewards, setStampRewards] = useState<StampRewardData[]>([]);
   const [stampCarouselIndex, setStampCarouselIndex] = useState(0);
+  const [userPlan, setUserPlan] = useState<"free" | "premium">("free");
   const stampCarouselRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
@@ -55,6 +57,13 @@ const Index = () => {
   useEffect(() => {
     getAllStampRewards().then(setStampRewards);
   }, []);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    getUserData(user.uid)
+      .then((data) => setUserPlan(data?.plan === "premium" ? "premium" : "free"))
+      .catch(() => setUserPlan("free"));
+  }, [user?.uid]);
 
   useEffect(() => {
     const el = stampCarouselRef.current;
@@ -264,6 +273,7 @@ const Index = () => {
             totalPoints={1000}
             userName={displayName}
             cardNumber="**** **** **** 4589"
+            accountType={userPlan === "premium" ? "PREMIUM" : "FREE"}
           />
         </div>
       </div>
