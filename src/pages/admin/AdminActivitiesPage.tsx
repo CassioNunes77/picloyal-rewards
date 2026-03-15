@@ -122,53 +122,53 @@ const AdminActivitiesPage = () => {
 
   return (
     <div className="min-h-full bg-background">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-card-foreground mb-2">Atividades</h1>
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold text-card-foreground mb-1">Atividades</h1>
         <p className="text-sm text-muted-foreground">
           Histórico de lojistas, lojas e resgates cadastrados
         </p>
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-16">
-          <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-          <p className="text-sm text-muted-foreground">Carregando atividades...</p>
+        <div className="flex flex-col items-center justify-center py-10">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
+          <p className="text-xs text-muted-foreground">Carregando atividades...</p>
         </div>
       ) : activities.length === 0 ? (
-        <div className="text-center py-16">
-          <Activity className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <p className="text-card-foreground font-medium mb-2">Nenhuma atividade encontrada</p>
-          <p className="text-sm text-muted-foreground">
+        <div className="text-center py-10">
+          <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+          <p className="text-card-foreground font-medium text-sm mb-1">Nenhuma atividade encontrada</p>
+          <p className="text-xs text-muted-foreground">
             As atividades aparecerão aqui quando houver cadastros.
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-1.5">
           {activities.map((item) => {
             const Icon = getIcon(item.type);
             return (
               <div
                 key={item.id}
-                className="flex items-start gap-3 p-4 rounded-xl bg-card border border-border hover:shadow-md transition-all"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border hover:shadow-sm transition-all"
               >
                 <div
-                  className={`p-2 rounded-lg shrink-0 ${getIconColor(item.type)}`}
+                  className={`p-1.5 rounded-md shrink-0 ${getIconColor(item.type)}`}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-4 w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-card-foreground">
+                  <p className="text-xs font-medium text-card-foreground truncate">
                     {item.message}
                   </p>
                   {item.detail && (
-                    <p className="text-xs text-muted-foreground mt-0.5">
+                    <p className="text-[11px] text-muted-foreground truncate">
                       {item.detail}
                     </p>
                   )}
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {formatDate(item.date)}
-                  </p>
                 </div>
+                <span className="text-[10px] text-muted-foreground shrink-0 whitespace-nowrap">
+                  {formatDate(item.date)}
+                </span>
               </div>
             );
           })}
@@ -176,6 +176,7 @@ const AdminActivitiesPage = () => {
       )}
     </div>
   );
+};
 };
 
 export default AdminActivitiesPage;

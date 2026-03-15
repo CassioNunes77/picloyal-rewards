@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { QrCode, History, Sparkles, Store, Settings, Crown, Tag, ChevronRight, MapPin } from "lucide-react";
+import { QrCode, History, Sparkles, Store, Settings, Crown, Tag, ChevronRight, MapPin, Gift } from "lucide-react";
 import LoyaltyCard from "@/components/LoyaltyCard";
 import StampGrid from "@/components/StampGrid";
 import RewardCard from "@/components/RewardCard";
@@ -16,6 +16,7 @@ import { getAllStampRewards, type StampRewardData } from "@/services/stampReward
 import { getUserData } from "@/services/usersService";
 import { getOffersByCity, type OfferData } from "@/services/offersService";
 import { getUserRedemptionsMap, type RedemptionStatus } from "@/services/redemptionsService";
+import { getStoresByCity, type StoreData } from "@/services/merchantsService";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ const Index = () => {
   const [stampCarouselIndex, setStampCarouselIndex] = useState(0);
   const [userPlan, setUserPlan] = useState<"free" | "premium">("free");
   const [availableOffers, setAvailableOffers] = useState<Array<{ offer: OfferData; storeName: string }>>([]);
+  const [highlightStores, setHighlightStores] = useState<StoreData[]>([]);
   const stampCarouselRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
@@ -80,7 +82,7 @@ const Index = () => {
           getUserRedemptionsMap(user.uid),
         ]);
         const filtered = offersData
-          .filter((item) => !redemptionsMap[item.offer.id!])
+          .filter((item) => redemptionsMap[item.offer.id!] !== "confirmed")
           .slice(0, 5);
         setAvailableOffers(filtered.map((item) => ({ offer: item.offer, storeName: item.storeName })));
       } catch (error) {
@@ -90,6 +92,20 @@ const Index = () => {
     };
     loadOffers();
   }, [user?.uid, selectedLocation]);
+
+  useEffect(() => {
+    if (!selectedLocation) {
+      setHighlightStores([]);
+      return;
+    }
+    getStoresByCity(selectedLocation)
+      .then((stores) => {
+        const withPhoto = stores.filter((s) => s.photoURL);
+        const withoutPhoto = stores.filter((s) => !s.photoURL);
+        setHighlightStores([...withPhoto, ...withoutPhoto].slice(0, 15));
+      })
+      .catch(() => setHighlightStores([]));
+  }, [selectedLocation]);
 
   useEffect(() => {
     const el = stampCarouselRef.current;
@@ -217,6 +233,72 @@ const Index = () => {
               </div>
             )}
           </div>
+
+          {/* Banner Natal Premiado */}
+          <Link
+            to="/natal-premiado"
+            className="block overflow-hidden rounded-xl bg-gradient-to-r from-red-600 to-red-700 p-4 text-white
+                       transition-all duration-300 hover:opacity-95 mb-4"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-bold tracking-tight">Natal Premiado</p>
+                <p className="text-xs opacity-90 mt-0.5">Ofertas especiais e prêmios para você</p>
+                <p className="text-xs mt-1.5 opacity-90">Você possui <span className="inline-flex items-center font-bold text-sm bg-white/25 text-white px-2 py-0.5 rounded">5 cupons</span></p>
+              </div>
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20">
+                <Gift className="h-6 w-6" />
+              </div>
+            </div>
+          </Link>
+
+          {/* Destaques - carrossel horizontal */}
+          {highlightStores.length > 0 && (
+            <div>
+              <h2 className="text-xs font-semibold text-foreground mb-2">Destaques</h2>
+              <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-1 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
+                {highlightStores.map((store) => (
+                  <button
+                    key={store.id}
+                    onClick={() => navigate(`/store/${store.id}`)}
+                    className="flex-shrink-0 w-24 snap-center rounded-lg overflow-hidden border border-border bg-card shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <div className="aspect-square w-full bg-muted relative">
+                      {store.photoURL ? (
+                        <img src={store.photoURL} alt={store.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Store className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent pt-6 pb-1.5 px-1.5">
+                        <p className="text-[10px] font-medium text-white truncate text-center leading-tight drop-shadow-sm">
+                          {store.name}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Seja Premium - abaixo de Destaques */}
+          <Link
+            to="/premium"
+            className="block overflow-hidden rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 p-4 text-white
+                       transition-all duration-300 hover:opacity-95"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium opacity-90">Seja Premium</p>
+                <p className="text-xs opacity-80">Desbloqueie benefícios exclusivos</p>
+              </div>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+                <Crown className="h-5 w-5" />
+              </div>
+            </div>
+          </Link>
 
           {/* Linha 2: Ofertas + Recompensas (só aparece se houver carimbos) */}
           <div className={`grid gap-4 ${hasStamps ? 'grid-cols-2' : 'grid-cols-1'}`}>
@@ -351,8 +433,71 @@ const Index = () => {
           <QuickAction icon={Sparkles} label="Recompensas" onClick={() => navigate("/rewards")} />
           <QuickAction icon={Store} label="Lojas" onClick={() => navigate("/stores")} />
         </div>
+        {/* Banner Natal Premiado */}
+        <Link
+          to="/natal-premiado"
+          className="mb-4 overflow-hidden rounded-2xl bg-gradient-to-r from-red-600 to-red-700 p-4 text-white
+                     transition-all duration-300 active:scale-[0.98] block animate-fade-in"
+          style={{ animationDelay: "210ms" }}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-base font-bold tracking-tight">Natal Premiado</p>
+              <p className="text-xs opacity-90 mt-0.5">Ofertas especiais e prêmios para você</p>
+              <p className="text-xs mt-1.5 opacity-90">Você possui <span className="inline-flex items-center font-bold text-sm bg-white/25 text-white px-2 py-0.5 rounded">5 cupons</span></p>
+            </div>
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20">
+              <Gift className="h-6 w-6" />
+            </div>
+          </div>
+        </Link>
+        {highlightStores.length > 0 && (
+          <div className="mb-4 animate-fade-in" style={{ animationDelay: "220ms" }}>
+            <h2 className="text-base font-semibold text-foreground mb-3">Destaques</h2>
+            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory -mx-5 px-5 pb-1 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
+              {highlightStores.map((store) => (
+                <button
+                  key={store.id}
+                  onClick={() => navigate(`/store/${store.id}`)}
+                  className="flex-shrink-0 w-28 snap-center rounded-xl overflow-hidden border border-border bg-card shadow-sm active:scale-[0.98] transition-transform"
+                >
+                  <div className="aspect-square w-full bg-muted relative">
+                    {store.photoURL ? (
+                      <img src={store.photoURL} alt={store.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Store className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent pt-8 pb-2 px-2">
+                      <p className="text-[10px] font-medium text-white truncate text-center leading-tight drop-shadow-sm">
+                        {store.name}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        <Link
+          to="/premium"
+          className="mb-4 overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 p-4 text-white
+                     transition-all duration-300 active:scale-[0.98] block animate-fade-in"
+          style={{ animationDelay: "240ms" }}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium opacity-90">Seja Premium</p>
+              <p className="text-xs opacity-80">Desbloqueie benefícios exclusivos</p>
+            </div>
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20">
+              <Crown className="h-5 w-5" />
+            </div>
+          </div>
+        </Link>
         {availableOffers.length > 0 && (
-          <div className="mb-4 animate-fade-in" style={{ animationDelay: "240ms" }}>
+          <div className="mb-4 animate-fade-in" style={{ animationDelay: "260ms" }}>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-base font-semibold text-foreground">
                 Ofertas
@@ -443,22 +588,6 @@ const Index = () => {
             ))}
           </div>
         </div>
-        <Link
-          to="/premium"
-          className="mb-5 overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 p-4 text-white
-                     transition-all duration-300 active:scale-[0.98] block animate-fade-in"
-          style={{ animationDelay: "500ms" }}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium opacity-90">Seja Premium</p>
-              <p className="text-xs opacity-80">Desbloqueie benefícios exclusivos</p>
-            </div>
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20">
-              <Crown className="h-5 w-5" />
-            </div>
-          </div>
-        </Link>
         <Link
           to="/premium"
           className="mb-5 overflow-hidden rounded-2xl gradient-secondary p-4 text-secondary-foreground

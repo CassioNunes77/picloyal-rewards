@@ -1,4 +1,4 @@
-import { doc, collection, getDocs, addDoc, query, where, Timestamp } from "firebase/firestore";
+import { doc, collection, getDocs, addDoc, updateDoc, deleteDoc, query, where, Timestamp } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import { getStoreById, getStoresByCity } from "./merchantsService";
 
@@ -153,5 +153,48 @@ export async function getStoreStampRewards(storeId: string): Promise<StampReward
   } catch (error: any) {
     console.error("❌ [stampRewardsService] Erro ao buscar carimbos:", error);
     return [];
+  }
+}
+
+/**
+ * Atualiza um programa de carimbo existente
+ */
+export async function updateStampReward(
+  stampId: string,
+  merchantId: string,
+  data: { totalStamps?: number; rewardTitle?: string; active?: boolean }
+): Promise<void> {
+  if (!firestore) {
+    throw new Error("Firestore não está configurado");
+  }
+
+  try {
+    const ref = doc(firestore, STAMP_REWARDS_COLLECTION, stampId);
+    await updateDoc(ref, {
+      ...data,
+      updatedAt: Timestamp.now(),
+    });
+    console.log("✅ [stampRewardsService] Carimbo atualizado com sucesso:", stampId);
+  } catch (error: any) {
+    console.error("❌ [stampRewardsService] Erro ao atualizar carimbo:", error);
+    throw error;
+  }
+}
+
+/**
+ * Exclui um programa de carimbo
+ */
+export async function deleteStampReward(stampId: string, merchantId: string): Promise<void> {
+  if (!firestore) {
+    throw new Error("Firestore não está configurado");
+  }
+
+  try {
+    const ref = doc(firestore, STAMP_REWARDS_COLLECTION, stampId);
+    await deleteDoc(ref);
+    console.log("✅ [stampRewardsService] Carimbo excluído com sucesso:", stampId);
+  } catch (error: any) {
+    console.error("❌ [stampRewardsService] Erro ao excluir carimbo:", error);
+    throw error;
   }
 }

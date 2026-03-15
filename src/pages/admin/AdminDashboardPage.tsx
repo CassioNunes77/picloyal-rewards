@@ -130,45 +130,45 @@ const AdminDashboardPage = () => {
     change?: string;
     trend?: "up" | "down";
   }) => (
-    <div className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-all">
-      <div className="flex items-start justify-between mb-4">
-        <div className="p-3 rounded-xl bg-primary/10">
-          <Icon className="h-6 w-6 text-primary" />
+    <div className="bg-card rounded-xl border border-border px-4 py-3 shadow-sm hover:shadow-md transition-all">
+      <div className="flex items-start justify-between mb-2">
+        <div className="p-2 rounded-lg bg-primary/10">
+          <Icon className="h-5 w-5 text-primary" />
         </div>
         {change && (
           <div
-            className={`flex items-center gap-1 text-sm font-medium ${
+            className={`flex items-center gap-0.5 text-xs font-medium ${
               trend === "up" ? "text-green-600" : "text-red-600"
             }`}
           >
-            {trend === "up" ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+            {trend === "up" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
             {change}
           </div>
         )}
       </div>
-      <h3 className="text-2xl font-bold text-card-foreground mb-1">{value}</h3>
-      <p className="text-sm text-muted-foreground">{title}</p>
+      <h3 className="text-xl font-bold text-card-foreground leading-tight">{value}</h3>
+      <p className="text-xs text-muted-foreground mt-0.5">{title}</p>
     </div>
   );
 
   return (
     <div className="min-h-full bg-background">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-card-foreground mb-2">Dashboard</h1>
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold text-card-foreground mb-1">Dashboard</h1>
         <p className="text-sm text-muted-foreground">Visão geral do sistema</p>
       </div>
 
       {/* Filtro por Região */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-card-foreground mb-2">
+      <div className="mb-4">
+        <label className="block text-xs font-medium text-card-foreground mb-1.5">
           Filtrar por Região
         </label>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {regionOptions.map((region) => (
             <button
               key={region.id}
               onClick={() => setSelectedRegion(region.id)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 selectedRegion === region.id
                   ? "bg-primary text-primary-foreground shadow-md"
                   : "bg-card text-card-foreground border border-border hover:bg-muted"
@@ -182,12 +182,12 @@ const AdminDashboardPage = () => {
 
       {/* Estatísticas Principais */}
       {loading ? (
-        <div className="flex items-center justify-center py-12 mb-6">
-          <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
-          <span className="ml-3 text-muted-foreground">Carregando estatísticas...</span>
+        <div className="flex items-center justify-center py-8 mb-4">
+          <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+          <span className="ml-2 text-sm text-muted-foreground">Carregando...</span>
         </div>
       ) : (
-        <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"} gap-4 mb-6`}>
+        <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"} gap-3 mb-4`}>
           <StatCard
             title="Usuários Ativos"
             value={stats.activeUsers.toLocaleString("pt-BR")}
@@ -221,7 +221,7 @@ const AdminDashboardPage = () => {
       )}
 
       {/* Estatísticas Secundárias */}
-      <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4 mb-6`}>
+      <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-3 mb-4`}>
         <StatCard
           title="Economia Global"
           value={`R$ ${(stats.totalSavings / 1000000).toFixed(1)}M`}
@@ -239,22 +239,20 @@ const AdminDashboardPage = () => {
       </div>
 
       {/* Atividades Recentes */}
-      <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-card-foreground">Atividades Recentes</h2>
-          <Activity className="h-5 w-5 text-muted-foreground" />
+      <div className="bg-card rounded-xl border border-border px-3 py-2.5 shadow-sm">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-sm font-bold text-card-foreground">Atividades Recentes</h2>
+          <Activity className="h-3.5 w-3.5 text-muted-foreground" />
         </div>
-        <div className="space-y-3">
+        <div className="space-y-1">
           {recentActivity.map((activity, index) => (
             <div
               key={index}
-              className="flex items-start gap-3 p-3 rounded-xl bg-background hover:bg-muted/50 transition-all"
+              className="flex items-center gap-2 px-2 py-1 rounded-md bg-background hover:bg-muted/50 transition-all"
             >
-              <div className="w-2 h-2 rounded-full bg-primary mt-2 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-card-foreground">{activity.message}</p>
-                <p className="text-xs text-muted-foreground mt-1">{activity.time}</p>
-              </div>
+              <div className="w-1 h-1 rounded-full bg-primary shrink-0" />
+              <p className="flex-1 min-w-0 text-xs text-card-foreground truncate">{activity.message}</p>
+              <span className="text-[10px] text-muted-foreground shrink-0">{activity.time}</span>
             </div>
           ))}
         </div>

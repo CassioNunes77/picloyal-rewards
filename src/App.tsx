@@ -48,6 +48,10 @@ import AdminFeedbackPage from "./pages/admin/AdminFeedbackPage";
 import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
 import AdminPrivacyPage from "./pages/admin/AdminPrivacyPage";
 import AdminAdminsPage from "./pages/admin/AdminAdminsPage";
+import AdminCampaignsPage from "./pages/admin/AdminCampaignsPage";
+import AdminDestaquesPage from "./pages/admin/AdminDestaquesPage";
+import AdminTermsPage from "./pages/admin/AdminTermsPage";
+import AdminMessagesPage from "./pages/admin/AdminMessagesPage";
 import MerchantLoginPage from "./pages/merchant/MerchantLoginPage";
 import MerchantSignUpPage from "./pages/merchant/MerchantSignUpPage";
 import MerchantDashboardPage from "./pages/merchant/MerchantDashboardPage";
@@ -60,6 +64,7 @@ import NotFound from "./pages/NotFound";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfUsePage from "./pages/TermsOfUsePage";
 import NotificationSettingsPage from "./pages/NotificationSettingsPage";
+import NatalPremiadoPage from "./pages/NatalPremiadoPage";
 
 const queryClient = new QueryClient();
 
@@ -157,8 +162,12 @@ const App = () => {
                 <Route path="products/:offerId" element={<AdminOfferDetailPage />} />
                 <Route path="activities" element={<AdminActivitiesPage />} />
                 <Route path="feedback" element={<AdminFeedbackPage />} />
+                <Route path="messages" element={<AdminMessagesPage />} />
                 <Route path="analytics" element={<AdminAnalyticsPage />} />
+                <Route path="campaigns" element={<AdminCampaignsPage />} />
+                <Route path="destaques" element={<AdminDestaquesPage />} />
                 <Route path="privacy" element={<AdminPrivacyPage />} />
+                <Route path="terms" element={<AdminTermsPage />} />
                 <Route index element={<Navigate to="/sys-admin-panel-7x9k/dashboard" replace />} />
                 <Route path="*" element={<Navigate to="/sys-admin-panel-7x9k/dashboard" replace />} />
               </Route>
@@ -190,6 +199,7 @@ const App = () => {
                         <Route path="/stores" element={<StoresPage />} />
                         <Route path="/store/:id" element={<StoreDetailRoute />} />
                         <Route path="/offers" element={<OffersPage />} />
+                        <Route path="/natal-premiado" element={<NatalPremiadoPage />} />
                         <Route path="/offer/:id" element={<OfferDetailPage />} />
                         <Route path="/offer" element={<OfferDetailPage />} />
                         <Route path="/profile" element={<ProfilePage />} />

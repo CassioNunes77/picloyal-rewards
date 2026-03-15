@@ -22,12 +22,12 @@ export interface DaySchedule {
   closeTime: string; // "18:00"
 }
 
-// Padrão: Seg-Sex 9h-18h, Sáb 9h-13h, Dom fechado (igual ao iOS)
+// Padrão: todos os dias começam fechados, usuário escolhe livremente
 export const DEFAULT_SCHEDULE: DaySchedule[] = DAY_NAMES.map((_, i) => ({
   dayIndex: i as DayIndex,
-  isOpen: i < 6,
+  isOpen: false,
   openTime: "09:00",
-  closeTime: i === 5 ? "13:00" : "18:00",
+  closeTime: "18:00",
 }));
 
 /**

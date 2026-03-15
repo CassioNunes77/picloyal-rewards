@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { MapPin, Plus, Search, Trash2, Check, X, Loader2 } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { MapPin, Plus, Search, Check, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,16 +13,6 @@ import {
   type Region,
 } from "@/services/regionsService";
 import { firestore } from "@/lib/firebase";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 interface LocationOption {
   id: string;
@@ -165,9 +154,9 @@ function LocationAutocomplete({
 }
 
 const AdminLocationsPage = () => {
-  const isMobile = useIsMobile();
-  const { user: firebaseUser } = useAuth(); // Usar Firebase Auth para acessar Firestore
+  const { user: firebaseUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterActive, setFilterActive] = useState<"all" | "active" | "inactive">("all");
   const [showAddModal, setShowAddModal] = useState(false);
   const [newRegion, setNewRegion] = useState({
     state: "",
@@ -182,8 +171,10 @@ const AdminLocationsPage = () => {
   const [loadingCities, setLoadingCities] = useState(false);
   const [regions, setRegions] = useState<Region[]>([]);
   const [loadingRegions, setLoadingRegions] = useState(true);
-  const [deletingRegionId, setDeletingRegionId] = useState<string | null>(null);
-  const [regionToDelete, setRegionToDelete] = useState<Region | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   // Carregar estados do IBGE ao montar o componente
   useEffect(() => {
@@ -300,18 +291,20 @@ const AdminLocationsPage = () => {
     fetchCities();
   }, [newRegion.stateCode]);
 
-  // Filtrar regiões pela busca
-  const filteredRegions = searchQuery.trim()
-    ? regions.filter((region) => {
-        const query = searchQuery.toLowerCase();
-        return (
-          region.name?.toLowerCase().includes(query) ||
-          region.state?.toLowerCase().includes(query) ||
-          region.city?.toLowerCase().includes(query) ||
-          region.stateName?.toLowerCase().includes(query)
-        );
-      })
-    : regions; // Sem busca, mostrar todas as regiões
+  const filteredRegions = regions.filter((region) => {
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      region.name?.toLowerCase().includes(query) ||
+      region.state?.toLowerCase().includes(query) ||
+      region.city?.toLowerCase().includes(query) ||
+      region.stateName?.toLowerCase().includes(query);
+    const matchesFilter =
+      filterActive === "all" ||
+      (filterActive === "active" && region.active) ||
+      (filterActive === "inactive" && !region.active);
+    return matchesSearch && matchesFilter;
+  });
 
   // Debug: log para verificar o estado
   useEffect(() => {
@@ -335,16 +328,90 @@ const AdminLocationsPage = () => {
     }
   }, [regions.length, filteredRegions.length, loadingRegions, searchQuery]);
 
-  const handleToggleActive = async (id: string) => {
-    const region = regions.find((r) => r.id === id);
-    if (!region) return;
-
+  const handleToggleActive = async (region: Region) => {
+    if (!region.id) return;
+    setTogglingId(region.id);
     try {
-      await toggleRegionActive(id, region.active);
-      toast.success("Status da região atualizado");
+      await toggleRegionActive(region.id, region.active);
+      setRegions((prev) => prev.map((r) => (r.id === region.id ? { ...r, active: !r.active } : r)));
+      toast.success(region.active ? "Região desativada" : "Região ativada");
     } catch (error) {
       console.error("Erro ao atualizar status da região:", error);
       toast.error("Erro ao atualizar status da região");
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredRegions.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredRegions.map((r) => r.id)));
+    }
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const bulkSetActive = async (active: boolean) => {
+    const ids = Array.from(selectedIds);
+    const toUpdate = regions.filter((r) => ids.includes(r.id));
+    if (toUpdate.length === 0) return;
+    setTogglingId(ids[0] ?? null);
+    let ok = 0;
+    let fail = 0;
+    try {
+      for (const region of toUpdate) {
+        try {
+          await updateRegion(region.id, { active });
+          setRegions((prev) => prev.map((r) => (r.id === region.id ? { ...r, active } : r)));
+          ok++;
+        } catch {
+          fail++;
+        }
+      }
+      setSelectedIds(new Set());
+      if (ok) toast.success(ok === 1 ? (active ? "Região ativada" : "Região desativada") : `${ok} regiões atualizadas.`);
+      if (fail) toast.error(`${fail} região(ões) não puderam ser atualizadas.`);
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  const openDeleteModal = () => setShowDeleteModal(true);
+
+  const bulkDelete = async () => {
+    const ids = Array.from(selectedIds);
+    const toDelete = regions.filter((r) => ids.includes(r.id));
+    if (toDelete.length === 0) return;
+    setDeleting(true);
+    let ok = 0;
+    let fail = 0;
+    try {
+      for (const region of toDelete) {
+        try {
+          await deleteRegion(region.id);
+          ok++;
+        } catch {
+          fail++;
+        }
+      }
+      setSelectedIds(new Set());
+      setShowDeleteModal(false);
+      setRegions((prev) => prev.filter((r) => !ids.includes(r.id)));
+      if (ok) toast.success(ok === 1 ? "Região excluída." : `${ok} regiões excluídas.`);
+      if (fail) toast.error(`${fail} região(ões) não puderam ser excluídas.`);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -404,41 +471,16 @@ const AdminLocationsPage = () => {
     }
   };
 
-  const handleDeleteClick = (region: Region) => {
-    setRegionToDelete(region);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!regionToDelete) return;
-
-    setDeletingRegionId(regionToDelete.id);
-    try {
-      await deleteRegion(regionToDelete.id);
-      toast.success("Região excluída com sucesso");
-      setRegionToDelete(null);
-    } catch (error) {
-      console.error("Erro ao excluir região:", error);
-      toast.error("Erro ao excluir região. Tente novamente.");
-    } finally {
-      setDeletingRegionId(null);
-    }
-  };
-
   return (
     <div className="min-h-full bg-background">
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-card-foreground mb-2">Regiões</h1>
-          <p className="text-sm text-muted-foreground">
-            Gerenciar regiões e localizações
-            {regions.length > 0 && (
-              <span className="ml-2 text-xs">({regions.length} {regions.length !== 1 ? "regiões" : "região"} cadastrada{regions.length !== 1 ? "s" : ""})</span>
-            )}
+          <h1 className="text-2xl font-bold text-card-foreground">Regiões</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {loadingRegions ? "—" : `${regions.length} região${regions.length !== 1 ? "ões" : ""} cadastrada${regions.length !== 1 ? "s" : ""}`}
           </p>
           {!firestore && (
-            <p className="text-xs text-destructive mt-1">
-              ⚠️ Firebase não está configurado. As regiões não serão salvas.
-            </p>
+            <p className="text-xs text-destructive mt-1">⚠️ Firebase não está configurado.</p>
           )}
         </div>
         <button
@@ -450,8 +492,7 @@ const AdminLocationsPage = () => {
         </button>
       </div>
 
-      {/* Busca */}
-      <div className="mb-6">
+      <div className="mb-4 space-y-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <input
@@ -462,124 +503,148 @@ const AdminLocationsPage = () => {
             className="w-full pl-10 pr-4 py-3 rounded-xl bg-card text-card-foreground placeholder:text-muted-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {(["all", "active", "inactive"] as const).map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setFilterActive(filter)}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                filterActive === filter
+                  ? "bg-primary text-primary-foreground shadow-md"
+                  : "bg-card text-card-foreground border border-border hover:bg-muted"
+              }`}
+            >
+              {filter === "all" ? "Todas" : filter === "active" ? "Ativas" : "Inativas"}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Lista de Regiões */}
+      {searchQuery && (
+        <p className="text-sm text-muted-foreground mb-3">
+          {filteredRegions.length} resultado{filteredRegions.length !== 1 ? "s" : ""} encontrado{filteredRegions.length !== 1 ? "s" : ""}.
+        </p>
+      )}
+
+      {selectedIds.size > 0 && (
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
+          <span className="text-sm font-medium text-card-foreground">
+            {selectedIds.size} região{selectedIds.size !== 1 ? "ões" : ""} selecionada{selectedIds.size !== 1 ? "s" : ""}
+          </span>
+          <button type="button" onClick={() => bulkSetActive(true)} disabled={!!togglingId} className="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50">Ativar</button>
+          <button type="button" onClick={() => bulkSetActive(false)} disabled={!!togglingId} className="rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50">Desativar</button>
+          <button type="button" onClick={openDeleteModal} disabled={!!togglingId} className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50">Excluir</button>
+          <button type="button" onClick={clearSelection} className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium text-card-foreground hover:bg-muted">Desmarcar</button>
+        </div>
+      )}
+
       {loadingRegions ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
-          <span className="ml-3 text-muted-foreground">Carregando regiões...</span>
+        <div className="flex flex-col items-center justify-center py-16">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+          <p className="text-sm text-muted-foreground">Carregando regiões...</p>
         </div>
       ) : filteredRegions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-2">
-            {regions.length === 0 
-              ? "Nenhuma região cadastrada" 
-              : searchQuery 
-                ? "Nenhuma região encontrada" 
-                : "Nenhuma região para exibir"}
+        <div className="text-center py-16">
+          <MapPin className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <p className="text-card-foreground font-medium mb-2">
+            {regions.length === 0 ? "Nenhuma região cadastrada" : "Nenhuma região encontrada"}
           </p>
-          <p className="text-sm text-muted-foreground mb-2">
-            {regions.length === 0 
-              ? "Adicione uma região para começar"
-              : searchQuery 
-                ? "Tente buscar com outros termos"
-                : "Verifique os logs do console para mais informações"}
+          <p className="text-sm text-muted-foreground">
+            {regions.length === 0 ? "Adicione uma região para começar." : "Nenhuma região corresponde aos filtros."}
           </p>
-          {regions.length > 0 && (
-            <p className="text-xs text-muted-foreground">
-              Total de regiões carregadas: {regions.length} | Filtradas: {filteredRegions.length}
-              {searchQuery && ` | Busca: "${searchQuery}"`}
-            </p>
-          )}
           {!firestore && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mt-4">
-              <p className="text-sm text-destructive font-medium mb-1">⚠️ Firebase não configurado</p>
-              <p className="text-xs text-destructive/80">
-                Verifique as variáveis de ambiente do Firebase no arquivo .env
-              </p>
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mx-auto mt-4">
+              <p className="text-sm text-destructive font-medium">⚠️ Firebase não configurado</p>
+              <p className="text-xs text-destructive/80">Verifique as variáveis de ambiente no .env</p>
             </div>
           )}
         </div>
       ) : (
-        <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-3"} gap-4`}>
-          {filteredRegions.map((region) => {
-            console.log("🎨 [AdminLocationsPage] Renderizando região:", region.id, region.name);
-            return (
-            <div
-              key={region.id}
-              className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-all"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-start gap-3 flex-1 min-w-0">
-                  <div className="p-3 rounded-xl bg-primary/10 shrink-0">
-                    <MapPin className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-card-foreground truncate">{region.name}</h3>
+        <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[600px]">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="w-12 py-3 pl-4 pr-2">
+                    <input
+                      type="checkbox"
+                      checked={filteredRegions.length > 0 && selectedIds.size === filteredRegions.length}
+                      onChange={toggleSelectAll}
+                      className="h-4 w-4 rounded border-border text-primary focus:ring-primary/30"
+                      aria-label="Selecionar todas"
+                    />
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nome</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Cidade</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Estado</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-24">Lojas</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-24">Status</th>
+                  <th className="text-right py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-24">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filteredRegions.map((region) => (
+                  <tr
+                    key={region.id}
+                    className={`transition-colors ${
+                      selectedIds.has(region.id) ? "bg-primary/10 hover:bg-primary/15" : "bg-card hover:bg-muted/30"
+                    }`}
+                  >
+                    <td className="w-12 py-3 pl-4 pr-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(region.id)}
+                        onChange={() => toggleSelect(region.id)}
+                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary/30"
+                        aria-label={`Selecionar ${region.name}`}
+                      />
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="font-medium text-card-foreground">{region.name}</span>
+                    </td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground">
+                      {region.city || "—"}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground">
+                      {region.stateName || region.state || "—"}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground">
+                      {region.storesCount} lojas
+                    </td>
+                    <td className="py-3 px-4">
                       <span
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${
-                          region.active
-                            ? "bg-green-100 text-green-700"
-                            : "bg-muted text-muted-foreground"
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                          region.active ? "bg-green-100 text-green-800" : "bg-muted text-muted-foreground"
                         }`}
                       >
                         {region.active ? "Ativa" : "Inativa"}
                       </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {region.city && `${region.city}, `}
-                      {region.stateName || region.state}
-                      {region.country && ` - ${region.country}`}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center justify-between pt-4 border-t border-border">
-                <span className="text-sm text-muted-foreground">
-                  {region.storesCount} lojas
-                </span>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleToggleActive(region.id)}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                      region.active
-                        ? "bg-green-100 text-green-700 hover:bg-green-200"
-                        : "bg-muted text-muted-foreground hover:bg-muted/80"
-                    }`}
-                    title={region.active ? "Desativar região" : "Ativar região"}
-                  >
-                    {region.active ? (
-                      <span className="flex items-center gap-1">
-                        <Check className="h-4 w-4" />
-                        Ativa
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1">
-                        <X className="h-4 w-4" />
-                        Inativa
-                      </span>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => handleDeleteClick(region)}
-                    disabled={deletingRegionId === region.id}
-                    className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Excluir região"
-                  >
-                    {deletingRegionId === region.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-                </div>
-              </div>
-            );
-          })}
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <button
+                        onClick={() => handleToggleActive(region)}
+                        disabled={togglingId === region.id}
+                        className={`p-2 rounded-lg transition-all inline-flex ${
+                          region.active
+                            ? "bg-green-100 text-green-700 hover:bg-green-200"
+                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        title={region.active ? "Desativar região" : "Ativar região"}
+                      >
+                        {togglingId === region.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : region.active ? (
+                          <Check className="h-4 w-4" />
+                        ) : (
+                          <X className="h-4 w-4" />
+                        )}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -685,44 +750,48 @@ const AdminLocationsPage = () => {
         </div>
       )}
 
-      {/* Dialog de Confirmação de Exclusão */}
-      <AlertDialog open={regionToDelete !== null} onOpenChange={(open) => !open && setRegionToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Região</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir a região{" "}
-              <span className="font-semibold text-card-foreground">
-                {regionToDelete?.name}
-              </span>
-              ?
-              <br />
-              <span className="text-xs text-muted-foreground mt-2 block">
-                Esta ação não pode ser desfeita.
-              </span>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deletingRegionId !== null}>
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConfirm}
-              disabled={deletingRegionId !== null}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deletingRegionId ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Excluindo...
-                </span>
-              ) : (
-                "Excluir"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {showDeleteModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => !deleting && setShowDeleteModal(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-card-foreground mb-2">Excluir regiões?</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Você está prestes a excluir <strong>{selectedIds.size}</strong> região
+              {selectedIds.size !== 1 ? "ões" : ""}. Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => !deleting && setShowDeleteModal(false)}
+                disabled={deleting}
+                className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-card-foreground hover:bg-muted disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={bulkDelete}
+                disabled={deleting}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Excluindo...
+                  </>
+                ) : (
+                  "Excluir"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -103,9 +103,9 @@ export default function CityAutocomplete({
   const isValidCity = value.trim() !== "" && cities.includes(value);
 
   return (
-    <div className="space-y-2" ref={containerRef}>
-      <Label htmlFor="city" className="text-card-foreground flex items-center gap-2">
-        <MapPin className="h-4 w-4" />
+    <div className="space-y-1" ref={containerRef}>
+      <Label htmlFor="city" className="text-card-foreground flex items-center gap-1.5 text-xs">
+        <MapPin className="h-3.5 w-3.5" />
         {label} {required && "*"}
       </Label>
       <div className="relative">
@@ -121,7 +121,7 @@ export default function CityAutocomplete({
               setShowSuggestions(true);
             }
           }}
-          className={`h-12 rounded-xl border-border bg-background pr-10 ${
+          className={`h-9 rounded-lg border-border bg-background text-sm pr-8 ${
             !isValidCity && value.trim() !== "" && required
               ? "border-red-500 focus:border-red-500"
               : ""
@@ -136,34 +136,34 @@ export default function CityAutocomplete({
             onClick={handleClear}
             className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
           >
-            <X className="h-4 w-4" />
+            <X className="h-3.5 w-3.5" />
           </button>
         )}
         {showSuggestions && filteredCities.length > 0 && (
-          <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-xl shadow-lg max-h-60 overflow-y-auto">
+          <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
             {filteredCities.map((city, index) => (
               <button
                 key={index}
                 type="button"
                 onClick={() => handleSelectCity(city)}
-                className="w-full text-left px-4 py-3 hover:bg-accent transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-2"
+                className="w-full text-left px-3 py-2 hover:bg-accent transition-colors first:rounded-t-lg last:rounded-b-lg flex items-center gap-2 text-sm"
               >
-                <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <MapPin className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                 <span className="text-card-foreground">{city}</span>
               </button>
             ))}
           </div>
         )}
         {showSuggestions && filteredCities.length === 0 && value.trim() !== "" && (
-          <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-xl shadow-lg p-4">
-            <p className="text-sm text-muted-foreground text-center">
+          <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-lg p-3">
+            <p className="text-xs text-muted-foreground text-center">
               Nenhuma cidade encontrada
             </p>
           </div>
         )}
       </div>
       {!isValidCity && value.trim() !== "" && required && (
-        <p className="text-sm text-red-500">
+        <p className="text-xs text-red-500">
           Selecione uma cidade da lista
         </p>
       )}

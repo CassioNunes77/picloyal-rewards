@@ -9,6 +9,7 @@ import {
   Store,
   Package,
   MessageSquare,
+  Mail,
   LogOut,
   Menu,
   X,
@@ -16,6 +17,9 @@ import {
   Shield,
   Activity,
   Users,
+  Megaphone,
+  Star,
+  FileText,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -26,10 +30,14 @@ const adminNavItems = [
   { id: "categories", label: "Categorias", icon: Tag, path: "categories" },
   { id: "stores", label: "Lojas", icon: Store, path: "stores" },
   { id: "products", label: "Ofertas", icon: Package, path: "products" },
+  { id: "campaigns", label: "Campanhas", icon: Megaphone, path: "campaigns" },
+  { id: "destaques", label: "Destaques", icon: Star, path: "destaques" },
   { id: "activities", label: "Atividades", icon: Activity, path: "activities" },
   { id: "feedback", label: "Feedback", icon: MessageSquare, path: "feedback" },
+  { id: "messages", label: "Mensagens", icon: Mail, path: "messages" },
   { id: "admins", label: "Administradores", icon: Users, path: "admins" },
   { id: "privacy", label: "Política de Privacidade", icon: Shield, path: "privacy" },
+  { id: "terms", label: "Termos de Uso", icon: FileText, path: "terms" },
 ];
 
 export default function AdminLayout() {
@@ -77,18 +85,18 @@ export default function AdminLayout() {
         {sidebarOpen && (
           <div className="fixed inset-0 z-40 bg-background/95 backdrop-blur">
             <div className="flex flex-col h-full">
-              <div className="p-4 border-b border-border">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-lg text-card-foreground">Menu</h3>
+              <div className="px-3 py-3 border-b border-border">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-base text-card-foreground">Menu</h3>
                   <button
                     onClick={() => setSidebarOpen(false)}
                     className="p-2 rounded-lg text-card-foreground hover:bg-muted"
                   >
-                    <X className="h-5 w-5" />
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
               </div>
-              <nav className="flex-1 overflow-y-auto p-4 space-y-2">
+              <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5">
                 {adminNavItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = activeId === item.id;
@@ -100,24 +108,24 @@ export default function AdminLayout() {
                         setSidebarOpen(false);
                       }}
                       className={cn(
-                        "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all",
+                        "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-all text-sm",
                         isActive
                           ? "bg-primary text-primary-foreground shadow-md"
                           : "text-card-foreground hover:bg-muted"
                       )}
                     >
-                      <Icon className="h-5 w-5 shrink-0" />
+                      <Icon className="h-4 w-4 shrink-0" />
                       <span className="font-medium">{item.label}</span>
                     </button>
                   );
                 })}
               </nav>
-              <div className="p-4 border-t border-border">
+              <div className="px-2 py-2 border-t border-border">
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-destructive hover:bg-destructive/10 transition-all"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-destructive hover:bg-destructive/10 transition-all text-sm"
                 >
-                  <LogOut className="h-5 w-5" />
+                  <LogOut className="h-4 w-4" />
                   <span className="font-medium">Sair</span>
                 </button>
               </div>
@@ -138,14 +146,14 @@ export default function AdminLayout() {
   // Desktop Layout
   return (
     <div className="min-h-screen h-screen bg-background flex">
-      {/* Sidebar */}
-      <aside className="w-64 shrink-0 border-r border-border bg-card flex flex-col">
-        <div className="p-6 border-b border-border">
-          <h2 className="font-bold text-xl text-card-foreground mb-1">Core+</h2>
-          <p className="text-xs text-muted-foreground">Painel Administrativo</p>
+      {/* Sidebar - densidade aumentada */}
+      <aside className="w-52 shrink-0 border-r border-border bg-card flex flex-col">
+        <div className="px-3 py-3 border-b border-border">
+          <h2 className="font-bold text-base text-card-foreground">Core+</h2>
+          <p className="text-[11px] text-muted-foreground">Painel Administrativo</p>
         </div>
 
-        <nav className="flex-1 overflow-y-auto p-4 space-y-2">
+        <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5">
           {adminNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeId === item.id;
@@ -154,25 +162,25 @@ export default function AdminLayout() {
                 key={item.id}
                 onClick={() => navigate(`/sys-admin-panel-7x9k/${item.path}`)}
                 className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all",
+                  "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-all text-sm",
                   isActive
                     ? "bg-primary text-primary-foreground shadow-md"
                     : "text-card-foreground hover:bg-muted"
                 )}
               >
-                <Icon className="h-5 w-5 shrink-0" />
-                <span className="font-medium">{item.label}</span>
+                <Icon className="h-4 w-4 shrink-0" />
+                <span className="font-medium truncate">{item.label}</span>
               </button>
             );
           })}
         </nav>
 
-        <div className="p-4 border-t border-border">
+        <div className="px-2 py-2 border-t border-border">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-destructive hover:bg-destructive/10 transition-all"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-destructive hover:bg-destructive/10 transition-all text-sm"
           >
-            <LogOut className="h-5 w-5" />
+            <LogOut className="h-4 w-4 shrink-0" />
             <span className="font-medium">Sair</span>
           </button>
         </div>

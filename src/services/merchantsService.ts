@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc, Timestamp, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, getDoc, setDoc, Timestamp, updateDoc, deleteDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, deleteUser } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -317,6 +317,30 @@ export async function updateStore(
     console.error("❌ [merchantsService] Erro ao atualizar loja:", error);
     throw error;
   }
+}
+
+/**
+ * Exclui uma loja (documento da loja e referência no lojista)
+ */
+export async function deleteStore(storeId: string, merchantId: string): Promise<void> {
+  if (!firestore) {
+    throw new Error("Firestore não está configurado");
+  }
+
+  const storeRef = doc(firestore, STORES_COLLECTION, storeId);
+  await deleteDoc(storeRef);
+
+  const merchantRef = doc(firestore, MERCHANTS_COLLECTION, merchantId);
+  const merchantSnap = await getDoc(merchantRef);
+  if (merchantSnap.exists()) {
+    const currentStores: string[] = merchantSnap.data().stores || [];
+    const nextStores = currentStores.filter((id) => id !== storeId);
+    await updateDoc(merchantRef, {
+      stores: nextStores,
+      updatedAt: Timestamp.now(),
+    });
+  }
+  console.log("✅ [merchantsService] Loja excluída:", storeId);
 }
 
 /**

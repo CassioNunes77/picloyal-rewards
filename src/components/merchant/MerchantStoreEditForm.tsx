@@ -130,26 +130,26 @@ export default function MerchantStoreEditForm({ store, onCancel, onSuccess }: Me
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-card-foreground">
+        <h2 className="text-base font-semibold text-card-foreground">
           Editar Loja
         </h2>
         <Button
           variant="ghost"
           size="icon"
           onClick={onCancel}
-          className="h-8 w-8"
+          className="h-7 w-7"
         >
-          <X className="h-4 w-4" />
+          <X className="h-3.5 w-3.5" />
         </Button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3">
         {/* Nome */}
-        <div className="space-y-2">
-          <Label htmlFor="name" className="text-card-foreground flex items-center gap-2">
-            <Store className="h-4 w-4" />
+        <div className="space-y-1">
+          <Label htmlFor="name" className="text-card-foreground flex items-center gap-1.5 text-xs">
+            <Store className="h-3.5 w-3.5" />
             Nome da Loja *
           </Label>
           <Input
@@ -158,16 +158,16 @@ export default function MerchantStoreEditForm({ store, onCancel, onSuccess }: Me
             placeholder="Ex: Loja Exemplo"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="h-12 rounded-xl border-border bg-background"
+            className="h-9 rounded-lg border-border bg-background text-sm"
             required
             disabled={loading}
           />
         </div>
 
         {/* CNPJ */}
-        <div className="space-y-2">
-          <Label htmlFor="cnpj" className="text-card-foreground flex items-center gap-2">
-            <Building2 className="h-4 w-4" />
+        <div className="space-y-1">
+          <Label htmlFor="cnpj" className="text-card-foreground flex items-center gap-1.5 text-xs">
+            <Building2 className="h-3.5 w-3.5" />
             CNPJ *
           </Label>
           <Input
@@ -176,35 +176,35 @@ export default function MerchantStoreEditForm({ store, onCancel, onSuccess }: Me
             placeholder="00.000.000/0000-00"
             value={formData.cnpj}
             onChange={(e) => setFormData({ ...formData, cnpj: formatCNPJ(e.target.value) })}
-            className="h-12 rounded-xl border-border bg-background"
+            className="h-9 rounded-lg border-border bg-background text-sm"
             maxLength={18}
             required
             disabled={loading}
           />
           {cnpjStatus === "loading" && (
-            <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-              <Loader2 className="h-4 w-4 animate-spin" />
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Loader2 className="h-3 w-3 animate-spin" />
               Validando CNPJ...
             </p>
           )}
           {cnpjStatus === "valid" && (
-            <p className="text-sm text-green-600 dark:text-green-500 flex items-center gap-1.5">
-              <CheckCircle2 className="h-4 w-4" />
+            <p className="text-xs text-green-600 dark:text-green-500 flex items-center gap-1">
+              <CheckCircle2 className="h-3 w-3" />
               CNPJ válido
             </p>
           )}
           {cnpjStatus === "invalid" && (
-            <p className="text-sm text-destructive flex items-center gap-1.5">
-              <XCircle className="h-4 w-4" />
+            <p className="text-xs text-destructive flex items-center gap-1">
+              <XCircle className="h-3 w-3" />
               CNPJ inválido
             </p>
           )}
         </div>
 
         {/* Endereço */}
-        <div className="space-y-2">
-          <Label htmlFor="address" className="text-card-foreground flex items-center gap-2">
-            <MapPin className="h-4 w-4" />
+        <div className="space-y-1">
+          <Label htmlFor="address" className="text-card-foreground flex items-center gap-1.5 text-xs">
+            <MapPin className="h-3.5 w-3.5" />
             Endereço *
           </Label>
           <Input
@@ -213,7 +213,7 @@ export default function MerchantStoreEditForm({ store, onCancel, onSuccess }: Me
             placeholder="Rua, número, bairro"
             value={formData.address}
             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-            className="h-12 rounded-xl border-border bg-background"
+            className="h-9 rounded-lg border-border bg-background text-sm"
             required
             disabled={loading}
           />
@@ -230,9 +230,9 @@ export default function MerchantStoreEditForm({ store, onCancel, onSuccess }: Me
         />
 
         {/* Telefone */}
-        <div className="space-y-2">
-          <Label htmlFor="phone" className="text-card-foreground flex items-center gap-2">
-            <Phone className="h-4 w-4" />
+        <div className="space-y-1">
+          <Label htmlFor="phone" className="text-card-foreground flex items-center gap-1.5 text-xs">
+            <Phone className="h-3.5 w-3.5" />
             Telefone *
           </Label>
           <Input
@@ -241,7 +241,7 @@ export default function MerchantStoreEditForm({ store, onCancel, onSuccess }: Me
             placeholder="(00) 00000-0000"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })}
-            className="h-12 rounded-xl border-border bg-background"
+            className="h-9 rounded-lg border-border bg-background text-sm"
             maxLength={15}
             required
             disabled={loading}
@@ -251,20 +251,20 @@ export default function MerchantStoreEditForm({ store, onCancel, onSuccess }: Me
         {/* Horário de Funcionamento */}
         <BusinessHoursPicker
           value={formData.hours}
-          onChange={(hours) => setFormData({ ...formData, hours })}
+          onChange={(hours) => setFormData(prev => ({ ...prev, hours }))}
           disabled={loading}
           required
         />
 
         {/* Status Ativo/Inativo */}
-        <div className="flex items-center justify-between p-4 bg-background rounded-xl border border-border">
-          <div className="flex items-center gap-3">
-            <Power className="h-5 w-5 text-muted-foreground" />
+        <div className="flex items-center justify-between p-3 bg-background rounded-lg border border-border">
+          <div className="flex items-center gap-2">
+            <Power className="h-4 w-4 text-muted-foreground" />
             <div>
-              <Label htmlFor="active" className="text-card-foreground font-medium cursor-pointer">
+              <Label htmlFor="active" className="text-card-foreground font-medium cursor-pointer text-xs">
                 Loja Ativa
               </Label>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-[10px] text-muted-foreground">
                 {formData.active ? "Loja visível para clientes" : "Loja oculta para clientes"}
               </p>
             </div>
@@ -285,22 +285,22 @@ export default function MerchantStoreEditForm({ store, onCancel, onSuccess }: Me
         />
 
         {/* Botões */}
-        <div className="flex gap-3 pt-4">
+        <div className="flex gap-2 pt-2">
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
-            className="flex-1 h-12 rounded-xl"
+            className="flex-1 h-9 rounded-lg text-sm"
             disabled={loading}
           >
             Cancelar
           </Button>
           <Button
             type="submit"
-            className="flex-1 h-12 rounded-xl gradient-primary text-primary-foreground hover:opacity-95 transition-opacity shadow-md"
+            className="flex-1 h-9 rounded-lg text-sm gradient-primary text-primary-foreground hover:opacity-95 transition-opacity shadow-md"
             disabled={loading}
           >
-            {loading ? "Salvando..." : "Salvar Alterações"}
+            {loading ? "Salvando..." : "Salvar"}
           </Button>
         </div>
       </form>

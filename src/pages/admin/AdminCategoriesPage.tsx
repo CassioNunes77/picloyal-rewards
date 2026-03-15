@@ -4,7 +4,6 @@ import {
   Plus,
   Search,
   Edit,
-  Trash2,
   Check,
   X,
   ChevronRight,
@@ -30,7 +29,6 @@ import {
   Loader2,
   type LucideIcon,
 } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 import {
   getAllCategories,
@@ -42,16 +40,6 @@ import {
   type Category,
 } from "@/services/categoriesService";
 import { firestore } from "@/lib/firebase";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 interface Category {
   id: string;
@@ -109,8 +97,8 @@ const getIconComponent = (iconName: string): LucideIcon | null => {
 };
 
 const AdminCategoriesPage = () => {
-  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterActive, setFilterActive] = useState<"all" | "active" | "inactive">("all");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [newCategory, setNewCategory] = useState({ name: "", icon: "" });
@@ -120,10 +108,10 @@ const AdminCategoriesPage = () => {
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [showEditIconPicker, setShowEditIconPicker] = useState(false);
-  const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
   const [updatingCategoryId, setUpdatingCategoryId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Carregar categorias do Firestore e escutar mudanças em tempo real
   useEffect(() => {
@@ -178,9 +166,14 @@ const AdminCategoriesPage = () => {
     };
   }, []);
 
-  const filteredCategories = categories.filter((cat) =>
-    cat.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredCategories = categories.filter((cat) => {
+    const matchesSearch = cat.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFilter =
+      filterActive === "all" ||
+      (filterActive === "active" && cat.active) ||
+      (filterActive === "inactive" && !cat.active);
+    return matchesSearch && matchesFilter;
+  });
 
   const handleToggleActive = async (id: string) => {
     const category = categories.find((c) => c.id === id);
@@ -302,43 +295,88 @@ const AdminCategoriesPage = () => {
     }
   };
 
-  const handleDeleteClick = (category: Category) => {
-    setCategoryToDelete(category);
-    setShowDeleteDialog(true);
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
-  const handleDeleteConfirm = async () => {
-    if (!categoryToDelete) return;
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredCategories.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredCategories.map((c) => c.id)));
+    }
+  };
 
-    setDeletingCategoryId(categoryToDelete.id);
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const bulkSetActive = async (active: boolean) => {
+    const ids = Array.from(selectedIds);
+    const toUpdate = categories.filter((c) => ids.includes(c.id));
+    if (toUpdate.length === 0) return;
+    setUpdatingCategoryId(ids[0] ?? null);
+    let ok = 0;
+    let fail = 0;
     try {
-      await deleteCategory(categoryToDelete.id);
-      toast.success("Categoria removida com sucesso");
-      setShowDeleteDialog(false);
-      setCategoryToDelete(null);
-    } catch (error) {
-      console.error("Erro ao excluir categoria:", error);
-      toast.error("Erro ao excluir categoria. Tente novamente.");
+      for (const cat of toUpdate) {
+        try {
+          await updateCategory(cat.id, { active });
+          setCategories((prev) => prev.map((c) => (c.id === cat.id ? { ...c, active } : c)));
+          ok++;
+        } catch {
+          fail++;
+        }
+      }
+      setSelectedIds(new Set());
+      if (ok) toast.success(ok === 1 ? (active ? "Categoria ativada" : "Categoria desativada") : `${ok} categorias atualizadas.`);
+      if (fail) toast.error(`${fail} categoria(s) não puderam ser atualizadas.`);
     } finally {
-      setDeletingCategoryId(null);
+      setUpdatingCategoryId(null);
+    }
+  };
+
+  const openDeleteModal = () => setShowDeleteModal(true);
+
+  const bulkDelete = async () => {
+    const ids = Array.from(selectedIds);
+    const toDelete = categories.filter((c) => ids.includes(c.id));
+    if (toDelete.length === 0) return;
+    setDeleting(true);
+    let ok = 0;
+    let fail = 0;
+    try {
+      for (const cat of toDelete) {
+        try {
+          await deleteCategory(cat.id);
+          ok++;
+        } catch {
+          fail++;
+        }
+      }
+      setSelectedIds(new Set());
+      setShowDeleteModal(false);
+      setCategories((prev) => prev.filter((c) => !ids.includes(c.id)));
+      if (ok) toast.success(ok === 1 ? "Categoria excluída." : `${ok} categorias excluídas.`);
+      if (fail) toast.error(`${fail} categoria(s) não puderam ser excluídas.`);
+    } finally {
+      setDeleting(false);
     }
   };
 
   return (
     <div className="min-h-full bg-background">
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-card-foreground mb-2">Categorias</h1>
-          <p className="text-sm text-muted-foreground">
-            Gerenciar categorias de produtos
-            {categories.length > 0 && (
-              <span className="ml-2 text-xs">({categories.length} categoria{categories.length !== 1 ? "s" : ""} cadastrada{categories.length !== 1 ? "s" : ""})</span>
-            )}
+          <h1 className="text-2xl font-bold text-card-foreground">Categorias</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {loadingCategories ? "—" : `${categories.length} categoria${categories.length !== 1 ? "s" : ""} cadastrada${categories.length !== 1 ? "s" : ""}`}
           </p>
           {!firestore && (
-            <p className="text-xs text-destructive mt-1">
-              ⚠️ Firebase não está configurado. As categorias não serão salvas.
-            </p>
+            <p className="text-xs text-destructive mt-1">⚠️ Firebase não está configurado.</p>
           )}
         </div>
         <button
@@ -350,7 +388,7 @@ const AdminCategoriesPage = () => {
         </button>
       </div>
 
-      <div className="mb-6">
+      <div className="mb-4 space-y-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <input
@@ -361,7 +399,67 @@ const AdminCategoriesPage = () => {
             className="w-full pl-10 pr-4 py-3 rounded-xl bg-card text-card-foreground placeholder:text-muted-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {(["all", "active", "inactive"] as const).map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setFilterActive(filter)}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                filterActive === filter
+                  ? "bg-primary text-primary-foreground shadow-md"
+                  : "bg-card text-card-foreground border border-border hover:bg-muted"
+              }`}
+            >
+              {filter === "all" ? "Todas" : filter === "active" ? "Ativas" : "Inativas"}
+            </button>
+          ))}
+        </div>
       </div>
+
+      {searchQuery && (
+        <p className="text-sm text-muted-foreground mb-3">
+          {filteredCategories.length} resultado{filteredCategories.length !== 1 ? "s" : ""} encontrado{filteredCategories.length !== 1 ? "s" : ""}.
+        </p>
+      )}
+
+      {selectedIds.size > 0 && (
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
+          <span className="text-sm font-medium text-card-foreground">
+            {selectedIds.size} categoria{selectedIds.size !== 1 ? "s" : ""} selecionada{selectedIds.size !== 1 ? "s" : ""}
+          </span>
+          <button
+            type="button"
+            onClick={() => bulkSetActive(true)}
+            disabled={!!updatingCategoryId}
+            className="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+          >
+            Ativar
+          </button>
+          <button
+            type="button"
+            onClick={() => bulkSetActive(false)}
+            disabled={!!updatingCategoryId}
+            className="rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+          >
+            Desativar
+          </button>
+          <button
+            type="button"
+            onClick={openDeleteModal}
+            disabled={!!updatingCategoryId}
+            className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+          >
+            Excluir
+          </button>
+          <button
+            type="button"
+            onClick={clearSelection}
+            className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium text-card-foreground hover:bg-muted"
+          >
+            Desmarcar
+          </button>
+        </div>
+      )}
 
       {loadingCategories ? (
         <div className="flex items-center justify-center py-12">
@@ -369,112 +467,125 @@ const AdminCategoriesPage = () => {
           <span className="ml-3 text-muted-foreground">Carregando categorias...</span>
         </div>
       ) : categories.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <Tag className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-2">Nenhuma categoria cadastrada</p>
-          <p className="text-sm text-muted-foreground mb-4">
-            Adicione uma categoria para começar
-          </p>
+        <div className="text-center py-16">
+          <Tag className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <p className="text-card-foreground font-medium mb-2">Nenhuma categoria cadastrada</p>
+          <p className="text-sm text-muted-foreground mb-4">Adicione uma categoria para começar.</p>
           {!firestore && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md">
-              <p className="text-sm text-destructive font-medium mb-1">⚠️ Firebase não configurado</p>
-              <p className="text-xs text-destructive/80">
-                Verifique as variáveis de ambiente do Firebase no arquivo .env
-              </p>
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mx-auto">
+              <p className="text-sm text-destructive font-medium">⚠️ Firebase não configurado</p>
+              <p className="text-xs text-destructive/80">Verifique as variáveis de ambiente no .env</p>
             </div>
           )}
         </div>
       ) : filteredCategories.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <Tag className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-2">Nenhuma categoria encontrada</p>
-          <p className="text-sm text-muted-foreground">
-            Tente buscar com outros termos
-          </p>
-          <p className="text-xs text-muted-foreground mt-2">
-            Total de categorias: {categories.length} | Filtradas: {filteredCategories.length}
-          </p>
+        <div className="text-center py-16">
+          <Tag className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <p className="text-card-foreground font-medium mb-2">Nenhuma categoria encontrada</p>
+          <p className="text-sm text-muted-foreground">Nenhuma categoria corresponde aos filtros.</p>
         </div>
       ) : (
-        <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-5"} gap-3`}>
-          {filteredCategories.map((category) => (
-          <div
-            key={category.id}
-            className="bg-card rounded-xl border border-border p-4 shadow-sm hover:shadow-md transition-all"
-          >
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
-                  {(() => {
-                    const IconComponent = getIconComponent(category.icon);
-                    return IconComponent ? (
-                      <IconComponent className="h-4 w-4" />
-                    ) : (
-                      <Tag className="h-4 w-4" />
-                    );
-                  })()}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-card-foreground text-sm truncate">{category.name}</h3>
-                    <span
-                      className={`px-1.5 py-0.5 rounded-full text-xs font-medium shrink-0 ${
-                        category.active
-                          ? "bg-green-100 text-green-700"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {category.active ? "Ativa" : "Inativa"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={() => handleToggleActive(category.id)}
-                disabled={updatingCategoryId === category.id}
-                className={`p-1.5 rounded-lg transition-all shrink-0 ${
-                  category.active
-                    ? "bg-green-100 text-green-700 hover:bg-green-200"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-                title={category.active ? "Desativar categoria" : "Ativar categoria"}
-              >
-                {updatingCategoryId === category.id ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : category.active ? (
-                  <Check className="h-4 w-4" />
-                ) : (
-                  <X className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs text-muted-foreground">{category.productsCount} produtos</p>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => handleEditClick(category)}
-                  disabled={updatingCategoryId === category.id || deletingCategoryId === category.id}
-                  className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Editar categoria"
-                >
-                  <Edit className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => handleDeleteClick(category)}
-                  disabled={deletingCategoryId === category.id || updatingCategoryId === category.id}
-                  className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Excluir categoria"
-                >
-                  {deletingCategoryId === category.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Trash2 className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-            </div>
+        <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[500px]">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="w-12 py-3 pl-4 pr-2">
+                    <input
+                      type="checkbox"
+                      checked={filteredCategories.length > 0 && selectedIds.size === filteredCategories.length}
+                      onChange={toggleSelectAll}
+                      className="h-4 w-4 rounded border-border text-primary focus:ring-primary/30"
+                      aria-label="Selecionar todas"
+                    />
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-16">Ícone</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nome</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-24">Ofertas</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-24">Status</th>
+                  <th className="text-right py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-28">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filteredCategories.map((category) => (
+                  <tr
+                    key={category.id}
+                    onClick={() => handleEditClick(category)}
+                    className={`transition-colors cursor-pointer ${
+                      selectedIds.has(category.id) ? "bg-primary/10 hover:bg-primary/15" : "bg-card hover:bg-muted/30"
+                    }`}
+                  >
+                    <td className="w-12 py-3 pl-4 pr-2" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(category.id)}
+                        onChange={() => toggleSelect(category.id)}
+                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary/30"
+                        aria-label={`Selecionar ${category.name}`}
+                      />
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        {(() => {
+                          const IconComponent = getIconComponent(category.icon);
+                          return IconComponent ? (
+                            <IconComponent className="h-4 w-4 text-primary" />
+                          ) : (
+                            <Tag className="h-4 w-4 text-primary" />
+                          );
+                        })()}
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="font-medium text-card-foreground">{category.name}</span>
+                    </td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground">
+                      {category.productsCount} ofertas
+                    </td>
+                    <td className="py-3 px-4">
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                          category.active ? "bg-green-100 text-green-800" : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {category.active ? "Ativa" : "Inativa"}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => handleEditClick(category)}
+                          disabled={!!updatingCategoryId}
+                          className="p-2 rounded-lg text-muted-foreground hover:bg-muted transition-all disabled:opacity-50"
+                          title="Editar categoria"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleToggleActive(category.id)}
+                          disabled={updatingCategoryId === category.id}
+                          className={`p-2 rounded-lg transition-all ${
+                            category.active
+                              ? "bg-green-100 text-green-700 hover:bg-green-200"
+                              : "bg-muted text-muted-foreground hover:bg-muted/80"
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
+                          title={category.active ? "Desativar" : "Ativar"}
+                        >
+                          {updatingCategoryId === category.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : category.active ? (
+                            <Check className="h-4 w-4" />
+                          ) : (
+                            <X className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ))}
         </div>
       )}
 
@@ -746,37 +857,49 @@ const AdminCategoriesPage = () => {
         </div>
       )}
 
-      {/* Dialog de confirmação de exclusão */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja remover a categoria "{categoryToDelete?.name}"?
-              Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setCategoryToDelete(null)}>
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConfirm}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={deletingCategoryId !== null}
-            >
-              {deletingCategoryId ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Excluindo...
-                </>
-              ) : (
-                "Excluir"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Modal de confirmação de exclusão em massa */}
+      {showDeleteModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => !deleting && setShowDeleteModal(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-card-foreground mb-2">Excluir categorias?</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Você está prestes a excluir <strong>{selectedIds.size}</strong> categoria
+              {selectedIds.size !== 1 ? "s" : ""}. Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => !deleting && setShowDeleteModal(false)}
+                disabled={deleting}
+                className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-card-foreground hover:bg-muted disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={bulkDelete}
+                disabled={deleting}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Excluindo...
+                  </>
+                ) : (
+                  "Excluir"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

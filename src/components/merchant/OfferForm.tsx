@@ -150,27 +150,27 @@ export default function OfferForm({ storeId, merchantId, offer, onCancel, onSucc
   const minDate = new Date().toISOString().split("T")[0];
 
   return (
-    <div className="bg-background rounded-xl p-6 border border-border">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-card-foreground">
+    <div className="bg-background rounded-lg p-3 border border-border -mx-5">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-base font-semibold text-card-foreground">
           {isEdit ? "Editar Oferta" : "Nova Oferta"}
         </h3>
         <Button
           variant="ghost"
           size="icon"
           onClick={onCancel}
-          className="h-8 w-8"
+          className="h-7 w-7"
         >
-          <X className="h-4 w-4" />
+          <X className="h-3.5 w-3.5" />
         </Button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3">
         {/* Status Ativo/Inativo */}
-        <div className="flex items-center justify-between p-4 bg-card rounded-lg border border-border">
+        <div className="flex items-center justify-between p-3 bg-card rounded-lg border border-border">
           <div>
-            <Label className="text-sm font-medium">Status da Oferta</Label>
-            <p className="text-xs text-muted-foreground mt-1">
+            <Label className="text-xs font-medium">Status da Oferta</Label>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
               {active ? "Oferta está ativa e visível" : "Oferta está inativa e oculta"}
             </p>
           </div>
@@ -178,9 +178,9 @@ export default function OfferForm({ storeId, merchantId, offer, onCancel, onSucc
         </div>
 
         {/* Título */}
-        <div className="space-y-2">
-          <Label htmlFor="title" className="flex items-center gap-2">
-            <Tag className="h-4 w-4" />
+        <div className="space-y-1">
+          <Label htmlFor="title" className="flex items-center gap-1.5 text-xs">
+            <Tag className="h-3.5 w-3.5" />
             Título da Oferta *
           </Label>
           <Input
@@ -190,13 +190,14 @@ export default function OfferForm({ storeId, merchantId, offer, onCancel, onSucc
             placeholder="Ex: 20% OFF em Bebidas"
             disabled={loading}
             required
+            className="h-9 text-sm"
           />
         </div>
 
         {/* Descrição */}
-        <div className="space-y-2">
-          <Label htmlFor="description" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
+        <div className="space-y-1">
+          <Label htmlFor="description" className="flex items-center gap-1.5 text-xs">
+            <FileText className="h-3.5 w-3.5" />
             Descrição *
           </Label>
           <Textarea
@@ -204,52 +205,57 @@ export default function OfferForm({ storeId, merchantId, offer, onCancel, onSucc
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Descreva a oferta em detalhes..."
-            rows={4}
+            rows={3}
             disabled={loading}
             required
+            className="text-sm"
           />
         </div>
 
-        {/* Categoria */}
-        <div className="space-y-2">
-          <Label htmlFor="category">Categoria</Label>
-          <Select value={category} onValueChange={setCategory} disabled={loading}>
-            <SelectTrigger id="category">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((cat) => (
-                <SelectItem key={cat.value} value={cat.value}>
-                  {cat.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {/* Categoria e Desconto em linha */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Categoria */}
+          <div className="space-y-1">
+            <Label htmlFor="category" className="text-xs">Categoria</Label>
+            <Select value={category} onValueChange={setCategory} disabled={loading}>
+              <SelectTrigger id="category" className="h-9 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        {/* Desconto */}
-        <div className="space-y-2">
-          <Label htmlFor="discount" className="flex items-center gap-2">
-            <Percent className="h-4 w-4" />
-            Desconto (opcional)
-          </Label>
-          <Input
-            id="discount"
-            value={discount}
-            onChange={(e) => setDiscount(e.target.value)}
-            placeholder="Ex: 20%, R$ 10, Grátis"
-            disabled={loading}
-          />
+          {/* Desconto */}
+          <div className="space-y-1">
+            <Label htmlFor="discount" className="flex items-center gap-1.5 text-xs">
+              <Percent className="h-3.5 w-3.5" />
+              Desconto
+            </Label>
+            <Input
+              id="discount"
+              value={discount}
+              onChange={(e) => setDiscount(e.target.value)}
+              placeholder="Ex: 20%"
+              disabled={loading}
+              className="h-9 text-sm"
+            />
+          </div>
         </div>
 
         {/* Início da oferta */}
-        <div className="space-y-2">
-          <Label className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Quando a oferta estará disponível
+        <div className="space-y-1.5">
+          <Label className="flex items-center gap-1.5 text-xs">
+            <Calendar className="h-3.5 w-3.5" />
+            Disponibilidade
           </Label>
-          <div className="flex gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
+          <div className="flex gap-3">
+            <label className="flex items-center gap-1.5 cursor-pointer">
               <input
                 type="radio"
                 name="startType"
@@ -258,9 +264,9 @@ export default function OfferForm({ storeId, merchantId, offer, onCancel, onSucc
                 disabled={loading}
                 className="rounded-full border-border"
               />
-              <span className="text-sm font-medium">Disponível ao salvar</span>
+              <span className="text-xs">Imediata</span>
             </label>
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex items-center gap-1.5 cursor-pointer">
               <input
                 type="radio"
                 name="startType"
@@ -269,7 +275,7 @@ export default function OfferForm({ storeId, merchantId, offer, onCancel, onSucc
                 disabled={loading}
                 className="rounded-full border-border"
               />
-              <span className="text-sm font-medium">Agendar data de início</span>
+              <span className="text-xs">Agendar</span>
             </label>
           </div>
           {!startImmediate && (
@@ -279,59 +285,59 @@ export default function OfferForm({ storeId, merchantId, offer, onCancel, onSucc
               onChange={(e) => setValidFrom(e.target.value)}
               min={minDate}
               disabled={loading}
-              className="mt-2"
+              className="mt-1.5 h-9 text-sm"
             />
           )}
-          <p className="text-xs text-muted-foreground mt-1">
-            {startImmediate
-              ? "A oferta ficará visível assim que for salva"
-              : "A oferta só aparecerá para clientes a partir da data escolhida"}
-          </p>
         </div>
 
-        {/* Data de Validade */}
-        <div className="space-y-2">
-          <Label htmlFor="validUntil" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Válido até *
-          </Label>
-          <Input
-            id="validUntil"
-            type="date"
-            value={validUntil}
-            onChange={(e) => setValidUntil(e.target.value)}
-            min={minDate}
-            disabled={loading}
-            required
-          />
-        </div>
+        {/* Data de Validade e Pontos em linha */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Data de Validade */}
+          <div className="space-y-1">
+            <Label htmlFor="validUntil" className="flex items-center gap-1.5 text-xs">
+              <Calendar className="h-3.5 w-3.5" />
+              Válido até *
+            </Label>
+            <Input
+              id="validUntil"
+              type="date"
+              value={validUntil}
+              onChange={(e) => setValidUntil(e.target.value)}
+              min={minDate}
+              disabled={loading}
+              required
+              className="h-9 text-sm"
+            />
+          </div>
 
-        {/* Pontos Necessários */}
-        <div className="space-y-2">
-          <Label htmlFor="pointsRequired" className="flex items-center gap-2">
-            <Gift className="h-4 w-4" />
-            Pontos Necessários (opcional)
-          </Label>
-          <Input
-            id="pointsRequired"
-            type="number"
-            value={pointsRequired}
-            onChange={(e) => setPointsRequired(e.target.value)}
-            placeholder="Ex: 50"
-            min="0"
-            disabled={loading}
-          />
+          {/* Pontos Necessários */}
+          <div className="space-y-1">
+            <Label htmlFor="pointsRequired" className="flex items-center gap-1.5 text-xs">
+              <Gift className="h-3.5 w-3.5" />
+              Pontos
+            </Label>
+            <Input
+              id="pointsRequired"
+              type="number"
+              value={pointsRequired}
+              onChange={(e) => setPointsRequired(e.target.value)}
+              placeholder="Ex: 50"
+              min="0"
+              disabled={loading}
+              className="h-9 text-sm"
+            />
+          </div>
         </div>
 
         {/* Botões */}
-        <div className="space-y-3 pt-4">
-          <div className="flex gap-3">
+        <div className="space-y-2 pt-2">
+          <div className="flex gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={onCancel}
               disabled={loading}
-              className="flex-1"
+              className="flex-1 h-9 text-sm"
             >
               Cancelar
             </Button>
@@ -344,7 +350,7 @@ export default function OfferForm({ storeId, merchantId, offer, onCancel, onSucc
                 !validUntil ||
                 (!startImmediate && !validFrom)
               }
-              className="flex-1 gradient-primary text-primary-foreground hover:opacity-95"
+              className="flex-1 h-9 text-sm gradient-primary text-primary-foreground hover:opacity-95"
             >
               {loading
                 ? isEdit
@@ -361,9 +367,9 @@ export default function OfferForm({ storeId, merchantId, offer, onCancel, onSucc
               variant="ghost"
               onClick={() => setShowDeleteConfirm(true)}
               disabled={loading}
-              className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+              className="w-full h-8 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className="h-3.5 w-3.5 mr-1.5" />
               Excluir Oferta
             </Button>
           )}

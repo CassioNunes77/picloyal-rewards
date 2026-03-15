@@ -7,9 +7,10 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, BarChart, Bar } from "recharts";
 import { getUsersGrowthData, type UserGrowthPoint } from "@/services/usersService";
 import { getOffersCountByCategory, type CategoryCount } from "@/services/offersService";
+import { getRedemptionsRevenueData, type RevenueEstimatePoint } from "@/services/redemptionsService";
 
 const CATEGORY_COLORS = ["bg-primary", "bg-secondary", "bg-green-500", "bg-blue-500", "bg-muted"];
 
@@ -19,6 +20,8 @@ const AdminAnalyticsPage = () => {
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "1y">("30d");
   const [userGrowth, setUserGrowth] = useState<UserGrowthPoint[]>([]);
   const [loadingUserGrowth, setLoadingUserGrowth] = useState(true);
+  const [revenueData, setRevenueData] = useState<RevenueEstimatePoint[]>([]);
+  const [loadingRevenue, setLoadingRevenue] = useState(true);
   const [topCategories, setTopCategories] = useState<CategoryCount[]>([]);
   const [loadingTopCategories, setLoadingTopCategories] = useState(true);
 
@@ -35,23 +38,36 @@ const AdminAnalyticsPage = () => {
     }
   }, [timeRange]);
 
-  // Recarrega ao abrir a tela (navegação) e ao trocar o período
+  const loadRevenueData = useCallback(async () => {
+    setLoadingRevenue(true);
+    try {
+      const data = await getRedemptionsRevenueData(timeRange);
+      setRevenueData(data);
+    } catch (err) {
+      console.error("Erro ao carregar receita estimada:", err);
+      setRevenueData([]);
+    } finally {
+      setLoadingRevenue(false);
+    }
+  }, [timeRange]);
+
   useEffect(() => {
     if (location.pathname.includes("analytics")) {
       loadUserGrowth();
+      loadRevenueData();
     }
-  }, [location.pathname, loadUserGrowth]);
+  }, [location.pathname, loadUserGrowth, loadRevenueData]);
 
-  // Atualização em tempo real: recarrega ao retornar à aba/janela
   useEffect(() => {
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible" && location.pathname.includes("analytics")) {
         loadUserGrowth();
+        loadRevenueData();
       }
     };
     document.addEventListener("visibilitychange", onVisibilityChange);
     return () => document.removeEventListener("visibilitychange", onVisibilityChange);
-  }, [location.pathname, loadUserGrowth]);
+  }, [location.pathname, loadUserGrowth, loadRevenueData]);
 
   useEffect(() => {
     const load = async () => {
@@ -69,7 +85,6 @@ const AdminAnalyticsPage = () => {
     load();
   }, []);
 
-  // Dados mockados para outros gráficos
   const analytics = {
     revenue: [
       { period: "Jan", value: 120000 },
@@ -158,7 +173,67 @@ const AdminAnalyticsPage = () => {
         )}
       </div>
 
-      {/* Gráfico de Receita */}
+      {/* Gráfico de Receita Estimada */}
+      <div className="bg-card rounded-2xl border border-border p-6 shadow-sm mb-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-lg font-bold text-card-foreground mb-1">Receita estimada</h2>
+            <p className="text-sm text-muted-foreground">
+              Resgates × ticket médio (R$ 40). Baseado nos últimos resgates de ofertas.
+            </p>
+          </div>
+          <DollarSign className="h-6 w-6 text-primary" />
+        </div>
+        {loadingRevenue ? (
+          <div className="h-[280px] flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : revenueData.length === 0 ? (
+          <div className="h-[280px] flex items-center justify-center text-muted-foreground text-sm">
+            Nenhum dado de resgates no período
+          </div>
+        ) : (
+          <ChartContainer
+            config={{
+              value: { label: "Receita (R$)", color: "hsl(var(--chart-2))" },
+            }}
+            className="h-[280px] w-full"
+          >
+            <BarChart data={revenueData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis
+                dataKey="period"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                className="text-xs"
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`}
+                className="text-xs"
+              />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    formatter={(value) => [`R$ ${Number(value).toLocaleString("pt-BR")}`, "Receita est."]}
+                    labelFormatter={(_, payload) => (payload?.[0]?.payload ? `${(payload[0].payload as RevenueEstimatePoint).period} (${(payload[0].payload as RevenueEstimatePoint).count} resgates)` : "")}
+                  />
+                }
+              />
+              <Bar
+                dataKey="value"
+                fill="hsl(var(--chart-2))"
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
+          </ChartContainer>
+        )}
+      </div>
+
+      {/* Economia Gerada (legado) */}
       <div className="bg-card rounded-2xl border border-border p-6 shadow-sm mb-6">
         <div className="flex items-center justify-between mb-6">
           <div>

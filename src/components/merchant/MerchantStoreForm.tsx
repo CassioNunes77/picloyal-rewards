@@ -246,7 +246,7 @@ export default function MerchantStoreForm({ onCancel, onSuccess }: MerchantStore
         {/* Horário de Funcionamento */}
         <BusinessHoursPicker
           value={formData.hours}
-          onChange={(hours) => setFormData({ ...formData, hours })}
+          onChange={(hours) => setFormData(prev => ({ ...prev, hours }))}
           disabled={loading}
           required
         />

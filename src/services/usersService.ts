@@ -312,30 +312,39 @@ export async function updateUserData(
   updates: Partial<Omit<UserData, "uid" | "createdAt">>
 ): Promise<void> {
   console.log("🔍 [usersService] updateUserData chamado para:", userId, "Updates:", updates);
-  
+
   if (!firestore) {
     console.error("❌ [usersService] Firestore não está configurado!");
     throw new Error("Firestore não está configurado. Verifique as variáveis de ambiente do Firebase.");
   }
-  
+
   try {
     const userRef = doc(firestore, COLLECTION_NAME, userId);
-    
+    const userSnap = await getDoc(userRef);
+
     // Se estamos atualizando preferências, mesclar com as existentes
     if (updates.preferences) {
-      const userSnap = await getDoc(userRef);
       const existingData = userSnap.exists() ? userSnap.data() : null;
       const existingPreferences = existingData?.preferences || {};
-      
+
       updates.preferences = {
         ...existingPreferences,
         ...updates.preferences,
       };
     }
-    
+
     const updateData = userDataToFirestore(updates);
-    
-    await updateDoc(userRef, updateData);
+
+    // Se o documento não existir, criar com setDoc e merge
+    if (!userSnap.exists()) {
+      await setDoc(userRef, {
+        uid: userId,
+        ...updateData,
+        createdAt: Timestamp.now(),
+      }, { merge: true });
+    } else {
+      await updateDoc(userRef, updateData);
+    }
     console.log("✅ [usersService] Dados do usuário atualizados:", userId);
   } catch (error: any) {
     console.error("❌ [usersService] Erro ao atualizar dados do usuário:", error);

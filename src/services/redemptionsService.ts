@@ -275,3 +275,98 @@ export async function confirmRedemption(
   });
   recordOfferConfirmed(redemptionId, merchantId).catch(() => {});
 }
+
+/** Ticket médio estimado por resgate (R$) para cálculo de receita */
+const TICKET_MEDIO_ESTIMADO = 40;
+
+export type RevenueTimeRange = "7d" | "30d" | "90d" | "1y";
+
+export interface RevenueEstimatePoint {
+  period: string;
+  count: number;
+  value: number; // receita estimada em R$
+}
+
+const MONTH_NAMES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"] as const;
+
+/**
+ * Retorna dados de receita estimada por período (resgates × ticket médio) para o gráfico de Analytics.
+ */
+export async function getRedemptionsRevenueData(timeRange: RevenueTimeRange): Promise<RevenueEstimatePoint[]> {
+  if (!firestore) return [];
+
+  try {
+    const all = await getRecentRedemptions(2000);
+    const now = new Date();
+    let start: Date;
+    if (timeRange === "7d") start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    else if (timeRange === "30d") start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    else if (timeRange === "90d") start = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+    else start = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+
+    const filtered = all.filter((r) => r.createdAt >= start);
+    const result: RevenueEstimatePoint[] = [];
+
+    if (timeRange === "7d") {
+      for (let i = 6; i >= 0; i--) {
+        const end = new Date(now);
+        end.setDate(end.getDate() - i);
+        end.setHours(23, 59, 59, 999);
+        const dayStart = new Date(end);
+        dayStart.setHours(0, 0, 0, 0);
+        const count = filtered.filter((r) => r.createdAt >= dayStart && r.createdAt <= end).length;
+        result.push({
+          period: `${String(end.getDate()).padStart(2, "0")}/${String(end.getMonth() + 1).padStart(2, "0")}`,
+          count,
+          value: count * TICKET_MEDIO_ESTIMADO,
+        });
+      }
+    } else if (timeRange === "30d") {
+      for (let i = 28; i >= 0; i -= 2) {
+        const end = new Date(now);
+        end.setDate(end.getDate() - i);
+        end.setHours(23, 59, 59, 999);
+        const periodStart = new Date(end);
+        periodStart.setDate(periodStart.getDate() - 1);
+        periodStart.setHours(23, 59, 59, 999);
+        const count = filtered.filter((r) => r.createdAt > periodStart && r.createdAt <= end).length;
+        result.push({
+          period: `${String(end.getDate()).padStart(2, "0")}/${String(end.getMonth() + 1).padStart(2, "0")}`,
+          count,
+          value: count * TICKET_MEDIO_ESTIMADO,
+        });
+      }
+    } else if (timeRange === "90d") {
+      for (let i = 11; i >= 0; i--) {
+        const end = new Date(now);
+        end.setDate(end.getDate() - i * 7);
+        end.setHours(23, 59, 59, 999);
+        const weekStart = new Date(end);
+        weekStart.setDate(weekStart.getDate() - 6);
+        weekStart.setHours(0, 0, 0, 0);
+        const count = filtered.filter((r) => r.createdAt >= weekStart && r.createdAt <= end).length;
+        const period =
+          i === 0
+            ? `${String(end.getDate()).padStart(2, "0")}/${String(end.getMonth() + 1).padStart(2, "0")}`
+            : `${String(weekStart.getDate()).padStart(2, "0")}/${String(weekStart.getMonth() + 1).padStart(2, "0")}`;
+        result.push({ period, count, value: count * TICKET_MEDIO_ESTIMADO });
+      }
+    } else {
+      for (let i = 11; i >= 0; i--) {
+        const monthOffset = now.getMonth() - i;
+        const y = now.getFullYear() + Math.floor(monthOffset / 12);
+        const m = ((monthOffset % 12) + 12) % 12;
+        const end = new Date(y, m + 1, 0, 23, 59, 59, 999);
+        const monthStart = new Date(y, m, 1, 0, 0, 0, 0);
+        const count = filtered.filter((r) => r.createdAt >= monthStart && r.createdAt <= end).length;
+        const period = `${MONTH_NAMES[m]} ${y}`;
+        result.push({ period, count, value: count * TICKET_MEDIO_ESTIMADO });
+      }
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Erro ao buscar dados de receita estimada:", error);
+    return [];
+  }
+}
