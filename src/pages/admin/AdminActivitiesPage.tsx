@@ -177,6 +177,5 @@ const AdminActivitiesPage = () => {
     </div>
   );
 };
-};
 
 export default AdminActivitiesPage;
